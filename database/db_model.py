@@ -209,3 +209,7 @@ class ExchangeRate(Base):
     @staticmethod
     def currencies():
         return [a for a in dir(ExchangeRate) if a.isupper()]
+
+    def __add__(self, other):
+        for currency in self.currencies():
+            setattr(self, currency, getattr(self, currency) + getattr(other, currency))
