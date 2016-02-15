@@ -1,26 +1,45 @@
 # -*- coding: utf-8 -*-
 
 import logging
+from os.path import dirname, normpath, abspath
+
+import collections
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 
-from gold_digger.config.params import DEFAULT_CONFIG_PARAMS
 from ..data_providers import *
 
 
 class DiContainer:
 
-    def __init__(self):
-        self.params = DEFAULT_CONFIG_PARAMS
+    def __init__(self, main_file_path, *params_set):
+        self._file_path = normpath(abspath(main_file_path))
+
         self._db_connection = None
         self._db_session = None
+
+        self._params = {}
+        for params in params_set:
+            self._params = self._merge_params(self._params, params)
 
         self._logger = logging.getLogger("gold-digger")
         self.setup_logger(self._logger)
 
+    def _merge_params(self, dest, src):
+        for key, value in src.items():
+            if isinstance(value, collections.Mapping):
+                nested_params = dest.get(key, {})
+                value = self._merge_params(nested_params, value)
+            elif isinstance(value, str):
+                value = value.format(base_dir=self.base_dir)
+
+            dest[key] = value
+
+        return dest
+
     def __getitem__(self, item):
-        return self.params.get(item)
+        return self._params.get(item)
 
     def __enter__(self):
         return self
@@ -32,6 +51,10 @@ class DiContainer:
         if self._db_connection is not None:
             self._db_connection.dispose()
             self._db_connection = None
+
+    @property
+    def base_dir(self):
+        return dirname(self._file_path)
 
     @property
     def db_connection(self):

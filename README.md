@@ -14,6 +14,19 @@ pip install -U pip wheel
 pip install --use-wheel -r requirements-dev.txt
 ```
 
+Create PostgreSQL database and user named *gold-digger*.
+
+Create local configuration file called `gold_digger/config/params_local.py` with configuration for local machine.
+For development purposes there is no configuration required so file may look like the below one:
+
+```python
+# -*- coding: utf-8 -*-
+
+LOCAL_CONFIG_PARAMS = {
+
+}
+```
+
 ## Usage
 Create local database and update connection parameters.
 

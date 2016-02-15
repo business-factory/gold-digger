@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 DEFAULT_CONFIG_PARAMS = {
     "development_mode": True,
