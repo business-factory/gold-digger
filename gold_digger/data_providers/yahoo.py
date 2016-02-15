@@ -31,3 +31,6 @@ class Yahoo:
 
     def get_historical(self, currencies, origin_date):
         return None
+
+    def __str__(self):
+        return "yahoo"

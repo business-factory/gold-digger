@@ -2,7 +2,7 @@
 
 import json
 import falcon
-from datetime import date, timedelta
+from datetime import date
 from wsgiref import simple_server
 from ..database.db_model import ExchangeRate
 from ..managers.exchange_rate_manager import get_rates, get_range_rates
@@ -48,12 +48,8 @@ class DateRateResource(DatabaseResource):
             query = ExchangeRate,
             to_currencies = set(ExchangeRate.currencies())
 
-        for i in range(10):
-            rate = get_rates(self.db_session, date_of_exchange - timedelta(i), query, to_currencies.union(("USD", from_currency)), self.data_providers)
-            if rate:
-                break
-            print("trying yesterday")
-        else:
+        rate = get_rates(self.db_session, date_of_exchange, query, to_currencies.union(("USD", from_currency)), self.data_providers)
+        if not rate:
             raise falcon.HTTPInternalServerError("Exchange rate not found", "Exchange rate not found")
 
         conversion = rate.USD / getattr(rate, from_currency)
