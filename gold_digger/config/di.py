@@ -2,10 +2,11 @@
 
 import logging
 
-from config.params import DEFAULT_CONFIG_PARAMS
-from data_providers import *
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
+
+from gold_digger.config.params import DEFAULT_CONFIG_PARAMS
+from ..data_providers import *
 
 
 class DiContainer:

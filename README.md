@@ -17,10 +17,10 @@ pip install --use-wheel -r requirements-dev.txt
 ## Usage
 Create local database and update connection parameters.
 
-* `python exchange_rates.py recreate-db` to create table
-* `python exchange_rates.py update` to update rates from today
-* `python exchange_rates.py update-all` to update rates from specified origin date
-* `python exchange_rates.py serve` start API server
+* `python -m gold_digger recreate-db` to create table
+* `python -m gold_digger update` to update rates from today
+* `python -m gold_digger update-all` to update rates from specified origin date
+* `python -m gold_digger serve` start API server
 
 ## API endpoints
 

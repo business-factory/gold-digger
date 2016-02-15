@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from database.db_model import ExchangeRate
+from gold_digger.database.db_model import ExchangeRate
 
 
 def update_db(session, day, provider, rates):
