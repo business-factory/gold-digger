@@ -30,7 +30,7 @@ LOCAL_CONFIG_PARAMS = {
 ## Usage
 Create local database and update connection parameters.
 
-* `python -m gold_digger recreate-db` to create table
+* `python -m gold_digger initialize-db` to create tables
 * `python -m gold_digger update` to update rates from today
 * `python -m gold_digger update-all` to update rates from specified origin date
 * `python -m gold_digger serve` start API server

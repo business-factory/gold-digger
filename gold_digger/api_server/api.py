@@ -4,14 +4,13 @@ import json
 import falcon
 from datetime import date
 from wsgiref import simple_server
-from ..database.db_model import ExchangeRate
-from ..managers.exchange_rate_manager import get_rates, get_range_rates
+from ..managers.exchange_rate_manager import get_exchange_rate_by_date, get_average_exchange_rate_by_dates
 
 
 def make_server(container):
     app = falcon.API()
-    date_rate_resource = DateRateResource(container.db_session, container.data_providers)
-    range_rate_resource = RangeRateResource(container.db_session, container.data_providers)
+    date_rate_resource = DateRateResource(container)
+    range_rate_resource = RangeRateResource(container)
 
     app.add_route("/rate", date_rate_resource)
     app.add_route("/range", range_rate_resource)
@@ -21,51 +20,33 @@ def make_server(container):
 
 
 class DatabaseResource:
-    def __init__(self, db_session, data_providers):
-        self.db_session = db_session
-        self.data_providers = data_providers
+    def __init__(self, container):
+        self.container = container
 
 
 class DateRateResource(DatabaseResource):
     def on_get(self, req, resp):
         from_currency = req.get_param("from", required=True)
-        to_currency = req.get_param("to")
+        to_currency = req.get_param("to", required=True)
         date_of_exchange = req.get_param_as_date("date")
-
-        from_currency_attr = getattr(ExchangeRate, from_currency, None)
-        if from_currency_attr is None:
-            raise falcon.HTTPInvalidParam("Invalid currency", from_currency)
-
         date_of_exchange = date_of_exchange if date_of_exchange else date.today()
 
-        if to_currency:
-            to_currency_attr = getattr(ExchangeRate, to_currency, None)
-            if to_currency_attr is None:
-                raise falcon.HTTPInvalidParam("Invalid currency", to_currency)
-            query = ExchangeRate.USD, from_currency_attr, to_currency_attr
-            to_currencies = {to_currency}
-        else:
-            query = ExchangeRate,
-            to_currencies = set(ExchangeRate.currencies())
+        invalid_currencies = [currency for currency in (from_currency, to_currency) if currency not in self.container["supported_currencies"]]
+        if invalid_currencies:
+            raise falcon.HTTPInvalidParam("Invalid currency", " and ".join(invalid_currencies))
 
-        rate = get_rates(self.db_session, date_of_exchange, query, to_currencies.union(("USD", from_currency)), self.data_providers)
-        if not rate:
+        exchange_rate = get_exchange_rate_by_date(self.container.db_session, date_of_exchange, from_currency, to_currency, self.container.data_providers)
+
+        if not exchange_rate:
             raise falcon.HTTPInternalServerError("Exchange rate not found", "Exchange rate not found")
-
-        conversion = rate.USD / getattr(rate, from_currency)
-
-        exchange_rates = {}
-        for to in to_currencies:
-            to_rate = getattr(rate, to)
-            if to_rate:
-                exchange_rates[to] = float(to_rate * conversion)
 
         resp.status = falcon.HTTP_200
         resp.body = json.dumps(
             {
                 "date": date_of_exchange.strftime(format="%Y-%m-%d"),
                 "from_currency": from_currency,
-                "exchange_rates": exchange_rates
+                "to_currency": to_currency,
+                "exchange_rate": str(exchange_rate)
             }
         )
 
@@ -73,33 +54,15 @@ class DateRateResource(DatabaseResource):
 class RangeRateResource(DatabaseResource):
     def on_get(self, req, resp):
         from_currency = req.get_param("from", required=True)
-        to_currency = req.get_param("to")
+        to_currency = req.get_param("to", required=True)
         start_date = req.get_param_as_date("start_date", required=True)
         end_date = req.get_param_as_date("end_date", required=True)
 
-        from_currency_attr = getattr(ExchangeRate, from_currency, None)
-        if from_currency_attr is None:
-            raise falcon.HTTPInvalidParam("Invalid currency", from_currency)
+        invalid_currencies = [currency for currency in (from_currency, to_currency) if currency not in self.container["supported_currencies"]]
+        if invalid_currencies:
+            raise falcon.HTTPInvalidParam("Invalid currency", " and ".join(invalid_currencies))
 
-        if to_currency:
-            to_currency_attr = getattr(ExchangeRate, to_currency, None)
-            if to_currency_attr is None:
-                raise falcon.HTTPInvalidParam("Invalid currency", to_currency)
-            query = ExchangeRate.USD, from_currency_attr, to_currency_attr
-            to_currencies = {to_currency}
-        else:
-            query = ExchangeRate,
-            to_currencies = set(ExchangeRate.currencies())
-
-        rate = get_range_rates(self.db_session, start_date, end_date, query, to_currencies.union(("USD", from_currency)), self.data_providers)
-
-        conversion = rate.USD / getattr(rate, from_currency)
-
-        exchange_rates = {}
-        for to in to_currencies:
-            to_rate = getattr(rate, to)
-            if to_rate:
-                exchange_rates[to] = float(to_rate * conversion)
+        exchange_rate = get_average_exchange_rate_by_dates(self.container.db_session, start_date, end_date, from_currency, to_currency, self.container.data_providers, self.container.logger)
 
         resp.status = falcon.HTTP_200
         resp.body = json.dumps(
@@ -107,6 +70,7 @@ class RangeRateResource(DatabaseResource):
                 "start_date": start_date.strftime(format="%Y-%m-%d"),
                 "end_date": end_date.strftime(format="%Y-%m-%d"),
                 "from_currency": from_currency,
-                "exchange_rates": exchange_rates
+                "to_currency": to_currency,
+                "exchange_rate": str(exchange_rate)
             }
         )
