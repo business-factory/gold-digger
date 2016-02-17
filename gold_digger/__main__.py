@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import click
 
-from gold_digger.database.db_model import Base
-from .api_server.api import make_server
+from .api_server.api import app
+from .database.db_model import Base
 from .config import DiContainer, DEFAULT_CONFIG_PARAMS, LOCAL_CONFIG_PARAMS
 
 
@@ -34,8 +34,7 @@ def command(**kwargs):
 
 @cli.command("serve", help="Run API server")
 def command(**kwargs):
-    with DiContainer(__file__, DEFAULT_CONFIG_PARAMS, LOCAL_CONFIG_PARAMS) as c:
-        make_server(c)
+    app.simple_server()
 
 
 if __name__ == "__main__":

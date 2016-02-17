@@ -4,18 +4,7 @@ import json
 import falcon
 from datetime import date
 from wsgiref import simple_server
-
-
-def make_server(container):
-    app = falcon.API()
-    date_rate_resource = DateRateResource(container)
-    range_rate_resource = RangeRateResource(container)
-
-    app.add_route("/rate", date_rate_resource)
-    app.add_route("/range", range_rate_resource)
-
-    server = simple_server.make_server("localhost", 25800, app)
-    server.serve_forever()
+from ..config import DiContainer, DEFAULT_CONFIG_PARAMS, LOCAL_CONFIG_PARAMS
 
 
 class DatabaseResource:
@@ -76,3 +65,17 @@ class RangeRateResource(DatabaseResource):
                 "exchange_rate": str(exchange_rate)
             }
         )
+
+
+class API(falcon.API):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.container = DiContainer(__file__, DEFAULT_CONFIG_PARAMS, LOCAL_CONFIG_PARAMS)
+        self.add_route("/rate", DateRateResource(self.container))
+        self.add_route("/range", RangeRateResource(self.container))
+
+    def simple_server(self):
+        server = simple_server.make_server("localhost", self.container["api-simple-server"]["port"], self)
+        server.serve_forever()
+
+app = API()
