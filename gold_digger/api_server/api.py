@@ -4,7 +4,6 @@ import json
 import falcon
 from datetime import date
 from wsgiref import simple_server
-from ..managers.exchange_rate_manager import get_exchange_rate_by_date, get_average_exchange_rate_by_dates
 
 
 def make_server(container):
@@ -35,7 +34,7 @@ class DateRateResource(DatabaseResource):
         if invalid_currencies:
             raise falcon.HTTPInvalidParam("Invalid currency", " and ".join(invalid_currencies))
 
-        exchange_rate = get_exchange_rate_by_date(self.container.db_session, date_of_exchange, from_currency, to_currency, self.container.data_providers)
+        exchange_rate = self.container.exchange_rate_manager.get_exchange_rate_by_date(date_of_exchange, from_currency, to_currency)
 
         if not exchange_rate:
             raise falcon.HTTPInternalServerError("Exchange rate not found", "Exchange rate not found")
@@ -62,7 +61,10 @@ class RangeRateResource(DatabaseResource):
         if invalid_currencies:
             raise falcon.HTTPInvalidParam("Invalid currency", " and ".join(invalid_currencies))
 
-        exchange_rate = get_average_exchange_rate_by_dates(self.container.db_session, start_date, end_date, from_currency, to_currency, self.container.data_providers, self.container.logger)
+        exchange_rate = self.container.exchange_rate_manager.get_average_exchange_rate_by_dates(start_date, end_date, from_currency, to_currency)
+
+        if not exchange_rate:
+            raise falcon.HTTPInternalServerError("Exchange rate not found", "Exchange rate not found")
 
         resp.status = falcon.HTTP_200
         resp.body = json.dumps(

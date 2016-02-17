@@ -2,17 +2,16 @@
 
 import logging
 from os.path import dirname, normpath, abspath
-
 import collections
-
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
-
 from ..data_providers import *
+from ..database.dao_provider import DaoProvider
+from ..database.dao_exchange_rate import DaoExchangeRate
+from ..managers.exchange_rate_manager import ExchangeRateManager
 
 
 class DiContainer:
-
     def __init__(self, main_file_path, *params_set):
         self._file_path = normpath(abspath(main_file_path))
 
@@ -69,6 +68,16 @@ class DiContainer:
     @property
     def data_providers(self):
         return GrandTrunk(), CurrencyLayer(), Yahoo()
+
+    @property
+    def exchange_rate_manager(self):
+        return ExchangeRateManager(
+            DaoExchangeRate(self.db_session),
+            DaoProvider(self.db_session),
+            self.data_providers,
+            self["supported_currencies"],
+            self.logger
+        )
 
     @property
     def logger(self):
