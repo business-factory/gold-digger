@@ -31,22 +31,22 @@ LOCAL_CONFIG_PARAMS = {
 Create local database and update connection parameters.
 
 * `python -m gold_digger initialize-db` to create tables
-* `python -m gold_digger update` to update rates from today
-* `python -m gold_digger update-all` to update rates from specified origin date
-* `python -m gold_digger serve` start API server
+* `python -m gold_digger update [--date="yyyy-mm-dd"]` to update rates of specified date (default today)
+* `python -m gold_digger update-all [--origin-date="yyyy-mm-dd"]` to update rates since specified origin date
+* `python -m gold_digger serve` starts API server
 
 ## API endpoints
 
 * /rate?from=X&to=Y&date=YYYY-MM-DD
 	* from currency - required
-	* to currency - optional; returns all available currencies if omitted 
+	* to currency - required 
 	* date of exchange - optional; returns last exchange rates if omitted 
 
 	* example: http://localhost:25800/rate?from=EUR&to=USD&date=2005-12-22
 
 * /range?from=X&to=Y&start_date=YYYY-MM-DD&end_date=YYYY-MM-DD
 	* from currency - required
-	* to currency - optional; returns all available currencies if omitted
+	* to currency - required
 	* start date + end date of exchange - required
 	
     * example: hhttp://localhost:25800/range?from=EUR&to=AED&start_date=2016-02-15&end_date=2016-02-15
