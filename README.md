@@ -14,6 +14,9 @@ pip install -U pip wheel
 pip install --use-wheel -r requirements-dev.txt
 ```
 
+Now you can run test by command `py.test` or start watchdog that run the tests
+after every save of Python file by command `ptw`.
+
 Create PostgreSQL database and user named *gold-digger*.
 
 Create local configuration file called `gold_digger/config/params_local.py` with configuration for local machine.
@@ -37,16 +40,16 @@ Create local database and update connection parameters.
 
 ## API endpoints
 
-* /rate?from=X&to=Y&date=YYYY-MM-DD
+* `/rate?from=X&to=Y&date=YYYY-MM-DD`
 	* from currency - required
 	* to currency - required 
 	* date of exchange - optional; returns last exchange rates if omitted 
 
-	* example: http://localhost:25800/rate?from=EUR&to=USD&date=2005-12-22
+	* example: [http://localhost:25800/rate?from=EUR&to=USD&date=2005-12-22](http://localhost:25800/rate?from=EUR&to=USD&date=2005-12-22)
 
-* /range?from=X&to=Y&start_date=YYYY-MM-DD&end_date=YYYY-MM-DD
+* `/range?from=X&to=Y&start_date=YYYY-MM-DD&end_date=YYYY-MM-DD`
 	* from currency - required
 	* to currency - required
 	* start date + end date of exchange - required
 	
-    * example: hhttp://localhost:25800/range?from=EUR&to=AED&start_date=2016-02-15&end_date=2016-02-15
+    * example: [http://localhost:25800/range?from=EUR&to=AED&start_date=2016-02-15&end_date=2016-02-15](http://localhost:25800/range?from=EUR&to=AED&start_date=2016-02-15&end_date=2016-02-15)
