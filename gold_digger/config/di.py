@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import logging
-from os.path import dirname, normpath, abspath
 import collections
+from os.path import dirname, normpath, abspath
+from cached_property import cached_property as service
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 from ..data_providers import *
@@ -51,25 +52,25 @@ class DiContainer:
             self._db_connection.dispose()
             self._db_connection = None
 
-    @property
+    @service
     def base_dir(self):
         return dirname(self._file_path)
 
-    @property
+    @service
     def db_connection(self):
         self._db_connection = create_engine("{dialect}://{user}:{pass}@{host}:{port}/{name}".format(**self["database"]))
         return self._db_connection
 
-    @property
+    @service
     def db_session(self):
         self._db_session = scoped_session(sessionmaker(self.db_connection))
         return self._db_session()
 
-    @property
+    @service
     def data_providers(self):
         return GrandTrunk(), CurrencyLayer(), Yahoo()
 
-    @property
+    @service
     def exchange_rate_manager(self):
         return ExchangeRateManager(
             DaoExchangeRate(self.db_session),
@@ -79,7 +80,7 @@ class DiContainer:
             self.logger
         )
 
-    @property
+    @service
     def logger(self):
         return self._logger
 
