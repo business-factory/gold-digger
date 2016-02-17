@@ -2,13 +2,12 @@
 
 DEFAULT_CONFIG_PARAMS = {
     "development_mode": True,
-    "base_currency": "USD",
     "database": {
-        "user": "gold-digger",
-        "pass": "digdig",
+        "user": "postgres",
+        "pass": "postgres",
         "name": "gold-digger",
         "host": "127.0.0.1",
-        "port": "5433",
+        "port": "5432",
         "dialect": "postgres"
     },
     "supported_currencies": {
