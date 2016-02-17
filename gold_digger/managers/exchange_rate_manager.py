@@ -35,15 +35,16 @@ def update_all_historical_rates(container, origin_date):
 def get_or_update_rate_by_date(db_session, date_of_exchange, currency, data_providers):
     """
     Get records of exchange rates for the date from all data providers.
-    If the date is missing request data providers to update database.
+    If rates are missing for the date from some providers request data only from these providers to update database.
     """
     exchange_rates = get_rates_by_date_currency(db_session, date_of_exchange, currency)
-    if len(exchange_rates) != len(data_providers):
-        for data_provider in data_providers:    # TODO update only not existing
-            rate = data_provider.get_by_date(date_of_exchange, currency)
-            if rate:
-                exchange_rate = insert_new_rate(db_session, date_of_exchange, data_provider.name, currency, rate)
-                exchange_rates.append(exchange_rate)
+    exchange_rates_providers = set(r.provider.name for r in exchange_rates)
+    missing_provider_rates = [provider for provider in data_providers if provider.name not in exchange_rates_providers]
+    for data_provider in missing_provider_rates:
+        rate = data_provider.get_by_date(date_of_exchange, currency)
+        if rate:
+            exchange_rate = insert_new_rate(db_session, date_of_exchange, data_provider.name, currency, rate)
+            exchange_rates.append(exchange_rate)
     return exchange_rates
 
 
