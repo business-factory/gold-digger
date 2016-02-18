@@ -32,9 +32,11 @@ def command(**kwargs):
         c.exchange_rate_manager.update_all_rates_by_date(kwargs["date"])
 
 
-@cli.command("serve", help="Run API server")
+@cli.command("serve", help="Run API server (simple)")
+@click.option("--host", default="localhost")
+@click.option("--port", default=8000)
 def command(**kwargs):
-    app.simple_server()
+    app.simple_server(kwargs["host"], kwargs["port"])
 
 
 if __name__ == "__main__":

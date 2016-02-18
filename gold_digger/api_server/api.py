@@ -74,8 +74,8 @@ class API(falcon.API):
         self.add_route("/rate", DateRateResource(self.container))
         self.add_route("/range", RangeRateResource(self.container))
 
-    def simple_server(self):
-        server = simple_server.make_server("localhost", self.container["api-simple-server"]["port"], self)
+    def simple_server(self, host, port):
+        server = simple_server.make_server(host, port, self)
         server.serve_forever()
 
 app = API()
