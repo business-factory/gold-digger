@@ -53,3 +53,12 @@ Create local database and update connection parameters.
 	* start date + end date of exchange - required
 	
     * example: [http://localhost:25800/range?from=EUR&to=AED&start_date=2016-02-15&end_date=2016-02-15](http://localhost:25800/range?from=EUR&to=AED&start_date=2016-02-15&end_date=2016-02-15)
+    
+## Docker
+Build docker image.
+
+`docker build -t gold-digger-ubuntu .`
+
+Run docker container which starts the gunicorn server. Initialize database before running the container.
+
+`docker run --name gold-digger -t -i -p 8000:8000 gold-digger-ubuntu`
