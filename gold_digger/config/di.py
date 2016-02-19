@@ -68,7 +68,7 @@ class DiContainer:
 
     @service
     def data_providers(self):
-        return GrandTrunk(), CurrencyLayer(), Yahoo()
+        return GrandTrunk(self.logger), CurrencyLayer(self.logger), Yahoo(self.logger)
 
     @service
     def exchange_rate_manager(self):

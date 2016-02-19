@@ -1,38 +1,35 @@
 # -*- coding: utf-8 -*-
-import requests
 from collections import defaultdict
 from datetime import date, timedelta
-from decimal import Decimal, InvalidOperation
+from ._provider import Provider
 
 
-class CurrencyLayer:
+class CurrencyLayer(Provider):
     """
     Real-time service with free plan for 1000 requests per month.
     Implicit base currency is USD.
     """
     BASE_URL = "http://www.apilayer.net/api/live?access_key=8497c277171dfc3ad271f1ccb733a6a8"
+    BASE_CURRENCY = "USD"
     name = "currency_layer"
 
     def get_by_date(self, date_of_exchange, currency):
-        response = requests.get("{url}&date={date}&currencies={currencies}".format(
-            url=self.BASE_URL, date=date_of_exchange.strftime(format="%Y-%m-%d"), currencies=currency
-        ))
-        for currency_pair, value in response.json()["quotes"].items():
-            try:
-                return Decimal(value)
-            except InvalidOperation:
-                return
+        response = self._get("{url}&date={date}&currencies={currencies}".format(
+            url=self.BASE_URL, date=date_of_exchange.strftime(format="%Y-%m-%d"), currencies=currency))
+        records = response.json().get("quotes", {}) if response else {}
+        value = records.get("%s%s" % (self.BASE_CURRENCY, currency))
+        return self._to_decimal(value, currency)
 
     def get_all_by_date(self, date_of_exchange, currencies):
-        response = requests.get("{url}&date={date}&currencies={currencies}".format(
-            url=self.BASE_URL, date=date_of_exchange.strftime(format="%Y-%m-%d"), currencies=",".join(currencies)
-        ))
+        response = self._get("{url}&date={date}&currencies={currencies}".format(
+            url=self.BASE_URL, date=date_of_exchange.strftime(format="%Y-%m-%d"), currencies=",".join(currencies)))
+        records = response.json().get("quotes", {}) if response else {}
         day_rates = {}
-        for currency_pair, value in response.json()["quotes"].items():
-            try:
-                day_rates[currency_pair[3:]] = Decimal(value)
-            except InvalidOperation:
-                pass
+        for currency_pair, value in records.items():
+            currency = currency_pair[3:]
+            decimal_value = self._to_decimal(value, currency)
+            if currency and decimal_value:
+                day_rates[currency] = decimal_value
         return day_rates
 
     def get_historical(self, currencies, origin_date):
@@ -40,11 +37,14 @@ class CurrencyLayer:
         date_of_exchange = origin_date
         date_of_today = date.today()
         while date_of_exchange != date_of_today:
-            response = requests.get("{url}&date={date}&currencies={currencies}".format(
-                url=self.BASE_URL, date=date_of_exchange.strftime(format="%Y-%m-%d"), currencies=",".join(currencies)
-            ))
-            for currency_pair, value in response.json()["quotes"].items():
-                day_rates[date_of_exchange][currency_pair[3:]] = Decimal(value)
+            response = self._get("{url}&date={date}&currencies={currencies}".format(
+                url=self.BASE_URL, date=date_of_exchange.strftime(format="%Y-%m-%d"), currencies=",".join(currencies)))
+            records = response.json().get("quotes", {}) if response else {}
+            for currency_pair, value in records.items():
+                currency = currency_pair[3:]
+                decimal_value = self._to_decimal(value, currency)
+                if currency and decimal_value:
+                    day_rates[date_of_exchange][currency] = decimal_value
             date_of_exchange = date_of_exchange + timedelta(1)
         return day_rates
 

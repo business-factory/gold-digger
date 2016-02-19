@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
-from decimal import Decimal, InvalidOperation
-
-import requests
 from datetime import date
+from ._provider import Provider
 
 
-class Yahoo:
+class Yahoo(Provider):
     """
     Real-time service with no known limits offers only latest exchange rates.
     Implicit base currency is USD.
@@ -20,31 +18,39 @@ class Yahoo:
 
     def get_by_date(self, date_of_exchange, currency):
         if date_of_exchange == date.today():
-            return self.get_latest(currency)
+            return self._get_latest(currency)
 
     def get_all_by_date(self, date_of_exchange, currencies):
         if date_of_exchange == date.today():
-            return self.get_all_latest(currencies)
+            return self._get_all_latest(currencies)
 
-    def get_latest(self, currency, base_currency="USD"):
+    def _get_latest(self, currency, base_currency="USD"):
         self.params["q"] = self.PREPARED_YQL.format(pairs="%s,%s" % (base_currency, currency))
-        response = requests.post(self.BASE_URL, params=self.params)
-        value = response.json()["query"]["results"]["rate"][0]["Rate"]
-        try:
-            return Decimal(value)
-        except InvalidOperation:
-            return
+        response = self._post(self.BASE_URL, params=self.params)
+        if response:
+            rates = self._get_rates_from_response(response)
+            if len(rates) > 0:
+                return self._to_decimal(rates[0].get("Rate", ""), currency)
 
-    def get_all_latest(self, currencies):
+    def _get_all_latest(self, currencies):
         day_rates = {}
         self.params["q"] = self.PREPARED_YQL.format(pairs=",".join(currencies))
-        response = requests.post(self.BASE_URL, params=self.params)
-        for record in response.json()["query"]["results"]["rate"]:
-            try:
-                day_rates[record["id"][:3]] = Decimal(record["Rate"])
-            except InvalidOperation:
-                pass
+        response = self._post(self.BASE_URL, params=self.params)
+        for record in self._get_rates_from_response(response):
+            currency = record.get("id", "")[:3]
+            decimal_value = self._to_decimal(record.get("Rate", ""), currency)
+            if currency and decimal_value:
+                day_rates[currency] = decimal_value
         return day_rates
+
+    def _get_rates_from_response(self, response):
+        if response:
+            self.logger.debug("%s - Requested %s" % (self, response.url))
+            try:
+                return response.json()["query"]["results"]["rate"]
+            except KeyError as e:
+                self.logger.error("%s - Accessing records failed: %s" % (self, e))
+        return []
 
     def get_historical(self, currencies, origin_date):
         return None

@@ -1,52 +1,54 @@
 # -*- coding: utf-8 -*-
-import requests
 from datetime import datetime, date
 from collections import defaultdict
-from decimal import Decimal, InvalidOperation
+from ._provider import Provider
 
 
-class GrandTrunk:
+class GrandTrunk(Provider):
     """
     Service offers day exchange rates based on Federal Reserve and European Central Bank.
     It is currently free for use in low-volume and non-commercial settings.
     """
-    BASE_URL = "http://currencies.apps.grandtrunk.net/"
+    BASE_URL = "http://currencies.apps.grandtrunk.net"
     BASE_CURRENCY = "USD"
     name = "grandtrunk"
 
-    def get_by_date(self, date_of_exchange, to_currency):
-        response = requests.get("{url}/getrate/{date}/{from_currency}/{to}".format(
-            url=self.BASE_URL, date=date_of_exchange, from_currency=self.BASE_CURRENCY, to=to_currency
-        ))
-        try:
-            return Decimal(response.text.strip())
-        except InvalidOperation:
-            return
+    def get_by_date(self, date_of_exchange, currency):
+        response = self._get("{url}/getrate/{date}/{from_currency}/{to}".format(
+            url=self.BASE_URL, date=date_of_exchange, from_currency=self.BASE_CURRENCY, to=currency))
+        if response:
+            return self._to_decimal(response.text.strip(), currency)
 
     def get_all_by_date(self, date_of_exchange, currencies):
         day_rates = {}
-        for to_currency in currencies:
-            response = requests.get("{url}/getrate/{date}/{from_currency}/{to}".format(
-                url=self.BASE_URL, date=date_of_exchange, from_currency=self.BASE_CURRENCY, to=to_currency
-            ))
-            try:
-                day_rates[to_currency] = Decimal(response.text.strip())
-            except InvalidOperation:
-                pass
+        for currency in currencies:
+            response = self._get("{url}/getrate/{date}/{from_currency}/{to}".format(
+                url=self.BASE_URL, date=date_of_exchange, from_currency=self.BASE_CURRENCY, to=currency))
+            if response:
+                decimal_value = self._to_decimal(response.text.strip(), currency)
+                if decimal_value:
+                    day_rates[currency] = decimal_value
         return day_rates
 
     def get_historical(self, currencies, origin_date):
         day_rates = defaultdict(dict)
-        for to_currency in currencies:
-            response = requests.get("{url}/getrange/{from_date}/{to_date}/{from_currency}/{to}".format(
-                url=self.BASE_URL, from_date=origin_date, to_date=date.today(), from_currency=self.BASE_CURRENCY, to=to_currency
+        for currency in currencies:
+            response = self._get("{url}/getrange/{from_date}/{to_date}/{from_currency}/{to}".format(
+                url=self.BASE_URL, from_date=origin_date, to_date=date.today(), from_currency=self.BASE_CURRENCY, to=currency
             ))
-            for record in response.text.strip().split("\n"):
+            records = response.text.strip().split("\n") if response else []
+            for record in records:
                 record = record.rstrip()
                 if record:
-                    date_string, exchange_rate_string = record.split(" ")
-                    day = datetime.strptime(date_string, "%Y-%m-%d")
-                    day_rates[day][to_currency] = Decimal(exchange_rate_string)
+                    try:
+                        date_string, exchange_rate_string = record.split(" ")
+                        day = datetime.strptime(date_string, "%Y-%m-%d")
+                    except ValueError as e:
+                        self.logger.error("%s - Parsing of rate&date on record '%s' failed: %s" % (self, record, e))
+                        continue
+                    decimal_value = self._to_decimal(exchange_rate_string, currency)
+                    if decimal_value:
+                        day_rates[day][currency] = decimal_value
         return day_rates
 
     def __str__(self):
