@@ -33,4 +33,4 @@ RUN touch ${params_path}
 RUN echo "LOCAL_CONFIG_PARAMS = {}" >> ${params_path}
 
 # Command to execute
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "gold_digger.api_server.api:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "gold_digger.api_server.app:app"]

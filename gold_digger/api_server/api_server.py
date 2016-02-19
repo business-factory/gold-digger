@@ -23,7 +23,11 @@ class DateRateResource(DatabaseResource):
         if invalid_currencies:
             raise falcon.HTTPInvalidParam("Invalid currency", " and ".join(invalid_currencies))
 
-        exchange_rate = self.container.exchange_rate_manager.get_exchange_rate_by_date(date_of_exchange, from_currency, to_currency)
+        try:
+            exchange_rate = self.container.exchange_rate_manager.get_exchange_rate_by_date(date_of_exchange, from_currency, to_currency)
+        except Exception as e:
+            exchange_rate = None
+            self.container.logger.exception(e)
 
         if not exchange_rate:
             raise falcon.HTTPInternalServerError("Exchange rate not found", "Exchange rate not found")
@@ -50,7 +54,11 @@ class RangeRateResource(DatabaseResource):
         if invalid_currencies:
             raise falcon.HTTPInvalidParam("Invalid currency", " and ".join(invalid_currencies))
 
-        exchange_rate = self.container.exchange_rate_manager.get_average_exchange_rate_by_dates(start_date, end_date, from_currency, to_currency)
+        try:
+            exchange_rate = self.container.exchange_rate_manager.get_average_exchange_rate_by_dates(start_date, end_date, from_currency, to_currency)
+        except Exception as e:
+            exchange_rate = None
+            self.container.logger.exception(e)
 
         if not exchange_rate:
             raise falcon.HTTPInternalServerError("Exchange rate not found", "Exchange rate not found")
@@ -77,5 +85,3 @@ class API(falcon.API):
     def simple_server(self, host, port):
         server = simple_server.make_server(host, port, self)
         server.serve_forever()
-
-app = API()

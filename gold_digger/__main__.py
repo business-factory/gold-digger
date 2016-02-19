@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import click
 
-from .api_server.api import app
+from .api_server.api_server import API
 from .database.db_model import Base
 from .config import DiContainer, DEFAULT_CONFIG_PARAMS, LOCAL_CONFIG_PARAMS
 
@@ -36,6 +36,7 @@ def command(**kwargs):
 @click.option("--host", default="localhost")
 @click.option("--port", default=8000)
 def command(**kwargs):
+    app = API()
     app.simple_server(kwargs["host"], kwargs["port"])
 
 
