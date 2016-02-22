@@ -59,6 +59,8 @@ Build docker image.
 
 `docker build -t gold-digger-ubuntu .`
 
-Run docker container which starts the gunicorn server. Initialize database before running the container.
+Initialize database before running the container.
+
+Now run docker container which starts the Gunicorn server. Web server is kept alive by supervisor. Cron performs daily updates at 00:05.
 
 `docker run --name gold-digger -t -i -p 8000:8000 gold-digger-ubuntu`
