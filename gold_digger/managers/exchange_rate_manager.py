@@ -25,6 +25,7 @@ class ExchangeRateManager:
 
     def update_all_historical_rates(self, origin_date):
         for data_provider in self.data_providers:
+            self.logger.info("Updating all historical rates from %s provider" % data_provider)
             date_rates = data_provider.get_historical(self.supported_currencies, origin_date)
             provider = self.dao_provider.get_or_create_provider_by_name(data_provider.name)
             for day, day_rates in date_rates.items():

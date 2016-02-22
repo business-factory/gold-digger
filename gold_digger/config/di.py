@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import graypy
 import logging
 import collections
 from os.path import dirname, normpath, abspath
@@ -102,4 +103,9 @@ class DiContainer:
             "%Y-%m-%d %H:%M:%S")
         )
         logger.addHandler(handler)
+
+        if not self["development_mode"]:
+            handler = graypy.GELFHandler(self["graylog"]["address"], self["graylog"]["port"])
+            logger.addHandler(handler)
+
         return logger

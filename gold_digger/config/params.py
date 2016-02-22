@@ -10,6 +10,10 @@ DEFAULT_CONFIG_PARAMS = {
         "port": "5432",
         "dialect": "postgres"
     },
+    "graylog": {
+        "address": "logs.bfcloud.cz",
+        "port": 12211,
+    },
     "supported_currencies": {
         "AED", "AFN", "ALL", "AMD", "ANG", "AOA", "ARS", "ATS", "AUD", "AWG", "AZN", "BAM", "BBD",
         "BDT", "BEF", "BGN", "BHD", "BIF", "BMD", "BND", "BOB", "BRL", "BSD", "BTC", "BTN", "BWP",
