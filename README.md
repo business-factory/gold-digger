@@ -55,12 +55,16 @@ Create local database and update connection parameters.
     * example: [http://localhost:25800/range?from=EUR&to=AED&start_date=2016-02-15&end_date=2016-02-15](http://localhost:25800/range?from=EUR&to=AED&start_date=2016-02-15&end_date=2016-02-15)
     
 ## Docker
-Build docker image.
+Ensure you have created local params file according to *Development setup* section. Then build docker image.
 
 `docker build -t gold-digger-ubuntu .`
 
-Initialize database before running the container.
+If you are connecting to local database on the host (outside the container) run the container with --net=host option.
 
-Now run docker container which starts the Gunicorn server. Web server is kept alive by supervisor. Cron performs daily updates at 00:05.
+`docker run --name gold-digger --net=host -t -i -p 8000:8000 gold-digger-ubuntu`
 
-`docker run --name gold-digger -t -i -p 8000:8000 gold-digger-ubuntu`
+Run production container as daemon (production).
+
+`docker run --name gold-digger -d -p 8000:8000 gold-digger-ubuntu`
+
+Docker container starts the Gunicorn server. Web server is kept alive by supervisor. Cron performs daily updates at 00:05.

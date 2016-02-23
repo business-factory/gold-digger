@@ -29,9 +29,7 @@ RUN pip3 install -U pip wheel
 RUN pip3 install --use-wheel -r requirements.txt
 
 # Create local config file
-ENV params_path gold_digger/config/params_local.py
-RUN touch ${params_path}
-RUN echo "LOCAL_CONFIG_PARAMS = {}" >> ${params_path}
+ADD gold_digger/config/params_local.py gold_digger/config/params_local.py
 
 # Setup cron for daily updates
 # Add crontab file in the cron directory
