@@ -19,7 +19,7 @@ class DaoExchangeRate:
         for record in records:
             try:
                 self.db_session.add(ExchangeRate(**record))
-                self.db_session.flush()
+                self.db_session.commit()
             except IntegrityError:
                 self.db_session.rollback()
         self.db_session.commit()
@@ -44,6 +44,7 @@ class DaoExchangeRate:
             self.db_session.add(db_record)
             self.db_session.commit()
         except IntegrityError:  # rate for this currency, date and provider is already in database
+            self.db_session.rollback()
             db_record = self.get_rate_by_date_currency_provider(date_of_exchange, currency, db_provider.name)
         return db_record
 
