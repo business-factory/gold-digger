@@ -43,7 +43,7 @@ def connection(request):
 
 @pytest.fixture()
 def session(request, connection):
-    """ Drop and create all tables for every test, ie. every test starts from empty database with new session. """
+    """ Drop and create all tables for every test, ie. every test starts with empty tables and new session. """
     Base.metadata.drop_all(connection)
     Base.metadata.create_all(connection)
     _session = scoped_session(sessionmaker(connection))

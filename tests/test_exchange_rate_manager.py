@@ -71,7 +71,7 @@ def test_update_all_rates_by_date(dao_exchange_rate, dao_provider, currency_laye
         logger
     )
     _date = date(2016, 2, 17)
-    exchange_rate_manager.update_all_rates_by_date(_date.strftime("%Y-%m-%d"))
+    exchange_rate_manager.update_all_rates_by_date(_date)
     exchange_rate_manager.dao_provider.get_or_create_provider_by_name.assert_called_with(exchange_rate_manager.data_providers[0].name)
     expected_records = [
         {"provider_id": 1, "date": _date, "currency": "USD", "rate": Decimal(1)},

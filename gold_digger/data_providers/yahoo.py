@@ -47,7 +47,8 @@ class Yahoo(Provider):
         if response:
             self.logger.debug("%s - Requested %s" % (self, response.url))
             try:
-                return response.json()["query"]["results"]["rate"]
+                results = response.json()["query"]["results"]
+                return results["rate"] if results else []
             except KeyError as e:
                 self.logger.error("%s - Accessing records failed: %s" % (self, e))
         return []
