@@ -32,7 +32,7 @@ class CurrencyLayer(Provider):
                 day_rates[currency] = decimal_value
         return day_rates
 
-    def get_historical(self, currencies, origin_date):
+    def get_historical(self, origin_date, currencies):
         day_rates = defaultdict(dict)
         date_of_exchange = origin_date
         date_of_today = date.today()

@@ -52,8 +52,8 @@ class Yahoo(Provider):
                 self.logger.error("%s - Accessing records failed: %s" % (self, e))
         return []
 
-    def get_historical(self, currencies, origin_date):
-        return None
+    def get_historical(self, origin_date, currencies):
+        return {}
 
     def __str__(self):
         return self.name

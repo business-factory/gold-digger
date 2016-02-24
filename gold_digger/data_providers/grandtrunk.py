@@ -30,11 +30,12 @@ class GrandTrunk(Provider):
                     day_rates[currency] = decimal_value
         return day_rates
 
-    def get_historical(self, currencies, origin_date):
+    def get_historical(self, origin_date, currencies):
         day_rates = defaultdict(dict)
+        origin_date_string = origin_date.strftime(format="%Y-%m-%d")
         for currency in currencies:
             response = self._get("{url}/getrange/{from_date}/{to_date}/{from_currency}/{to}".format(
-                url=self.BASE_URL, from_date=origin_date, to_date=date.today(), from_currency=self.BASE_CURRENCY, to=currency
+                url=self.BASE_URL, from_date=origin_date_string, to_date=date.today(), from_currency=self.BASE_CURRENCY, to=currency
             ))
             records = response.text.strip().split("\n") if response else []
             for record in records:

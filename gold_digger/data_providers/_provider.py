@@ -18,7 +18,7 @@ class Provider(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def get_historical(self, currencies, origin_date):
+    def get_historical(self, origin_date, currencies):
         pass
 
     def _get(self, url):

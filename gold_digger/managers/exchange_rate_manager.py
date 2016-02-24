@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from datetime import date, datetime
 from decimal import Decimal
 from functools import lru_cache
 
@@ -13,7 +12,6 @@ class ExchangeRateManager:
         self.logger = logger
 
     def update_all_rates_by_date(self, date_of_exchange):
-        date_of_exchange = datetime.strptime(date_of_exchange, "%Y-%m-%d").date() if date_of_exchange else date.today()
         for data_provider in self.data_providers:
             self.logger.info("Updating all today rates from %s provider" % data_provider)
             day_rates = data_provider.get_all_by_date(date_of_exchange, self.supported_currencies)
@@ -26,7 +24,7 @@ class ExchangeRateManager:
     def update_all_historical_rates(self, origin_date):
         for data_provider in self.data_providers:
             self.logger.info("Updating all historical rates from %s provider" % data_provider)
-            date_rates = data_provider.get_historical(self.supported_currencies, origin_date)
+            date_rates = data_provider.get_historical(origin_date, self.supported_currencies)
             provider = self.dao_provider.get_or_create_provider_by_name(data_provider.name)
             for day, day_rates in date_rates.items():
                 records = [dict(currency=currency, rate=rate, date=day, provider_id=provider.id) for currency, rate in day_rates.items()]
