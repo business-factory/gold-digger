@@ -151,14 +151,14 @@ def test_get_average_exchange_rate_by_dates(dao_exchange_rate, dao_provider, log
 
     def _get_sum_of_rates_in_period(start_date, end_date, currency):
         return {
-            "EUR": [[Provider(name="currency_layer"), 10, Decimal(8.9)]],
+            "EUR": [[Provider(name="currency_layer"), 11, Decimal(8.9)]],
             "CZK": [[Provider(name="currency_layer"), 9, Decimal(217.8)]],
         }.get(currency)
 
     dao_exchange_rate.get_sum_of_rates_in_period.side_effect = _get_sum_of_rates_in_period
     exchange_rate = exchange_rate_manager.get_average_exchange_rate_by_dates(_start_date, _end_date, "EUR", "CZK")
 
-    eur_average = Decimal(8.9) / 10
+    eur_average = Decimal(8.9) / 11
     czk_average = Decimal(217.8) / 9
 
     assert exchange_rate == czk_average * (1 / eur_average)
