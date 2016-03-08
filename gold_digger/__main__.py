@@ -23,6 +23,9 @@ def cli():
 @cli.command("initialize-db", help="Create empty table (drop if exists)")
 def command(**kwargs):
     with DiContainer(__file__, DEFAULT_CONFIG_PARAMS, LOCAL_CONFIG_PARAMS) as c:
+        print("This will drop & create all tables in '%s'. To continue press 'c'" % c["database"]["name"])
+        if input() != "c":
+            return
         Base.metadata.drop_all(c.db_connection)
         Base.metadata.create_all(c.db_connection)
 
