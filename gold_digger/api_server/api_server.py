@@ -29,11 +29,12 @@ class DateRateResource(DatabaseResource):
             exchange_rate = None
             self.container.logger.exception(e)
 
-        self.container.logger.debug("%s %s->%s %s" % (date_of_exchange, from_currency, to_currency,
-                                                      self.container.exchange_rate_manager.get_exchange_rate_by_date.cache_info()))
-
         if not exchange_rate:
+            self.container.logger.error("Exchange rate not found: rate %s %s->%s" % (date_of_exchange, from_currency, to_currency))
             raise falcon.HTTPInternalServerError("Exchange rate not found", "Exchange rate not found")
+
+        self.container.logger.debug("rate %s %s->%s %s" % (date_of_exchange, from_currency, to_currency,
+                                                           self.container.exchange_rate_manager.get_exchange_rate_by_date.cache_info()))
 
         resp.status = falcon.HTTP_200
         resp.body = json.dumps(
@@ -63,11 +64,12 @@ class RangeRateResource(DatabaseResource):
             exchange_rate = None
             self.container.logger.exception(e)
 
-        self.container.logger.debug("%s/%s %s->%s %s" % (start_date, end_date, from_currency, to_currency,
-                                                         self.container.exchange_rate_manager.get_exchange_rate_by_date.cache_info()))
-
         if not exchange_rate:
+            self.container.logger.error("Exchange rate not found: range %s/%s %s->%s" % (start_date, end_date, from_currency, to_currency))
             raise falcon.HTTPInternalServerError("Exchange rate not found", "Exchange rate not found")
+
+        self.container.logger.debug("range %s/%s %s->%s %s" % (start_date, end_date, from_currency, to_currency,
+                                                               self.container.exchange_rate_manager.get_exchange_rate_by_date.cache_info()))
 
         resp.status = falcon.HTTP_200
         resp.body = json.dumps(
