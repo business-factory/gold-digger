@@ -90,7 +90,7 @@ class DiContainer:
             logger = logging.getLogger(logger)
 
         if level is None:
-            logger.setLevel(logging.DEBUG if self["development_mode"] else logging.INFO)
+            logger.setLevel(logging.DEBUG if self["development_mode"] else logging.DEBUG)
         else:
             logger.setLevel(level)
 
