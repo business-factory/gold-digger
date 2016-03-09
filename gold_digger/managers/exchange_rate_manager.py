@@ -65,7 +65,7 @@ class ExchangeRateManager:
         Compute average exchange rate of currency in specified period.
         Log warnings for missing days.
         """
-        number_of_days = abs((end_date - start_date).days)
+        number_of_days = abs((end_date - start_date).days) + 1  # we want interval <start_date, end_date>
         _from_currency = self.dao_exchange_rate.get_sum_of_rates_in_period(start_date, end_date, from_currency)
         _to_currency = self.dao_exchange_rate.get_sum_of_rates_in_period(start_date, end_date, to_currency)
 

@@ -17,6 +17,7 @@ def connection(request):
     """ Create one test database for all tests. """
     test_db_name = "gd-test"
     params = DEFAULT_CONFIG_PARAMS["database"]
+    params["name"] = "postgres"
 
     # we want connect to default database (existing database)
     # eg. postgres://postgres:postgres@localhost:5432/postgres
