@@ -34,7 +34,7 @@ class DateRateResource(DatabaseResource):
             raise falcon.HTTPInternalServerError("Exchange rate not found", "Exchange rate not found")
 
         self.container.logger.debug("GET rate %s %s->%s %s" % (date_of_exchange, from_currency, to_currency,
-                                                           self.container.exchange_rate_manager.get_exchange_rate_by_date.cache_info()))
+                                                               self.container.exchange_rate_manager.get_exchange_rate_by_date.cache_info()))
 
         resp.status = falcon.HTTP_200
         resp.body = json.dumps(
