@@ -59,7 +59,10 @@ class RangeRateResource(DatabaseResource):
             raise falcon.HTTPInvalidParam("Invalid currency", " and ".join(invalid_currencies))
 
         try:
-            exchange_rate = self.container.exchange_rate_manager.get_average_exchange_rate_by_dates(start_date, end_date, from_currency, to_currency)
+            if start_date == end_date:
+                exchange_rate = self.container.exchange_rate_manager.get_exchange_rate_by_date(start_date, from_currency, to_currency)
+            else:
+                exchange_rate = self.container.exchange_rate_manager.get_average_exchange_rate_by_dates(start_date, end_date, from_currency, to_currency)
         except Exception as e:
             exchange_rate = None
             self.container.logger.exception(e)
