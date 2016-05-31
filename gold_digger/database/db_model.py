@@ -25,3 +25,4 @@ class ExchangeRate(Base):
     provider_id = Column(Integer, ForeignKey("provider.id"))
     currency = Column(String, nullable=False)
     rate = Column(DECIMAL)
+    change_in_percents = Column(DECIMAL)
