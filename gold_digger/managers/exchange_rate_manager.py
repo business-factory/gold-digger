@@ -22,7 +22,7 @@ class ExchangeRateManager:
 
     def compute_change_in_percents(self, today_records, date_of_exchange, provider_id):
         """
-        Filter out corrupted rates by comparing with rates from yesterday.
+        Compute change in percents for today rates against rates from yesterday.
         """
         yesterday_records = self.dao_exchange_rate.get_all_currencies_by_provider_and_date(provider_id, date_of_exchange - timedelta(days=1))
         yesterday_records = {r.currency: r for r in yesterday_records}
@@ -31,6 +31,14 @@ class ExchangeRateManager:
             yesterday_record = yesterday_records.get(record["currency"])
             if yesterday_record:
                 record["change_in_percents"] = self.get_percent_change(record["rate"], yesterday_record.rate)
+
+    def compute_change_in_percents_for_one_rate(self, today_rate, currency, date_of_exchange, provider_id):
+        """
+        Compute change in percents for today rate against rate from yesterday.
+        """
+        yesterday_record = self.dao_exchange_rate.get_rate_by_date_currency_provider_id(provider_id, date_of_exchange - timedelta(days=1), currency)
+        if yesterday_record:
+            return self.get_percent_change(today_rate, yesterday_record.rate)
 
     def update_all_rates_by_date(self, date_of_exchange):
         for data_provider in self.data_providers:
@@ -67,7 +75,8 @@ class ExchangeRateManager:
             rate = data_provider.get_by_date(date_of_exchange, currency)
             if rate:
                 db_provider = self.dao_provider.get_or_create_provider_by_name(data_provider.name)
-                exchange_rate = self.dao_exchange_rate.insert_new_rate(date_of_exchange, db_provider, currency, rate)
+                change_in_percents = self.compute_change_in_percents_for_one_rate(rate, currency, date_of_exchange, db_provider.id)
+                exchange_rate = self.dao_exchange_rate.insert_new_rate(date_of_exchange, db_provider, currency, rate, change_in_percents)
                 exchange_rates.append(exchange_rate)
         return exchange_rates
 

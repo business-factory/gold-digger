@@ -34,12 +34,17 @@ class DaoExchangeRate:
             and_(ExchangeRate.date == date_of_exchange, ExchangeRate.currency == currency, ExchangeRate.provider.has(name=provider_name))
         ).first()
 
-    def insert_new_rate(self, date_of_exchange, db_provider, currency, rate):
+    def get_rate_by_date_currency_provider_id(self, provider_id, date_of_exchange, currency):
+        return self.db_session.query(ExchangeRate).filter(
+            and_(ExchangeRate.date == date_of_exchange, ExchangeRate.currency == currency, ExchangeRate.provider_id == provider_id)
+        ).first()
+
+    def insert_new_rate(self, date_of_exchange, db_provider, currency, rate, change_in_percents):
         """
         Insert new exchange rate for the specified date by specified provider.
         Date, currency and provider must be unique, therefore if record is already in database return it (without any update or insert)
         """
-        db_record = ExchangeRate(date=date_of_exchange, provider_id=db_provider.id, currency=currency, rate=rate)
+        db_record = ExchangeRate(date=date_of_exchange, provider_id=db_provider.id, currency=currency, rate=rate, change_in_percents=change_in_percents)
         try:
             self.db_session.add(db_record)
             self.db_session.commit()
