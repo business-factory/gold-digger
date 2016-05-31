@@ -72,14 +72,15 @@ def test_update_all_rates_by_date(dao_exchange_rate, dao_provider, currency_laye
     )
     _date = date(2016, 2, 17)
     exchange_rate_manager.update_all_rates_by_date(_date)
-    exchange_rate_manager.dao_provider.get_or_create_provider_by_name.assert_called_with(exchange_rate_manager.data_providers[0].name)
     expected_records = [
-        {"provider_id": 1, "date": _date, "currency": "USD", "rate": Decimal(1)},
-        {"provider_id": 1, "date": _date, "currency": "EUR", "rate": Decimal(0.77)}
+        {"provider_id": 1, "date": _date, "currency": "EUR", "rate": Decimal(0.77)},
+        {"provider_id": 1, "date": _date, "currency": "USD", "rate": Decimal(1)}
     ]
-    args, _ = exchange_rate_manager.dao_exchange_rate.insert_exchange_rate_to_db.call_args
-    actual_records = args[0]
-    assert len(actual_records) == len([record for record in expected_records if record in actual_records])
+    (actual_records,), _ = exchange_rate_manager.dao_exchange_rate.insert_exchange_rate_to_db.call_args
+    (provider_name,), _ = exchange_rate_manager.dao_provider.get_or_create_provider_by_name.call_args
+
+    assert sorted(actual_records, key=lambda x: x["currency"]) == expected_records
+    assert provider_name == exchange_rate_manager.data_providers[0].name
 
 
 def test_get_or_update_rate_by_date(dao_exchange_rate, dao_provider, currency_layer, grandtrunk, currencies, logger):
