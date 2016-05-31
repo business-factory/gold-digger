@@ -125,6 +125,7 @@ def test_get_or_update_rate_by_date(dao_exchange_rate, dao_provider, currency_la
           Get rate for missing provider and update DB. Finally return list of all rates of the day (all provider rates).
     """
     _date = date(2016, 2, 17)
+    dao_exchange_rate.get_rate_by_date_currency_provider_id.return_value = None
 
     exchange_rate_manager = ExchangeRateManager(dao_exchange_rate, dao_provider, [currency_layer, grandtrunk], currencies, logger)
 
@@ -132,7 +133,7 @@ def test_get_or_update_rate_by_date(dao_exchange_rate, dao_provider, currency_la
     dao_exchange_rate.get_rates_by_date_currency.return_value = [ExchangeRate(provider=Provider(name="currency_layer"), date=_date, currency="EUR", rate=Decimal(0.77))]
     dao_exchange_rate.insert_new_rate.return_value = [ExchangeRate(provider=Provider(name="grandtrunk"), date=_date, currency="EUR", rate=Decimal(0.75))]
 
-    exchange_rates = exchange_rate_manager.get_or_update_rate_by_date(_date.strftime("%Y-%m-%d"), currency="EUR")
+    exchange_rates = exchange_rate_manager.get_or_update_rate_by_date(_date, currency="EUR")
     insert_new_rate_args, _ = dao_exchange_rate.insert_new_rate.call_args
 
     assert dao_exchange_rate.insert_new_rate.call_count == 1
@@ -147,8 +148,8 @@ def test_get_exchange_rate_by_date(dao_exchange_rate, dao_provider, logger):
 
     def _get_rates_by_date_currency(date_of_exchange, currency):
         return {
-            "EUR": [ExchangeRate(currency="EUR", rate=Decimal(0.89), provider=Provider(name="currency_layer"))],
-            "CZK": [ExchangeRate(currency="CZK", rate=Decimal(24.20), provider=Provider(name="currency_layer"))]
+            "EUR": [ExchangeRate(id=1, currency="EUR", rate=Decimal(0.89), provider=Provider(name="currency_layer"))],
+            "CZK": [ExchangeRate(id=2, currency="CZK", rate=Decimal(24.20), provider=Provider(name="currency_layer"))]
         }.get(currency)
 
     dao_exchange_rate.get_rates_by_date_currency.side_effect = _get_rates_by_date_currency
@@ -183,3 +184,103 @@ def test_get_average_exchange_rate_by_dates(dao_exchange_rate, dao_provider, log
 
     assert exchange_rate == czk_average * (1 / eur_average)
     assert exchange_rate_manager.logger.warning.call_count == 1
+
+
+def test_pick_the_best_all_same_change_in_percents_is_none():
+    best = ExchangeRateManager.pick_the_best([
+        ExchangeRate(id=1, rate=Decimal(0.5), change_in_percents=None),
+        ExchangeRate(id=2, rate=Decimal(0.5), change_in_percents=None),
+        ExchangeRate(id=3, rate=Decimal(0.5), change_in_percents=None)
+    ])
+
+    assert best.id in (1, 2, 3)
+
+
+def test_pick_the_best_all_same_change_in_percents_is_same():
+    best = ExchangeRateManager.pick_the_best([
+        ExchangeRate(id=1, rate=Decimal(0.5), change_in_percents=Decimal(0.2)),
+        ExchangeRate(id=2, rate=Decimal(0.5), change_in_percents=Decimal(0.2)),
+        ExchangeRate(id=3, rate=Decimal(0.5), change_in_percents=Decimal(0.2))
+    ])
+
+    assert best.id in (1, 2, 3)
+
+
+def test_pick_the_best_all_same_change_in_percents_significant_in_one():
+    best = ExchangeRateManager.pick_the_best([
+        ExchangeRate(id=1, rate=Decimal(0.5), change_in_percents=Decimal(0.2)),
+        ExchangeRate(id=2, rate=Decimal(0.5), change_in_percents=Decimal(50)),
+        ExchangeRate(id=3, rate=Decimal(0.5), change_in_percents=Decimal(0.2))
+    ])
+
+    assert best.id in (1, 2, 3)
+
+
+def test_pick_the_best_all_different_change_in_percents_is_none():
+    best = ExchangeRateManager.pick_the_best([
+        ExchangeRate(id=1, rate=Decimal(0.0), change_in_percents=None),
+        ExchangeRate(id=2, rate=Decimal(0.7), change_in_percents=None),
+        ExchangeRate(id=3, rate=Decimal(1.4), change_in_percents=None)
+    ])
+
+    assert best.id in (1, 2, 3)
+
+
+def test_pick_the_best_one_different_change_in_percents_is_none():
+    best = ExchangeRateManager.pick_the_best([
+        ExchangeRate(id=1, rate=Decimal(0.0), change_in_percents=None),
+        ExchangeRate(id=2, rate=Decimal(0.7), change_in_percents=None),
+        ExchangeRate(id=3, rate=Decimal(0.7), change_in_percents=None)
+    ])
+
+    assert best.id in (2, 3)
+
+
+def test_pick_the_best_all_same_change_in_percents_significant_in_two():
+    best = ExchangeRateManager.pick_the_best([
+        ExchangeRate(id=1, rate=Decimal(0.5), change_in_percents=Decimal(50)),
+        ExchangeRate(id=2, rate=Decimal(0.5), change_in_percents=Decimal(50)),
+        ExchangeRate(id=3, rate=Decimal(0.5), change_in_percents=Decimal(0.2))
+    ])
+
+    assert best.id in (1, 2, 3)
+
+
+def test_pick_the_best_one_different_change_in_percents_significant_in_one():
+    best = ExchangeRateManager.pick_the_best([
+        ExchangeRate(id=1, rate=Decimal(2.3), change_in_percents=Decimal(50)),
+        ExchangeRate(id=2, rate=Decimal(0.5), change_in_percents=Decimal(0.4)),
+        ExchangeRate(id=3, rate=Decimal(0.5), change_in_percents=Decimal(0.2))
+    ])
+
+    assert best.id in (2, 3)
+
+
+def test_pick_the_best_one_different_change_in_percents_significant_in_two():
+    best = ExchangeRateManager.pick_the_best([
+        ExchangeRate(id=1, rate=Decimal(2.3), change_in_percents=Decimal(50)),
+        ExchangeRate(id=2, rate=Decimal(0.5), change_in_percents=Decimal(50)),
+        ExchangeRate(id=3, rate=Decimal(0.5), change_in_percents=Decimal(0.2))
+    ])
+
+    assert best.id in (2, 3)
+
+
+def test_pick_the_best_all_slightly_different_change_in_percents_significant_in_two():
+    best = ExchangeRateManager.pick_the_best([
+        ExchangeRate(id=1, rate=Decimal(0.65), change_in_percents=Decimal(50)),
+        ExchangeRate(id=2, rate=Decimal(0.35), change_in_percents=Decimal(40)),
+        ExchangeRate(id=3, rate=Decimal(0.41), change_in_percents=Decimal(10))
+    ])
+
+    assert best.id == 3
+
+
+def test_pick_the_best_all_different_change_rate_probably_change_radically():
+    best = ExchangeRateManager.pick_the_best([
+        ExchangeRate(id=1, rate=Decimal(2.60), change_in_percents=Decimal(60)),
+        ExchangeRate(id=2, rate=Decimal(2.56), change_in_percents=Decimal(58.9)),
+        ExchangeRate(id=3, rate=Decimal(0.40), change_in_percents=Decimal(10))
+    ])
+
+    assert best.id in (1, 2)

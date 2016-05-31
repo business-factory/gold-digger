@@ -79,17 +79,39 @@ class ExchangeRateManager:
                 exchange_rates.append(exchange_rate)
         return exchange_rates
 
+    @staticmethod
+    def pick_the_best(rates_records):
+        """
+        Compare rates from different providers and group them according to absolute difference between the pairs.
+        Pair with minimal difference wins. To choose final rate check the 'change in percents' attribute showing change
+        of rate against rate of the same provider from previous day.
+
+        eg. two providers offers rates which are more similar than rate from third provider, so pick the rate from these two
+        with respect to the change of rate trend from the provider, more stable value should be better.
+        """
+        if len(rates_records) == 1:
+            return rates_records[0]
+
+        differences = {}
+        for i, record_i in enumerate(rates_records):
+            for j, record_j in enumerate(rates_records[i+1:], start=i+1):
+                if record_i.rate and record_j.rate:
+                    differences[abs(record_i.rate - record_j.rate)] = (record_i, record_j)
+
+        best_pair = min(differences.items(), key=lambda x: x[0])[1]
+        best = min(best_pair, key=lambda x: x.change_in_percents if x.change_in_percents else 100)
+
+        return best
+
     def get_exchange_rate_by_date(self, date_of_exchange, from_currency, to_currency):
         """
         Compute exchange rate between 'from_currency' and 'to_currency'.
         If the date is missing request data providers to update database.
         """
-        _from_currency = self.get_or_update_rate_by_date(date_of_exchange, from_currency)
-        _to_currency = self.get_or_update_rate_by_date(date_of_exchange, to_currency)
-        for from_, to_ in zip(_from_currency, _to_currency):
-            if from_.rate and to_.rate:
-                conversion = 1 / from_.rate
-                return Decimal(to_.rate * conversion)
+        _from_currency = self.pick_the_best(self.get_or_update_rate_by_date(date_of_exchange, from_currency))
+        _to_currency = self.pick_the_best(self.get_or_update_rate_by_date(date_of_exchange, to_currency))
+        conversion = 1 / _from_currency.rate
+        return Decimal(_to_currency.rate * conversion)
 
     def get_average_exchange_rate_by_dates(self, start_date, end_date, from_currency, to_currency):
         """
