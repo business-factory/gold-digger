@@ -55,3 +55,8 @@ class DaoExchangeRate:
         return self.db_session.query(ExchangeRate.provider_id, func.count(), func.sum(ExchangeRate.rate)).filter(
             and_(ExchangeRate.date >= start_date, ExchangeRate.date <= end_date, ExchangeRate.currency == currency, ExchangeRate.rate.isnot(None))
         ).group_by(ExchangeRate.provider_id).all()
+
+    def get_all_currencies_by_provider_and_date(self, provider_id, date_of_exchange):
+        return self.db_session.query(ExchangeRate).filter(
+            and_(ExchangeRate.date == date_of_exchange, ExchangeRate.provider_id == provider_id)
+        ).all()
