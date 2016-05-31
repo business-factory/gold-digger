@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from datetime import timedelta
 from decimal import Decimal
 from functools import lru_cache
 
@@ -11,14 +12,36 @@ class ExchangeRateManager:
         self.supported_currencies = supported_currencies
         self.logger = logger
 
+    @staticmethod
+    def get_percent_change(today_rate, yesterday_rate):
+        """
+        Check change of new number against another in percents.
+        http://www.skillsyouneed.com/num/percent-change.html
+        """
+        return abs((today_rate - yesterday_rate) / yesterday_rate * 100)
+
+    def compute_change_in_percents(self, today_records, date_of_exchange, provider_id):
+        """
+        Filter out corrupted rates by comparing with rates from yesterday.
+        """
+        yesterday_records = self.dao_exchange_rate.get_all_currencies_by_provider_and_date(provider_id, date_of_exchange - timedelta(days=1))
+        yesterday_records = {r.currency: r for r in yesterday_records}
+
+        for record in today_records:
+            yesterday_record = yesterday_records.get(record["currency"])
+            if yesterday_record:
+                record["change_in_percents"] = self.get_percent_change(record["rate"], yesterday_record.rate)
+
     def update_all_rates_by_date(self, date_of_exchange):
         for data_provider in self.data_providers:
             self.logger.info("Updating all today rates from %s provider" % data_provider)
             day_rates = data_provider.get_all_by_date(date_of_exchange, self.supported_currencies)
             if day_rates:
                 provider = self.dao_provider.get_or_create_provider_by_name(data_provider.name)
-                records = [dict(currency=currency, rate=rate, date=date_of_exchange, provider_id=provider.id) for currency, rate in
-                           day_rates.items()]
+                records = [
+                    dict(currency=currency, rate=rate, date=date_of_exchange, provider_id=provider.id) for currency, rate in day_rates.items()
+                ]
+                self.compute_change_in_percents(records, date_of_exchange, provider.id)
                 self.dao_exchange_rate.insert_exchange_rate_to_db(records)
 
     def update_all_historical_rates(self, origin_date):
@@ -27,7 +50,9 @@ class ExchangeRateManager:
             date_rates = data_provider.get_historical(origin_date, self.supported_currencies)
             provider = self.dao_provider.get_or_create_provider_by_name(data_provider.name)
             for day, day_rates in date_rates.items():
-                records = [dict(currency=currency, rate=rate, date=day, provider_id=provider.id) for currency, rate in day_rates.items()]
+                records = [
+                    dict(currency=currency, rate=rate, date=day, provider_id=provider.id) for currency, rate in day_rates.items()
+                ]
                 self.dao_exchange_rate.insert_exchange_rate_to_db(records)
 
     def get_or_update_rate_by_date(self, date_of_exchange, currency):
