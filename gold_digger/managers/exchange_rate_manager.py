@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from decimal import Decimal
-from functools import lru_cache
 
 
 class ExchangeRateManager:
@@ -46,7 +45,6 @@ class ExchangeRateManager:
                 exchange_rates.append(exchange_rate)
         return exchange_rates
 
-    @lru_cache(maxsize=32)
     def get_exchange_rate_by_date(self, date_of_exchange, from_currency, to_currency):
         """
         Compute exchange rate between 'from_currency' and 'to_currency'.
@@ -59,7 +57,6 @@ class ExchangeRateManager:
                 conversion = 1 / from_.rate
                 return Decimal(to_.rate * conversion)
 
-    @lru_cache(maxsize=16)
     def get_average_exchange_rate_by_dates(self, start_date, end_date, from_currency, to_currency):
         """
         Compute average exchange rate of currency in specified period.
