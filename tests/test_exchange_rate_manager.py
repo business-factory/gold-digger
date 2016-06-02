@@ -102,7 +102,7 @@ def test_get_or_update_rate_by_date(dao_exchange_rate, dao_provider, currency_la
     dao_exchange_rate.get_rates_by_date_currency.return_value = [ExchangeRate(provider=Provider(name="currency_layer"), date=_date, currency="EUR", rate=Decimal(0.77))]
     dao_exchange_rate.insert_new_rate.return_value = [ExchangeRate(provider=Provider(name="grandtrunk"), date=_date, currency="EUR", rate=Decimal(0.75))]
 
-    exchange_rates = exchange_rate_manager.get_or_update_rate_by_date(_date.strftime("%Y-%m-%d"), currency="EUR")
+    exchange_rates = exchange_rate_manager.get_or_update_rate_by_date(_date, currency="EUR")
     insert_new_rate_args, _ = dao_exchange_rate.insert_new_rate.call_args
 
     assert dao_exchange_rate.insert_new_rate.call_count == 1
@@ -122,8 +122,8 @@ def test_get_exchange_rate_by_date(dao_exchange_rate, dao_provider, logger):
 
     def _get_rates_by_date_currency(date_of_exchange, currency):
         return {
-            "EUR": [ExchangeRate(currency="EUR", rate=Decimal(0.89), provider=Provider(name="currency_layer"))],
-            "CZK": [ExchangeRate(currency="CZK", rate=Decimal(24.20), provider=Provider(name="currency_layer"))]
+            "EUR": [ExchangeRate(id=1, currency="EUR", rate=Decimal(0.89), provider=Provider(name="currency_layer"))],
+            "CZK": [ExchangeRate(id=2, currency="CZK", rate=Decimal(24.20), provider=Provider(name="currency_layer"))]
         }.get(currency)
 
     dao_exchange_rate.get_rates_by_date_currency.side_effect = _get_rates_by_date_currency
@@ -163,3 +163,53 @@ def test_get_average_exchange_rate_by_dates(dao_exchange_rate, dao_provider, log
 
     assert exchange_rate == czk_average * (1 / eur_average)
     assert exchange_rate_manager.logger.warning.call_count == 1
+
+
+def test_pick_rate_from_any_provider_if_rates_are_same():
+    best = ExchangeRateManager.pick_the_best([
+        ExchangeRate(id=1, provider_id=1, rate=Decimal(0.5)),
+        ExchangeRate(id=2, provider_id=2, rate=Decimal(0.5)),
+        ExchangeRate(id=3, provider_id=3, rate=Decimal(0.5))
+    ])
+
+    assert best.id in (1, 2, 3)
+
+
+def test_pick_middle_rate_if_it_exists():
+    best = ExchangeRateManager.pick_the_best([
+        ExchangeRate(id=1, provider_id=1, rate=Decimal(0.0)),
+        ExchangeRate(id=2, provider_id=2, rate=Decimal(0.5)),
+        ExchangeRate(id=3, provider_id=3, rate=Decimal(1.0))
+    ])
+
+    assert best.id == 2
+
+
+def test_pick_middle_rate_if_it_exists2():
+    best = ExchangeRateManager.pick_the_best([
+        ExchangeRate(id=1, provider_id=1, rate=Decimal(1.5)),
+        ExchangeRate(id=2, provider_id=2, rate=Decimal(0.5)),
+        ExchangeRate(id=3, provider_id=3, rate=Decimal(1.0))
+    ])
+
+    assert best.id == 3
+
+
+def test_pick_rate_from_pair_of_same_rates_by_order_of_providers():
+    best = ExchangeRateManager.pick_the_best([
+        ExchangeRate(id=1, rate=Decimal(0.0)),
+        ExchangeRate(id=2, rate=Decimal(0.7)),
+        ExchangeRate(id=3, rate=Decimal(0.7))
+    ])
+
+    assert best.id == 2
+
+
+def test_pick_rate_from_most_similar_pair_of_rates_by_order_of_providers():
+    best = ExchangeRateManager.pick_the_best([
+        ExchangeRate(id=1, rate=Decimal(0.02)),
+        ExchangeRate(id=2, rate=Decimal(0.72)),
+        ExchangeRate(id=3, rate=Decimal(0.74))
+    ])
+
+    assert best.id == 2
