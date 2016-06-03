@@ -19,7 +19,7 @@ RUN apt-get install -y git python3 python3-pip
 RUN apt-get install -y libpq-dev supervisor
 
 # Get GIT repository with project
-RUN git clone https://github.com/business-factory/gold-digger.git
+RUN git clone -b master https://github.com/business-factory/gold-digger.git
 
 # Set the default directory
 WORKDIR /gold-digger
