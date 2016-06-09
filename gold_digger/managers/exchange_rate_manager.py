@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-from datetime import timedelta
 from decimal import Decimal
+from itertools import combinations
+from collections import defaultdict, Counter
 
 
 class ExchangeRateManager:
@@ -17,8 +18,8 @@ class ExchangeRateManager:
             day_rates = data_provider.get_all_by_date(date_of_exchange, self.supported_currencies)
             if day_rates:
                 provider = self.dao_provider.get_or_create_provider_by_name(data_provider.name)
-                records = [dict(currency=currency, rate=rate, date=date_of_exchange, provider_id=provider.id)
-                           for currency, rate in day_rates.items()]
+                records = [dict(currency=currency, rate=rate, date=date_of_exchange, provider_id=provider.id) for currency, rate in
+                           day_rates.items()]
                 self.dao_exchange_rate.insert_exchange_rate_to_db(records)
 
     def update_all_historical_rates(self, origin_date):
@@ -27,8 +28,7 @@ class ExchangeRateManager:
             date_rates = data_provider.get_historical(origin_date, self.supported_currencies)
             provider = self.dao_provider.get_or_create_provider_by_name(data_provider.name)
             for day, day_rates in date_rates.items():
-                records = [dict(currency=currency, rate=rate, date=day, provider_id=provider.id)
-                           for currency, rate in day_rates.items()]
+                records = [dict(currency=currency, rate=rate, date=day, provider_id=provider.id) for currency, rate in day_rates.items()]
                 self.dao_exchange_rate.insert_exchange_rate_to_db(records)
 
     def get_or_update_rate_by_date(self, date_of_exchange, currency):
@@ -47,17 +47,35 @@ class ExchangeRateManager:
                 exchange_rates.append(exchange_rate)
         return exchange_rates
 
+    @staticmethod
+    def pick_the_best(rates_records):
+        """
+        Compare rates to each other and group then by absolute difference.
+        If there is group with minimal difference of two rates, choose one of them according the order of providers.
+        If there is group with minimal difference with more than two rates, choose rate in the middle / aka most common rate in the list.
+        """
+        if len(rates_records) in (1, 2):
+            return rates_records[0]
+
+        differences = defaultdict(list)
+        for a, b in combinations(rates_records, 2):
+            differences[abs(a.rate - b.rate)].extend((a, b))  # if (a,b)=1 and (b,c)=1 then differences[1]=[a,b,b,c]
+
+        minimal_difference, rates = min(differences.items())
+        if len(rates) == 2:
+            return rates[0]
+        else:
+            return Counter(rates).most_common(1)[0][0]  # [(ExchangeRate, occurrences)]
+
     def get_exchange_rate_by_date(self, date_of_exchange, from_currency, to_currency):
         """
         Compute exchange rate between 'from_currency' and 'to_currency'.
         If the date is missing request data providers to update database.
         """
-        _from_currency = self.get_or_update_rate_by_date(date_of_exchange, from_currency)
-        _to_currency = self.get_or_update_rate_by_date(date_of_exchange, to_currency)
-        for from_, to_ in zip(_from_currency, _to_currency):
-            if from_.rate and to_.rate:
-                conversion = 1 / from_.rate
-                return Decimal(to_.rate * conversion)
+        _from_currency = self.pick_the_best(self.get_or_update_rate_by_date(date_of_exchange, from_currency))
+        _to_currency = self.pick_the_best(self.get_or_update_rate_by_date(date_of_exchange, to_currency))
+        conversion = 1 / _from_currency.rate
+        return Decimal(_to_currency.rate * conversion)
 
     def get_average_exchange_rate_by_dates(self, start_date, end_date, from_currency, to_currency):
         """

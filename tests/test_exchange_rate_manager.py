@@ -143,3 +143,53 @@ def test_get_average_exchange_rate_by_dates(dao_exchange_rate, dao_provider, log
 
     assert exchange_rate == czk_average * (1 / eur_average)
     assert exchange_rate_manager.logger.warning.call_count == 1
+
+
+def test_pick_rate_from_any_provider_if_rates_are_same():
+    best = ExchangeRateManager.pick_the_best([
+        ExchangeRate(id=1, provider_id=1, rate=Decimal(0.5)),
+        ExchangeRate(id=2, provider_id=2, rate=Decimal(0.5)),
+        ExchangeRate(id=3, provider_id=3, rate=Decimal(0.5))
+    ])
+
+    assert best.id in (1, 2, 3)
+
+
+def test_pick_middle_rate_if_it_exists():
+    best = ExchangeRateManager.pick_the_best([
+        ExchangeRate(id=1, provider_id=1, rate=Decimal(0.0)),
+        ExchangeRate(id=2, provider_id=2, rate=Decimal(0.5)),
+        ExchangeRate(id=3, provider_id=3, rate=Decimal(1.0))
+    ])
+
+    assert best.id == 2
+
+
+def test_pick_middle_rate_if_it_exists2():
+    best = ExchangeRateManager.pick_the_best([
+        ExchangeRate(id=1, provider_id=1, rate=Decimal(1.5)),
+        ExchangeRate(id=2, provider_id=2, rate=Decimal(0.5)),
+        ExchangeRate(id=3, provider_id=3, rate=Decimal(1.0))
+    ])
+
+    assert best.id == 3
+
+
+def test_pick_rate_from_pair_of_same_rates_by_order_of_providers():
+    best = ExchangeRateManager.pick_the_best([
+        ExchangeRate(id=1, rate=Decimal(0.0)),
+        ExchangeRate(id=2, rate=Decimal(0.7)),
+        ExchangeRate(id=3, rate=Decimal(0.7))
+    ])
+
+    assert best.id == 2
+
+
+def test_pick_rate_from_most_similar_pair_of_rates_by_order_of_providers():
+    best = ExchangeRateManager.pick_the_best([
+        ExchangeRate(id=1, rate=Decimal(0.02)),
+        ExchangeRate(id=2, rate=Decimal(0.72)),
+        ExchangeRate(id=3, rate=Decimal(0.74))
+    ])
+
+    assert best.id == 2
