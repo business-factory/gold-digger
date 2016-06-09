@@ -70,11 +70,11 @@ def test_insert_new_rate(dao_exchange_rate, dao_provider):
     assert dao_exchange_rate.get_rates_by_date_currency(date.today(), "USD") == []
 
     provider1 = dao_provider.get_or_create_provider_by_name("test1")
-    dao_exchange_rate.insert_new_rate(date.today(), provider1, "USD", Decimal(1), None)
+    dao_exchange_rate.insert_new_rate(date.today(), provider1, "USD", Decimal(1))
 
     assert len(dao_exchange_rate.get_rates_by_date_currency(date.today(), "USD")) == 1
 
-    dao_exchange_rate.insert_new_rate(date.today(), provider1, "USD", Decimal(1), None)
+    dao_exchange_rate.insert_new_rate(date.today(), provider1, "USD", Decimal(1))
 
     assert len(dao_exchange_rate.get_rates_by_date_currency(date.today(), "USD")) == 1
 
@@ -101,9 +101,9 @@ def test_get_sum_of_rates_in_period(dao_exchange_rate, dao_provider):
     assert dao_exchange_rate.get_sum_of_rates_in_period(start_date, end_date, "USD") == []
 
     provider1 = dao_provider.get_or_create_provider_by_name("test1")
-    dao_exchange_rate.insert_new_rate(date(2016, 1, 1), provider1, "USD", Decimal(1), None)
-    dao_exchange_rate.insert_new_rate(date(2016, 1, 2), provider1, "USD", Decimal(2), None)
-    dao_exchange_rate.insert_new_rate(date(2016, 1, 3), provider1, "USD", Decimal(3), None)
+    dao_exchange_rate.insert_new_rate(date(2016, 1, 1), provider1, "USD", Decimal(1))
+    dao_exchange_rate.insert_new_rate(date(2016, 1, 2), provider1, "USD", Decimal(2))
+    dao_exchange_rate.insert_new_rate(date(2016, 1, 3), provider1, "USD", Decimal(3))
 
     records = dao_exchange_rate.get_sum_of_rates_in_period(start_date, end_date, "USD")
     assert records == [(provider1.id, 3, 6)]
