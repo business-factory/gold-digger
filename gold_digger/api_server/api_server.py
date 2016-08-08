@@ -84,12 +84,28 @@ class RangeRateResource(DatabaseResource):
         )
 
 
+class HealthCheckResource(DatabaseResource):
+    def on_get(self, req, resp):
+        try:
+            exchange_rate = self.container.exchange_rate_manager.get_exchange_rate_by_date(date.today(), "USD", "USD")
+            if exchange_rate:
+                resp.body = '{"status": "UP"}'
+            else:
+                resp.body = '{"status": "DOWN", "info": "No exchange rate available."}'
+
+        except Exception as e:
+            resp.body = '{"status": "DOWN", "info": "%s"}' % e
+
+        resp.status = falcon.HTTP_200
+
+
 class API(falcon.API):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.container = DiContainer(__file__, DEFAULT_CONFIG_PARAMS, LOCAL_CONFIG_PARAMS)
         self.add_route("/rate", DateRateResource(self.container))
         self.add_route("/range", RangeRateResource(self.container))
+        self.add_route("/health", HealthCheckResource(self.container))
 
     def simple_server(self, host, port):
         server = simple_server.make_server(host, port, self)
