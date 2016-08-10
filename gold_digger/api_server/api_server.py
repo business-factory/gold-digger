@@ -2,6 +2,7 @@
 
 import json
 import falcon
+from sqlalchemy.exc import DatabaseError
 from datetime import date
 from wsgiref import simple_server
 from ..config import DiContainer, DEFAULT_CONFIG_PARAMS, LOCAL_CONFIG_PARAMS
@@ -23,11 +24,14 @@ class DateRateResource(DatabaseResource):
         if invalid_currencies:
             raise falcon.HTTPInvalidParam("Invalid currency", " and ".join(invalid_currencies))
 
+        exchange_rate = None
         try:
             exchange_rate = self.container.exchange_rate_manager.get_exchange_rate_by_date(date_of_exchange, from_currency, to_currency)
-        except Exception as e:
-            exchange_rate = None
-            self.container.logger.exception(e)
+        except DatabaseError:
+            self.container.db_session.rollback()
+            self.container.logger.exception("Database error occurred. Rollback session to allow reconnect to the DB on next request.")
+        except Exception:
+            self.container.logger.exception("Unexpected exception while rate request %s->%s (%s)", from_currency, to_currency, date_of_exchange)
 
         if not exchange_rate:
             self.container.logger.error("Exchange rate not found: rate %s %s->%s", date_of_exchange, from_currency, to_currency)
@@ -57,14 +61,17 @@ class RangeRateResource(DatabaseResource):
         if invalid_currencies:
             raise falcon.HTTPInvalidParam("Invalid currency", " and ".join(invalid_currencies))
 
+        exchange_rate = None
         try:
             if start_date == end_date:
                 exchange_rate = self.container.exchange_rate_manager.get_exchange_rate_by_date(start_date, from_currency, to_currency)
             else:
                 exchange_rate = self.container.exchange_rate_manager.get_average_exchange_rate_by_dates(start_date, end_date, from_currency, to_currency)
-        except Exception as e:
-            exchange_rate = None
-            self.container.logger.exception(e)
+        except DatabaseError:
+            self.container.db_session.rollback()
+            self.container.logger.exception("Database error occurred. Rollback session to allow reconnect to the DB on next request.")
+        except Exception:
+            self.container.logger.exception("Unexpected exception while range request %s->%s (%s - %s)", from_currency, to_currency, start_date, end_date)
 
         if not exchange_rate:
             self.container.logger.error("Exchange rate not found: range %s/%s %s->%s", start_date, end_date, from_currency, to_currency)
@@ -93,6 +100,9 @@ class HealthCheckResource(DatabaseResource):
             else:
                 resp.body = '{"status": "DOWN", "info": "No exchange rate available."}'
 
+        except DatabaseError as e:
+            self.container.db_session.rollback()
+            resp.body = '{"status": "DOWN", "info": "Database error. Service will reconnect to the DB automatically. Exception: %s"}' % e
         except Exception as e:
             resp.body = '{"status": "DOWN", "info": "%s"}' % e
 
@@ -108,5 +118,6 @@ class API(falcon.API):
         self.add_route("/health", HealthCheckResource(self.container))
 
     def simple_server(self, host, port):
+        print("Starting HTTP server at {}:{}".format(host, port))
         server = simple_server.make_server(host, port, self)
         server.serve_forever()
