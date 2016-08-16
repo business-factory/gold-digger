@@ -72,8 +72,17 @@ class ExchangeRateManager:
         Compute exchange rate between 'from_currency' and 'to_currency'.
         If the date is missing request data providers to update database.
         """
-        _from_currency = self.pick_the_best(self.get_or_update_rate_by_date(date_of_exchange, from_currency))
-        _to_currency = self.pick_the_best(self.get_or_update_rate_by_date(date_of_exchange, to_currency))
+        _from_currency_all_available = self.get_or_update_rate_by_date(date_of_exchange, from_currency)
+        _to_currency_all_available = self.get_or_update_rate_by_date(date_of_exchange, to_currency)
+
+        _from_currency = self.pick_the_best(_from_currency_all_available)
+        _to_currency = self.pick_the_best(_to_currency_all_available)
+
+        self.logger.debug("Pick best rate for %s: %s of [%s]",
+                          from_currency, _from_currency.rate, ", ".join(str(r.rate) for r in _from_currency_all_available))
+        self.logger.debug("Pick best rate for %s: %s of [%s]",
+                          to_currency, _to_currency.rate, ", ".join(str(r.rate) for r in _to_currency_all_available))
+
         conversion = 1 / _from_currency.rate
         return Decimal(_to_currency.rate * conversion)
 
