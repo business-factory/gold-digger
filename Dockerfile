@@ -14,9 +14,9 @@ ENV LC_ALL en_US.utf8
 RUN update-locale LANG=en_US.utf8
 
 # Install system dependencies
-RUN apt-get update
-RUN apt-get install -y git python3 python3-pip
-RUN apt-get install -y libpq-dev supervisor
+RUN apt-get update && \
+	apt-get install -y git python3 python3-pip && \
+	apt-get install -y libpq-dev supervisor cron
 
 # Get GIT repository with project
 RUN git clone -b master https://github.com/business-factory/gold-digger.git
@@ -25,8 +25,8 @@ RUN git clone -b master https://github.com/business-factory/gold-digger.git
 WORKDIR /gold-digger
 
 # Install Python dependencies
-RUN pip3 install -U pip wheel
-RUN pip3 install --use-wheel -r requirements.txt
+RUN pip3 install -U pip wheel && \
+	pip3 install --use-wheel -r requirements.txt
 
 # Create local config file
 ADD gold_digger/config/params_local.py gold_digger/config/params_local.py
