@@ -67,10 +67,10 @@ def test_update_all_rates_by_date(dao_exchange_rate, dao_provider, currency_laye
     exchange_rate_manager = ExchangeRateManager(dao_exchange_rate, dao_provider, [currency_layer], currencies, logger)
     exchange_rate_manager.update_all_rates_by_date(_date)
 
-    (actual_records,), _ = exchange_rate_manager.dao_exchange_rate.insert_exchange_rate_to_db.call_args
-    (provider_name,), _ = exchange_rate_manager.dao_provider.get_or_create_provider_by_name.call_args
+    (actual_records,), _ = dao_exchange_rate.insert_exchange_rate_to_db.call_args
+    (provider_name,), _ = dao_provider.get_or_create_provider_by_name.call_args
 
-    assert provider_name == exchange_rate_manager.data_providers[0].name
+    assert provider_name == exchange_rate_manager._data_providers[0].name
     assert sorted(actual_records, key=lambda x: x["currency"]) == [
         {"provider_id": 1, "date": _date, "currency": "EUR", "rate": Decimal(0.77)},
         {"provider_id": 1, "date": _date, "currency": "USD", "rate": Decimal(1)}
@@ -142,7 +142,7 @@ def test_get_average_exchange_rate_by_dates(dao_exchange_rate, dao_provider, log
     czk_average = Decimal(217.8) / 9
 
     assert exchange_rate == czk_average * (1 / eur_average)
-    assert exchange_rate_manager.logger.warning.call_count == 1
+    assert exchange_rate_manager._logger.warning.call_count == 1
 
 
 def test_pick_rate_from_any_provider_if_rates_are_same():
