@@ -14,8 +14,11 @@ class GrandTrunk(Provider):
     name = "grandtrunk"
 
     def get_by_date(self, date_of_exchange, currency):
+        date_str = date_of_exchange.strftime(format="%Y-%m-%d")
+        self.logger.debug("Requesting GrandTrunk for %s (%s)", currency, date_str, extra={"currency": currency, "date": date_str})
+
         response = self._get("{url}/getrate/{date}/{from_currency}/{to}".format(
-            url=self.BASE_URL, date=date_of_exchange, from_currency=self.BASE_CURRENCY, to=currency))
+            url=self.BASE_URL, date=date_str, from_currency=self.BASE_CURRENCY, to=currency))
         if response:
             return self._to_decimal(response.text.strip(), currency)
 

@@ -14,8 +14,10 @@ class CurrencyLayer(Provider):
     name = "currency_layer"
 
     def get_by_date(self, date_of_exchange, currency):
-        response = self._get("{url}&date={date}&currencies={currencies}".format(
-            url=self.BASE_URL, date=date_of_exchange.strftime(format="%Y-%m-%d"), currencies=currency))
+        date_str = date_of_exchange.strftime(format="%Y-%m-%d")
+        self.logger.debug("Requesting CurrencyLayer for %s (%s)", currency, date_str, extra={"currency": currency, "date": date_str})
+
+        response = self._get("{url}&date={date}&currencies={currencies}".format(url=self.BASE_URL, date=date_str, currencies=currency))
         records = response.json().get("quotes", {}) if response else {}
         value = records.get("%s%s" % (self.BASE_CURRENCY, currency))
         return self._to_decimal(value, currency) if value is not None else None

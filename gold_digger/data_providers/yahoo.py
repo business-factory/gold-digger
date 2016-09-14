@@ -17,6 +17,9 @@ class Yahoo(Provider):
     name = "yahoo"
 
     def get_by_date(self, date_of_exchange, currency):
+        date_str = date_of_exchange.strftime(format="%Y-%m-%d")
+        self.logger.debug("Requesting Yahoo for %s (%s)", currency, date_str, extra={"currency": currency, "date": date_str})
+
         if date_of_exchange == date.today():
             return self._get_latest(currency)
 
@@ -45,7 +48,6 @@ class Yahoo(Provider):
 
     def _get_rates_from_response(self, response):
         if response:
-            self.logger.debug("%s - Requested %s" % (self, response.url))
             try:
                 results = response.json()["query"]["results"]
                 return results["rate"] if results else []
