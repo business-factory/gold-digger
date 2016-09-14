@@ -40,13 +40,26 @@ class Yahoo(Provider):
         self.params["q"] = self.PREPARED_YQL.format(pairs=",".join(currencies))
         response = self._post(self.BASE_URL, params=self.params)
         for record in self._get_rates_from_response(response):
-            currency = record.get("id", "")[:3]
+            currency = record.get("id", "")
+            currency = currency[:3] if currency else currency
             decimal_value = self._to_decimal(record.get("Rate", ""), currency)
             if currency and decimal_value:
                 day_rates[currency] = decimal_value
         return day_rates
 
     def _get_rates_from_response(self, response):
+        """
+        :returns: record with following structure
+        {
+            'Ask': '0.7579',
+            'Bid': '0.7579',
+            'Date': '9/14/2016',
+            'Name': 'USD/GBP',
+            'Rate': '0.7579',
+            'Time': '8:59am',
+            'id': 'GBP=X'
+        }
+        """
         if response:
             try:
                 results = response.json()["query"]["results"]

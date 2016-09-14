@@ -14,13 +14,16 @@ class ExchangeRateManager:
 
     def update_all_rates_by_date(self, date_of_exchange):
         for data_provider in self._data_providers:
-            self._logger.info("Updating all today rates from %s provider" % data_provider)
-            day_rates = data_provider.get_all_by_date(date_of_exchange, self._supported_currencies)
-            if day_rates:
-                provider = self._dao_provider.get_or_create_provider_by_name(data_provider.name)
-                records = [dict(currency=currency, rate=rate, date=date_of_exchange, provider_id=provider.id) for currency, rate in
-                           day_rates.items()]
-                self._dao_exchange_rate.insert_exchange_rate_to_db(records)
+            try:
+                self._logger.info("Updating all today rates from %s provider" % data_provider)
+                day_rates = data_provider.get_all_by_date(date_of_exchange, self._supported_currencies)
+                if day_rates:
+                    provider = self._dao_provider.get_or_create_provider_by_name(data_provider.name)
+                    records = [dict(currency=currency, rate=rate, date=date_of_exchange, provider_id=provider.id) for currency, rate in
+                               day_rates.items()]
+                    self._dao_exchange_rate.insert_exchange_rate_to_db(records)
+            except Exception:
+                self._logger.exception("Updating of all today rates from %s provider failed.")
 
     def update_all_historical_rates(self, origin_date):
         for data_provider in self._data_providers:
