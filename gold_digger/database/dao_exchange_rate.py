@@ -6,8 +6,9 @@ from gold_digger.database.db_model import ExchangeRate
 
 
 class DaoExchangeRate:
-    def __init__(self, db_session):
+    def __init__(self, db_session, logger):
         self.db_session = db_session
+        self._logger = logger
 
     def insert_exchange_rate_to_db(self, records):
         """
@@ -22,6 +23,7 @@ class DaoExchangeRate:
                 self.db_session.commit()
             except IntegrityError:
                 self.db_session.rollback()
+                self._logger.warning("Session rollback record %s", record)
         self.db_session.commit()
 
     def get_rates_by_date_currency(self, date_of_exchange, currency):
