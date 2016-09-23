@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+
+from datetime import date
 from decimal import Decimal
 from itertools import combinations
 from collections import defaultdict, Counter
@@ -70,11 +72,20 @@ class ExchangeRateManager:
         else:
             return Counter(rates).most_common(1)[0][0]  # [(ExchangeRate, occurrences)]
 
+    def future_date_to_today(self, date_of_exchange):
+        today = date.today()
+        if date_of_exchange > today:
+            self._logger.warning("Request for future date %s. Exchange rate of today will be returned instead.", date_of_exchange)
+            return today
+        return date_of_exchange
+
     def get_exchange_rate_by_date(self, date_of_exchange, from_currency, to_currency):
         """
         Compute exchange rate between 'from_currency' and 'to_currency'.
         If the date is missing request data providers to update database.
         """
+        date_of_exchange = self.future_date_to_today(date_of_exchange)
+
         _from_currency_all_available = self.get_or_update_rate_by_date(date_of_exchange, from_currency)
         _to_currency_all_available = self.get_or_update_rate_by_date(date_of_exchange, to_currency)
 
@@ -94,6 +105,10 @@ class ExchangeRateManager:
         Compute average exchange rate of currency in specified period.
         Log warnings for missing days.
         """
+        today_or_past_date = self.future_date_to_today(start_date)
+        if today_or_past_date != start_date:
+            return self.get_exchange_rate_by_date(today_or_past_date, from_currency, to_currency)
+
         number_of_days = abs((end_date - start_date).days) + 1  # we want interval <start_date, end_date>
         _from_currency = self._dao_exchange_rate.get_sum_of_rates_in_period(start_date, end_date, from_currency)
         _to_currency = self._dao_exchange_rate.get_sum_of_rates_in_period(start_date, end_date, to_currency)
