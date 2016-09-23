@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+
+from datetime import date
 from decimal import Decimal
 from itertools import combinations
 from collections import defaultdict, Counter
@@ -70,11 +72,20 @@ class ExchangeRateManager:
         else:
             return Counter(rates).most_common(1)[0][0]  # [(ExchangeRate, occurrences)]
 
+    def check_date(self, date_of_exchange):
+        today = date.today()
+        if date_of_exchange > today:
+            self._logger.warning("Request for future date %s. Exchange rate of today will be returned instead.", date_of_exchange)
+            return today
+        return date_of_exchange
+
     def get_exchange_rate_by_date(self, date_of_exchange, from_currency, to_currency):
         """
         Compute exchange rate between 'from_currency' and 'to_currency'.
         If the date is missing request data providers to update database.
         """
+        date_of_exchange = self.check_date(date_of_exchange)
+
         _from_currency_all_available = self.get_or_update_rate_by_date(date_of_exchange, from_currency)
         _to_currency_all_available = self.get_or_update_rate_by_date(date_of_exchange, to_currency)
 
