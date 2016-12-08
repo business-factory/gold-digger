@@ -23,12 +23,13 @@ class CurrencyLayer(Provider):
 
         response = self._get("{url}&date={date}&currencies={currencies}".format(url=self.BASE_URL, date=date_str, currencies=currency))
         if not response:
-            self.logger.warning("CurrencyLayer error. Status: %s", response.status_code)
+            self.logger.warning("CurrencyLayer error. Status: %s", response.status_code, extra={"currency": currency, "date": date_str})
             return None
 
         response = response.json()
         if response and response.get("success") is False:
-            self.logger.warning("CurrencyLayer unsuccessful request. Error: %s", response.get("error", {}).get("info"))
+            self.logger.warning("CurrencyLayer unsuccessful request. Error: %s",
+                                response.get("error", {}).get("info"), extra={"currency": currency, "date": date_str})
             return None
 
         records = response.get("quotes", {}) if response else {}
