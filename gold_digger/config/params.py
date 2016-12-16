@@ -11,7 +11,7 @@ DEFAULT_CONFIG_PARAMS = {
         "dialect": "postgres"
     },
     "graylog": {
-        "address": "logs.bfcloud.cz",
+        "address": "logs.roihunter.com",
         "port": 12211,
     },
     "supported_currencies": {
