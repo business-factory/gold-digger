@@ -13,7 +13,7 @@ class CurrencyLayer(Provider):
         "8497c277171dfc3ad271f1ccb733a6a8",  # martin.veselovsky@b.cz
         "aa94a1ce1a597051b8bc3c117f6b8f25",  # martin.veselovsky@roihunter.com
     ]
-    BASE_URL = "http://www.apilayer.net/api/live?access_key=%s" % ACCESS_KEYS[1]
+    BASE_URL = "http://www.apilayer.net/api/live?access_key=%s" % ACCESS_KEYS[0]
     BASE_CURRENCY = "USD"
     name = "currency_layer"
 
