@@ -30,5 +30,8 @@ DEFAULT_CONFIG_PARAMS = {
         "SZL", "THB", "TJS", "TMT", "TND", "TOP", "TRY", "TTD", "TWD", "TZS", "UAH", "UGX", "USD",
         "UYU", "UZS", "VAL", "VEB", "VEF", "VND", "VUV", "WST", "XAF", "XAG", "XAU", "XCD", "XCP",
         "XDR", "XOF", "XPD", "XPF", "XPT", "YER", "ZAR", "ZMK", "ZMW", "ZWL"
-    }
+    },
+    "secrets": {
+        "currency_layer": []
+    },
 }
