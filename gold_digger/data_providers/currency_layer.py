@@ -16,7 +16,7 @@ class CurrencyLayer(Provider):
     def __init__(self, access_keys, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._access_keys = access_keys
-        self._url = self.BASE_URL % self._access_keys[0]
+        self._url = self.BASE_URL % self._access_keys[1]
 
     def get_by_date(self, date_of_exchange, currency):
         date_str = date_of_exchange.strftime(format="%Y-%m-%d")
