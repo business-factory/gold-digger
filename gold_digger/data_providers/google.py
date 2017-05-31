@@ -1,5 +1,6 @@
 from ._provider import Provider
 from bs4 import BeautifulSoup
+from datetime import date
 
 
 class Google(Provider):
@@ -10,13 +11,23 @@ class Google(Provider):
     name = 'google'
 
     def get_all_by_date(self, date_of_exchange, currencies):
-        return {}
+        if date_of_exchange == date.today():
+            rates = {}
+            for c in currencies:
+                date_str = date_of_exchange.strftime(format="%Y-%m-%d")
+                self.logger.debug("Requesting Google for %s (%s)", c, date_str,
+                                  extra={"currency": c, "date": date_str})
 
-    def get_historical(self, origin_date, currencies):
-        return {}
+                rates[c] = self._convert_value(1, c)
+            return rates
 
     def get_by_date(self, date_of_exchange, currency):
-        return {}
+        date_str = date_of_exchange.strftime(format="%Y-%m-%d")
+        self.logger.debug("Requesting Google for %s (%s)", currency, date_str,
+                          extra={"currency": currency, "date": date_str})
+
+        if date_of_exchange == date.today():
+            return self._convert_value(1, currency)
 
     def _convert_value(self, value, currency):
         response = self._get('{}?a={}&from={}&to={}').format(self.BASE_URL, value, self.BASE_CURRENCY, currency)
@@ -28,11 +39,8 @@ class Google(Provider):
         res = parsed_html.body.find('span', attrs={'class': 'bld'}).text.split(' ')
         return self._to_decimal(res[0], currency) if value is not None else None
 
-    def _get_rates(self, currencies):
-        res = {}
-        for c in currencies:
-            res[c] = self._convert_value(1, c)
-        return res
+    def get_historical(self, origin_date, currencies):
+        return {}
 
     def __str__(self):
         return self.name
