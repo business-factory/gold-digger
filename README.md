@@ -2,7 +2,7 @@
 
 
 ## Used technologies
- - [Python](https://www.python.org/)
+ - [Python 3.5](https://www.python.org/)
  - [PostgreSQL](http://www.postgresql.org/)
 
 
@@ -13,9 +13,6 @@ python -m venv .env
 pip install -U pip wheel
 pip install --use-wheel -r requirements-dev.txt
 ```
-
-Now you can run test by command `py.test` or start watchdog that run the tests
-after every save of Python file by command `ptw`.
 
 Create PostgreSQL database and user named *gold-digger*.
 
@@ -31,12 +28,18 @@ LOCAL_CONFIG_PARAMS = {
 ```
 
 ## Usage
-Create local database and update connection parameters.
+Available commands:
 
-* `python -m gold_digger initialize-db` to create tables
-* `python -m gold_digger update [--date="yyyy-mm-dd"]` to update rates of specified date (default today)
-* `python -m gold_digger update-all [--origin-date="yyyy-mm-dd"]` to update rates since specified origin date
+* `python -m gold_digger initialize-db` creates all tables in new database
+* `python -m gold_digger update [--date="yyyy-mm-dd"]` updates exchange rates for specified date (default today)
+* `python -m gold_digger update-all [--origin-date="yyyy-mm-dd"]` updates exchange rates since specified origin date
 * `python -m gold_digger serve` starts API server
+
+For running the tests simply use:
+* `py.test` or `ptw` which starts watchdog which run the tests after every save of Python file
+* `py.test --database-tests --db-connection postgres://postgres:postgres@localhost:5432/golddigger-test` (with custom db connection) which runs also tests marked as `@database_test`.
+ These tests are executed against real test database.
+
 
 ## API endpoints
 
@@ -45,14 +48,14 @@ Create local database and update connection parameters.
 	* to currency - required 
 	* date of exchange - optional; returns last exchange rates if omitted 
 
-	* example: [http://localhost:25800/rate?from=EUR&to=USD&date=2005-12-22](http://localhost:25800/rate?from=EUR&to=USD&date=2005-12-22)
+	* example: [http://localhost:8000/rate?from=EUR&to=USD&date=2005-12-22](http://localhost:8000/rate?from=EUR&to=USD&date=2005-12-22)
 
 * `/range?from=X&to=Y&start_date=YYYY-MM-DD&end_date=YYYY-MM-DD`
 	* from currency - required
 	* to currency - required
-	* start date + end date of exchange - required
+	* start date & end date of exchange - required
 	
-    * example: [http://localhost:25800/range?from=EUR&to=AED&start_date=2016-02-15&end_date=2016-02-15](http://localhost:25800/range?from=EUR&to=AED&start_date=2016-02-15&end_date=2016-02-15)
+    * example: [http://localhost:8000/range?from=EUR&to=AED&start_date=2016-02-15&end_date=2016-02-15](http://localhost:8000/range?from=EUR&to=AED&start_date=2016-02-15&end_date=2016-02-15)
     
 ## Docker
 Ensure you have created local params file according to *Development setup* section. Then build docker image.
