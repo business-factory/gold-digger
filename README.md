@@ -22,9 +22,7 @@ For development purposes there is no configuration required so file may look lik
 ```python
 # -*- coding: utf-8 -*-
 
-LOCAL_CONFIG_PARAMS = {
-
-}
+LOCAL_CONFIG_PARAMS = {}
 ```
 
 ## Usage
