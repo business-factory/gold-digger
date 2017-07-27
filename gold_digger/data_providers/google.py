@@ -1,43 +1,51 @@
-from ._provider import Provider
-from bs4 import BeautifulSoup
+# -*- coding: utf-8 -*-
+
+import re
+
 from datetime import date
+from ._provider import Provider
 
 
 class Google(Provider):
-    """Simple API for currency conversion."""
-
-    BASE_URL = 'https://www.google.com/finance/converter'
+    """
+    Offers only latest exchange rates for only one currency pair at the moment.
+    """
+    BASE_URL = 'https://www.google.com/finance/converter?a=1&from={}&to={}'
     BASE_CURRENCY = "USD"
-    name = 'google'
-
-    def get_all_by_date(self, date_of_exchange, currencies):
-        if date_of_exchange == date.today():
-            rates = {}
-            for c in currencies:
-                date_str = date_of_exchange.strftime(format="%Y-%m-%d")
-                self.logger.debug("Requesting Google for %s (%s)", c, date_str,
-                                  extra={"currency": c, "date": date_str})
-
-                rates[c] = self._convert_value(1, c)
-            return rates
+    RESULT_REGEX = re.compile("class=bld>([\d.]+)")
+    name = "google"
 
     def get_by_date(self, date_of_exchange, currency):
         date_str = date_of_exchange.strftime(format="%Y-%m-%d")
-        self.logger.debug("Requesting Google for %s (%s)", currency, date_str,
-                          extra={"currency": currency, "date": date_str})
+        self.logger.debug("Requesting Google for %s (%s)", currency, date_str, extra={"currency": currency, "date": date_str})
 
         if date_of_exchange == date.today():
-            return self._convert_value(1, currency)
+            return self._get_latest(currency)
 
-    def _convert_value(self, value, currency):
-        response = self._get('{}?a={}&from={}&to={}').format(self.BASE_URL, value, self.BASE_CURRENCY, currency)
-        if not response:
-            self.logger.warning("Google error. Status: %s", response.status_code,
-                                extra={"currency": currency, "value": value})
-            return None
-        parsed_html = BeautifulSoup(response.text)
-        res = parsed_html.body.find('span', attrs={'class': 'bld'}).text.split(' ')
-        return self._to_decimal(res[0], currency) if value is not None else None
+    def get_all_by_date(self, date_of_exchange, currencies):
+        if date_of_exchange == date.today():
+            return self._get_all_latest(date_of_exchange, currencies)
+
+    def _get_latest(self, currency):
+        response = self._get(self.BASE_URL.format(self.BASE_CURRENCY, currency))
+        if response:
+            result = self.RESULT_REGEX.search(response.text)
+            if result:
+                return self._to_decimal(result.group(1), currency)
+
+            self.logger.warning("Google provider - no result for %s", currency)
+        else:
+            self.logger.warning("Google provider unexpected response: %s", response)
+
+    def _get_all_latest(self, date_of_exchange, currencies):
+        date_str = date_of_exchange.strftime(format="%Y-%m-%d")
+        rates = {}
+        for currency in currencies:
+            self.logger.debug("Requesting Google for %s (%s)", currency, date_str, extra={"currency": currency, "date": date_str})
+            rate = self._get_latest(currency)
+            if rate:
+                rates[currency] = rate
+        return rates
 
     def get_historical(self, origin_date, currencies):
         return {}

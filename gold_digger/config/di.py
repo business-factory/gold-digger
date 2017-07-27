@@ -73,7 +73,7 @@ class DiContainer:
             GrandTrunk(self.logger),
             CurrencyLayer(self["secrets"]["currency_layer"], self.logger),
             Yahoo(self.logger),
-            Google(self.logger)
+            Google(self.logger),
         )
 
     @service

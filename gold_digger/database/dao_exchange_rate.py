@@ -21,9 +21,9 @@ class DaoExchangeRate:
             try:
                 self.db_session.add(ExchangeRate(**record))
                 self.db_session.commit()
-            except IntegrityError:
+            except IntegrityError as e:
                 self.db_session.rollback()
-                self._logger.warning("Session rollback record %s", record)
+                self._logger.warning("Session rollback. Error: %s. Record %s", e, record)
         self.db_session.commit()
 
     def get_rates_by_date_currency(self, date_of_exchange, currency):
