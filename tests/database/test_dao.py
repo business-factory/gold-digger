@@ -1,71 +1,27 @@
 # -*- coding: utf-8 -*-
+
+from datetime import date
 from decimal import Decimal
 
 import pytest
-from datetime import date
 
-from gold_digger.database.dao_provider import DaoProvider
-from sqlalchemy import create_engine
-from sqlalchemy.orm import scoped_session, sessionmaker
 from gold_digger.database.dao_exchange_rate import DaoExchangeRate
-from gold_digger.database.db_model import Base
-from gold_digger.config.params import DEFAULT_CONFIG_PARAMS
+from gold_digger.database.dao_provider import DaoProvider
+
+from . import database_test
 
 
-@pytest.fixture(scope="module")
-def connection(request):
-    """ Create one test database for all tests. """
-    test_db_name = "gd-test"
-    params = DEFAULT_CONFIG_PARAMS["database"]
-    params["name"] = "postgres"
-
-    # we want connect to default database (existing database)
-    # eg. postgres://postgres:postgres@localhost:5432/postgres
-    _engine = create_engine("{dialect}://{user}:{pass}@{host}:{port}/{name}".format(**params))
-    _connection = _engine.connect()
-    _connection.execute("commit")
-    _connection.execute('create database "%s"' % test_db_name)
-
-    params["name"] = test_db_name
-    _test_engine = create_engine("{dialect}://{user}:{pass}@{host}:{port}/{name}".format(**params))
-    _test_connection = _test_engine.connect()
-
-    def fin():
-        _test_connection.close()
-        _test_engine.dispose()
-
-        _connection.execute("commit")
-        _connection.execute('drop database "%s"' % test_db_name)
-        _connection.close()
-
-    request.addfinalizer(fin)
-    return _test_connection
+@pytest.fixture
+def dao_exchange_rate(db_session, logger):
+    return DaoExchangeRate(db_session, logger)
 
 
-@pytest.fixture()
-def session(request, connection):
-    """ Drop and create all tables for every test, ie. every test starts with empty tables and new session. """
-    Base.metadata.drop_all(connection)
-    Base.metadata.create_all(connection)
-    _session = scoped_session(sessionmaker(connection))
-
-    def fin():
-        _session.remove()
-
-    request.addfinalizer(fin)
-    return _session
+@pytest.fixture
+def dao_provider(db_session):
+    return DaoProvider(db_session)
 
 
-@pytest.fixture()
-def dao_exchange_rate(session):
-    return DaoExchangeRate(session)
-
-
-@pytest.fixture()
-def dao_provider(session):
-    return DaoProvider(session)
-
-
+@database_test
 def test_insert_new_rate(dao_exchange_rate, dao_provider):
     assert dao_exchange_rate.get_rates_by_date_currency(date.today(), "USD") == []
 
@@ -79,6 +35,7 @@ def test_insert_new_rate(dao_exchange_rate, dao_provider):
     assert len(dao_exchange_rate.get_rates_by_date_currency(date.today(), "USD")) == 1
 
 
+@database_test
 def test_insert_exchange_rate_to_db(dao_exchange_rate, dao_provider):
     assert dao_exchange_rate.get_rates_by_date_currency(date.today(), "USD") == []
 
@@ -95,6 +52,7 @@ def test_insert_exchange_rate_to_db(dao_exchange_rate, dao_provider):
     assert len(dao_exchange_rate.get_rates_by_date_currency(date.today(), "USD")) == 2
 
 
+@database_test
 def test_get_sum_of_rates_in_period(dao_exchange_rate, dao_provider):
     start_date = date(2016, 1, 1)
     end_date = date(2016, 1, 10)
