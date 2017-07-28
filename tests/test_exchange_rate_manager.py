@@ -6,11 +6,11 @@ from decimal import Decimal
 from datetime import date
 from unittest.mock import Mock
 
+from gold_digger.data_providers import CurrencyLayer, GrandTrunk
 from gold_digger.database.db_model import ExchangeRate, Provider
 from gold_digger.database.dao_exchange_rate import DaoExchangeRate
 from gold_digger.database.dao_provider import DaoProvider
 from gold_digger.managers.exchange_rate_manager import ExchangeRateManager
-from gold_digger.data_providers import CurrencyLayer, GrandTrunk
 
 
 @pytest.fixture

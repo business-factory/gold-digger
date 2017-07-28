@@ -8,7 +8,7 @@ from sqlalchemy_utils import create_database, database_exists, drop_database
 from gold_digger.database.db_model import Base
 
 
-@pytest.yield_fixture(scope="module")
+@pytest.fixture(scope="module")
 def db_connection(db_connection_string):
     """
     Create one test database for all database tests.
@@ -24,7 +24,7 @@ def db_connection(db_connection_string):
     drop_database(engine.url)
 
 
-@pytest.yield_fixture()
+@pytest.fixture()
 def db_session(db_connection):
     """
     Drop and create all tables for every test, ie. every test starts with empty tables and new session.
