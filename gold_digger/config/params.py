@@ -4,7 +4,7 @@ DEFAULT_CONFIG_PARAMS = {
     "development_mode": True,
     "database": {
         "user": "postgres",
-        "pass": "postgres",
+        "pass": "matusjeuzasny",
         "name": "gold-digger",
         "host": "127.0.0.1",
         "port": "5432",
@@ -32,6 +32,6 @@ DEFAULT_CONFIG_PARAMS = {
         "XDR", "XOF", "XPD", "XPF", "XPT", "YER", "ZAR", "ZMK", "ZMW", "ZWL"
     },
     "secrets": {
-        "currency_layer": []
+        "currency_layer": list("supported_currencies")
     },
 }

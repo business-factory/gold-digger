@@ -74,6 +74,7 @@ class DiContainer:
             CurrencyLayer(self["secrets"]["currency_layer"], self.logger),
             Yahoo(self.logger),
             Google(self.logger),
+            Fixer(self.logger),
         )
 
     @service
