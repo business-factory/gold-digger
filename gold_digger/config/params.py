@@ -26,12 +26,13 @@ DEFAULT_CONFIG_PARAMS = {
         "MCF", "MDL", "MGA", "MKD", "MMK", "MNT", "MOP", "MRO", "MTL", "MUR", "MVR", "MWK", "MXN",
         "MYR", "MZN", "NAD", "NGN", "NIO", "NLG", "NOK", "NPR", "NZD", "OMR", "PAB", "PEN", "PGK",
         "PHP", "PKR", "PLN", "PTE", "PYG", "QAR", "RON", "RSD", "RUB", "RWF", "SAR", "SBD", "SCR",
-        "SDG", "SEK", "SGD", "SHP", "SIT", "SKK", "SLL", "SML", "SOS", "SRD", "STD", "SYP",
-        "SZL", "THB", "TJS", "TMT", "TND", "TOP", "TRY", "TTD", "TWD", "TZS", "UAH", "UGX", "USD",
-        "UYU", "UZS", "VAL", "VEB", "VEF", "VND", "VUV", "WST", "XAF", "XAG", "XAU", "XCD", "XCP",
-        "XDR", "XOF", "XPD", "XPF", "XPT", "YER", "ZAR", "ZMK", "ZMW", "ZWL"
+        "SDG", "SEK", "SGD", "SHP", "SIT", "SLL", "SML", "SOS", "SRD", "STD", "SYP", "SZL", "THB",
+        "TJS", "TMT", "TND", "TOP", "TRY", "TTD", "TWD", "TZS", "UAH", "UGX", "USD", "UYU", "UZS",
+        "VAL", "VEB", "VEF", "VND", "VUV", "WST", "XAF", "XAG", "XAU", "XCD", "XCP", "XDR", "XOF",
+        "XPD", "XPF", "XPT", "YER", "ZAR", "ZMK", "ZMW", "ZWL"
     },
     "secrets": {
         "currency_layer": []
     },
 }
+
