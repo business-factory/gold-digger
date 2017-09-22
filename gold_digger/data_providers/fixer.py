@@ -70,7 +70,8 @@ class Fixer(Provider):
             response = self._get(request_url)
             if response:
                 response = response.json()
-                return self._to_decimal(response['rates'][currency])
+                if currency in response["rates"]:
+                    return self._to_decimal(response['rates'][currency])
         except:
             self.logger.exception("Fixer request failed.")
 
