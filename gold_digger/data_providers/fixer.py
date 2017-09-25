@@ -7,7 +7,7 @@ from ._provider import Provider
 
 class Fixer(Provider):
     BASE_CURRENCY = "USD"
-    BASE_URL = "https://api.fixer.io/{date}?base=" + BASE_CURRENCY
+    BASE_URL = "https://api.fixer.io/{date}"
     name = "fixer.io"
 
     def get_by_date(self, date_of_exchange, currency):
@@ -25,13 +25,20 @@ class Fixer(Provider):
         :type currencies: list[str]
         :rtype: dict[str, decimal.Decimal]
         """
+        self.logger.debug("Fixer.io - get all for date %s", date_of_exchange)
         date_of_exchange_string = date_of_exchange.strftime("%Y-%m-%d")
         day_rates = {}
 
-        for currency in currencies:
-            decimal_value = self._get_by_date(date_of_exchange_string, currency)
-            if decimal_value is not None:
-                day_rates[currency] = decimal_value
+        url = self.BASE_URL.format(date=date_of_exchange_string)
+        response = self._get(url, params={"base": self.BASE_CURRENCY})
+
+        if response:
+            response = response.json()
+            for currency in currencies:
+                if currency in response["rates"]:
+                    decimal_value = self._to_decimal(response['rates'][currency])
+                    if decimal_value is not None:
+                        day_rates[currency] = decimal_value
 
         return day_rates
 
@@ -65,14 +72,15 @@ class Fixer(Provider):
         """
         self.logger.debug("Requesting Fixer for %s (%s)", currency, date_of_exchange, extra={"currency": currency, "date": date_of_exchange})
 
-        try:
-            request_url = self.BASE_URL.format(date=date_of_exchange)
-            response = self._get(request_url)
-            if response:
+        url = self.BASE_URL.format(date=date_of_exchange)
+        response = self._get(url, params={"base": self.BASE_CURRENCY, "symbols": currency})
+        if response:
+            try:
                 response = response.json()
                 if currency in response["rates"]:
                     return self._to_decimal(response['rates'][currency])
-        except:
-            self.logger.exception("Fixer request failed.")
+
+            except Exception:
+                self.logger.exception("Fixer.io - Exception while parsing of the HTTP response.")
 
         return None

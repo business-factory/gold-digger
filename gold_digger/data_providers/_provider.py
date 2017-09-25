@@ -23,9 +23,9 @@ class Provider(metaclass=ABCMeta):
     def get_historical(self, origin_date, currencies):
         pass
 
-    def _get(self, url):
+    def _get(self, url, params=None):
         try:
-            response = requests.get(url)
+            response = requests.get(url, params=params)
             if response.status_code == 200:
                 return response
             else:
