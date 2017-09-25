@@ -10,7 +10,7 @@ class Google(Provider):
     """
     Offers only latest exchange rates for only one currency pair at the moment.
     """
-    BASE_URL = 'https://www.google.com/finance/converter?a=1&from={}&to={}'
+    BASE_URL = 'https://finance.google.com/finance/converter?a=1&from={}&to={}'
     BASE_CURRENCY = "USD"
     RESULT_REGEX = re.compile("class=bld>([\d.]+)")
     name = "google"
