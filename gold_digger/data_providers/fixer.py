@@ -33,12 +33,15 @@ class Fixer(Provider):
         response = self._get(url, params={"base": self.BASE_CURRENCY})
 
         if response:
-            response = response.json()
-            for currency in currencies:
-                if currency in response["rates"]:
-                    decimal_value = self._to_decimal(response['rates'][currency])
-                    if decimal_value is not None:
-                        day_rates[currency] = decimal_value
+            try:
+                response = response.json()
+                for currency in currencies:
+                    if currency in response["rates"]:
+                        decimal_value = self._to_decimal(response['rates'][currency])
+                        if decimal_value is not None:
+                            day_rates[currency] = decimal_value
+            except Exception:
+                self.logger.exception("Fixer.io - Exception while parsing of the HTTP response.")
 
         return day_rates
 
