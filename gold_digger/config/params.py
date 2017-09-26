@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+
 DEFAULT_CONFIG_PARAMS = {
     "development_mode": True,
     "database": {
@@ -35,4 +36,3 @@ DEFAULT_CONFIG_PARAMS = {
         "currency_layer": []
     },
 }
-
