@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from .currency_layer import CurrencyLayer
+from .fixer import Fixer
+from .google import Google
 from .grandtrunk import GrandTrunk
 from .yahoo import Yahoo
-from .google import Google
