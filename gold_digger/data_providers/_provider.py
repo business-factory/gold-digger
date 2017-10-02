@@ -11,6 +11,11 @@ class Provider(metaclass=ABCMeta):
     def __init__(self, logger):
         self.logger = logger
 
+    @property
+    @abstractmethod
+    def name(self):
+        pass
+
     @abstractmethod
     def get_supported_currencies(self, date_of_exchange):
         pass
