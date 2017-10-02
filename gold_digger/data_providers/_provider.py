@@ -29,9 +29,9 @@ class Provider(metaclass=ABCMeta):
             if response.status_code == 200:
                 return response
             else:
-                self.logger.error("%s get %s status code on %s" % (self, response.status_code, url))
+                self.logger.error("%s get %s status code on %s. Params: %s." % (self, response.status_code, url, params))
         except requests.exceptions.RequestException as e:
-            self.logger.error("%s get %s exception on %s" % (self, e, url))
+            self.logger.error("%s get %s exception on %s. Params: %s." % (self, e, url, params))
 
     def _post(self, url, **kwargs):
         try:

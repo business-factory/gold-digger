@@ -87,3 +87,6 @@ class Fixer(Provider):
                 self.logger.exception("Fixer.io - Exception while parsing of the HTTP response.")
 
         return None
+
+    def __str__(self):
+        return self.name
