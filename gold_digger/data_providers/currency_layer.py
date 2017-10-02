@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
+
+import re
 from collections import defaultdict
 from datetime import date, timedelta
+from functools import lru_cache
+
 from ._provider import Provider
 
 
@@ -17,6 +21,19 @@ class CurrencyLayer(Provider):
         super().__init__(*args, **kwargs)
         self._access_keys = access_keys
         self._url = self.BASE_URL % self._access_keys[1]
+
+    @lru_cache(maxsize=1)
+    def get_supported_currencies(self, date_of_exchange):
+        """
+        :type date_of_exchange: datetime.date
+        :rtype: set
+        """
+        response = self._get("https://currencylayer.com/downloads/cl-currencies-table.txt")
+        if response:
+            currencies = re.findall("<td>([A-Z]{3})</td>", response.text)
+            if currencies:
+                return set(currencies)
+        return set()
 
     def get_by_date(self, date_of_exchange, currency):
         date_str = date_of_exchange.strftime(format="%Y-%m-%d")

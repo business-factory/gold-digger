@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from datetime import date, timedelta
+from functools import lru_cache
 
 from ._provider import Provider
 
@@ -9,6 +10,17 @@ class Fixer(Provider):
     BASE_CURRENCY = "USD"
     BASE_URL = "https://api.fixer.io/{date}"
     name = "fixer.io"
+
+    @lru_cache(maxsize=1)
+    def get_supported_currencies(self, date_of_exchange):
+        """
+        :type date_of_exchange: datetime.date
+        :rtype: set
+        """
+        response = self._get(self.BASE_URL.format(date=date_of_exchange))
+        if response:
+            return set(response.json().get("rates").keys())
+        return set()
 
     def get_by_date(self, date_of_exchange, currency):
         """

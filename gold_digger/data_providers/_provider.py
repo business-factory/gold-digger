@@ -12,6 +12,10 @@ class Provider(metaclass=ABCMeta):
         self.logger = logger
 
     @abstractmethod
+    def get_supported_currencies(self, date_of_exchange):
+        pass
+
+    @abstractmethod
     def get_by_date(self, date_of_exchange, currency):
         pass
 

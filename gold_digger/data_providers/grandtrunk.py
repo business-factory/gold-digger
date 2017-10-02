@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
-from datetime import datetime, date
+
 from collections import defaultdict
+from datetime import datetime, date
+from functools import lru_cache
+
 from ._provider import Provider
 
 
@@ -12,6 +15,17 @@ class GrandTrunk(Provider):
     BASE_URL = "http://currencies.apps.grandtrunk.net"
     BASE_CURRENCY = "USD"
     name = "grandtrunk"
+
+    @lru_cache(maxsize=1)
+    def get_supported_currencies(self, date_of_exchange):
+        """
+        :type date_of_exchange: date
+        :rtype: set
+        """
+        response = self._get("{url}/currencies".format(url=self.BASE_URL))
+        if response:
+            return set(response.text.split("\n"))
+        return set()
 
     def get_by_date(self, date_of_exchange, currency):
         date_str = date_of_exchange.strftime(format="%Y-%m-%d")

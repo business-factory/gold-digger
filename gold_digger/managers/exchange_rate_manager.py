@@ -41,10 +41,13 @@ class ExchangeRateManager:
         Get records of exchange rates for the date from all data providers.
         If rates are missing for the date from some providers request data only from these providers to update database.
         """
+        today = date.today()
         exchange_rates = self._dao_exchange_rate.get_rates_by_date_currency(date_of_exchange, currency)
         exchange_rates_providers = set(r.provider.name for r in exchange_rates)
         missing_provider_rates = [provider for provider in self._data_providers if provider.name not in exchange_rates_providers]
         for data_provider in missing_provider_rates:
+            if currency not in data_provider.get_supported_currencies(today):
+                continue
             rate = data_provider.get_by_date(date_of_exchange, currency)
             if rate:
                 db_provider = self._dao_provider.get_or_create_provider_by_name(data_provider.name)

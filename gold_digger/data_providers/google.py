@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import re
-
 from datetime import date
+from functools import lru_cache
+
 from ._provider import Provider
 
 
@@ -10,10 +11,22 @@ class Google(Provider):
     """
     Offers only latest exchange rates for only one currency pair at the moment.
     """
-    BASE_URL = 'https://finance.google.com/finance/converter?a=1&from={}&to={}'
+    BASE_URL = "https://finance.google.com/finance/converter?a=1&from={}&to={}"
     BASE_CURRENCY = "USD"
     RESULT_REGEX = re.compile("class=bld>([\d.]+)")
     name = "google"
+
+    @lru_cache(maxsize=1)
+    def get_supported_currencies(self, date_of_exchange):
+        """
+        :type date_of_exchange: datetime.date
+        :rtype: set
+        """
+        response = self._get("https://finance.google.com/finance/converter")
+        if response:
+            currencies = re.findall('<option +value="([A-Z]{3})">', response.text)
+            return set(currencies)
+        return set()
 
     def get_by_date(self, date_of_exchange, currency):
         date_str = date_of_exchange.strftime(format="%Y-%m-%d")
