@@ -17,10 +17,12 @@ class Fixer(Provider):
         :type date_of_exchange: datetime.date
         :rtype: set
         """
+        currencies = set()
         response = self._get(self.BASE_URL.format(date=date_of_exchange))
         if response:
-            return set(response.json().get("rates").keys())
-        return set()
+            currencies = set(response.json().get("rates").keys())
+        self.logger.debug("Fixer currencies: %s", currencies)
+        return currencies
 
     def get_by_date(self, date_of_exchange, currency):
         """

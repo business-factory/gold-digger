@@ -28,12 +28,12 @@ class CurrencyLayer(Provider):
         :type date_of_exchange: datetime.date
         :rtype: set
         """
+        currencies = set()
         response = self._get("https://currencylayer.com/downloads/cl-currencies-table.txt")
         if response:
-            currencies = re.findall("<td>([A-Z]{3})</td>", response.text)
-            if currencies:
-                return set(currencies)
-        return set()
+            currencies = set(re.findall("<td>([A-Z]{3})</td>", response.text))
+        self.logger.debug("CurrencyLayer currencies: %s", currencies)
+        return currencies
 
     def get_by_date(self, date_of_exchange, currency):
         date_str = date_of_exchange.strftime(format="%Y-%m-%d")

@@ -22,10 +22,12 @@ class GrandTrunk(Provider):
         :type date_of_exchange: date
         :rtype: set
         """
+        currencies = set()
         response = self._get("{url}/currencies".format(url=self.BASE_URL))
         if response:
-            return set(response.text.split("\n"))
-        return set()
+            currencies = set(response.text.split("\n"))
+        self.logger.debug("Grandtrunk currencies: %s", currencies)
+        return currencies
 
     def get_by_date(self, date_of_exchange, currency):
         date_str = date_of_exchange.strftime(format="%Y-%m-%d")

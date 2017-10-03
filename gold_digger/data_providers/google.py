@@ -22,11 +22,12 @@ class Google(Provider):
         :type date_of_exchange: datetime.date
         :rtype: set
         """
+        currencies = set()
         response = self._get("https://finance.google.com/finance/converter")
         if response:
-            currencies = re.findall('<option +value="([A-Z]{3})">', response.text)
-            return set(currencies)
-        return set()
+            currencies = set(re.findall('<option +value="([A-Z]{3})">', response.text))
+        self.logger.debug("Google currencies: %s", currencies)
+        return currencies
 
     def get_by_date(self, date_of_exchange, currency):
         date_str = date_of_exchange.strftime(format="%Y-%m-%d")

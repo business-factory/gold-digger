@@ -30,7 +30,9 @@ class Yahoo(Provider):
         :rtype: set
         """
         rates = self._get_all_latest(self._currencies)
-        return set(rates.keys())
+        currencies = set(rates.keys())
+        self.logger.debug("Yahoo currencies: %s", currencies)
+        return currencies
 
     def get_by_date(self, date_of_exchange, currency):
         date_str = date_of_exchange.strftime(format="%Y-%m-%d")
