@@ -19,8 +19,11 @@ class CurrencyLayer(Provider):
 
     def __init__(self, access_keys, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._access_keys = access_keys
-        self._url = self.BASE_URL % self._access_keys[1]
+        try:
+            self._url = self.BASE_URL % access_keys[1]
+        except IndexError:
+            self.logger.critical("You need an access token to use CurrencyLayer provider!")
+            self._url = self.BASE_URL % ""
 
     @lru_cache(maxsize=1)
     def get_supported_currencies(self, date_of_exchange):
