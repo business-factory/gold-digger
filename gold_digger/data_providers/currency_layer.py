@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
+
+import re
 from collections import defaultdict
 from datetime import date, timedelta
+from functools import lru_cache
+
 from ._provider import Provider
 
 
@@ -15,8 +19,27 @@ class CurrencyLayer(Provider):
 
     def __init__(self, access_keys, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._access_keys = access_keys
-        self._url = self.BASE_URL % self._access_keys[1]
+        try:
+            self._url = self.BASE_URL % access_keys[1]
+        except IndexError:
+            self.logger.critical("You need an access token to use CurrencyLayer provider!")
+            self._url = self.BASE_URL % ""
+
+    @lru_cache(maxsize=1)
+    def get_supported_currencies(self, date_of_exchange):
+        """
+        :type date_of_exchange: datetime.date
+        :rtype: set
+        """
+        currencies = set()
+        response = self._get("https://currencylayer.com/downloads/cl-currencies-table.txt")
+        if response:
+            currencies = set(re.findall("<td>([A-Z]{3})</td>", response.text))
+        if currencies:
+            self.logger.debug("CurrencyLayer supported currencies: %s", currencies)
+        else:
+            self.logger.error("CurrencyLayer supported currencies not found.")
+        return currencies
 
     def get_by_date(self, date_of_exchange, currency):
         date_str = date_of_exchange.strftime(format="%Y-%m-%d")

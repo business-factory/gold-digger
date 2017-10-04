@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
+
 from datetime import date
+from functools import lru_cache
+
 from ._provider import Provider
 
 
@@ -15,6 +18,24 @@ class Yahoo(Provider):
         "format": "json"
     }
     name = "yahoo"
+
+    def __init__(self, currencies, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._currencies = currencies
+
+    @lru_cache(maxsize=1)
+    def get_supported_currencies(self, date_of_exchange):
+        """
+        :type date_of_exchange: date
+        :rtype: set
+        """
+        rates = self._get_all_latest(self._currencies)
+        currencies = set(rates.keys())
+        if currencies:
+            self.logger.debug("Yahoo supported currencies: %s", currencies)
+        else:
+            self.logger.error("Yahoo supported currencies not found.")
+        return currencies
 
     def get_by_date(self, date_of_exchange, currency):
         date_str = date_of_exchange.strftime(format="%Y-%m-%d")

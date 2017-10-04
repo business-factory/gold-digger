@@ -33,18 +33,20 @@ def dao_provider():
 
 
 @pytest.fixture
-def currency_layer():
+def currency_layer(currencies):
     provider = Mock(CurrencyLayer)
     provider.name = "currency_layer"
     provider.get_all_by_date.return_value = {"EUR": Decimal(0.77), "USD": Decimal(1)}
+    provider.get_supported_currencies.return_value = currencies
     return provider
 
 
 @pytest.fixture
-def grandtrunk():
+def grandtrunk(currencies):
     provider = Mock(GrandTrunk)
     provider.name = "grandtrunk"
     provider.get_all_by_date.return_value = {"EUR": Decimal(0.75), "USD": Decimal(1)}
+    provider.get_supported_currencies.return_value = currencies
     return provider
 
 
@@ -97,7 +99,7 @@ def test_get_or_update_rate_by_date(dao_exchange_rate, dao_provider, currency_la
 def test_get_exchange_rate_by_date(dao_exchange_rate, dao_provider, logger):
     _date = date(2016, 2, 17)
 
-    exchange_rate_manager = ExchangeRateManager(dao_exchange_rate, dao_provider, [], [], logger)
+    exchange_rate_manager = ExchangeRateManager(dao_exchange_rate, dao_provider, [], set(), logger)
 
     def _get_rates_by_date_currency(date_of_exchange, currency):
         return {
@@ -122,7 +124,7 @@ def test_get_average_exchange_rate_by_dates(dao_exchange_rate, dao_provider, log
     _end_date = date(2016, 2, 17)
 
     mock_logger = Mock(logger)
-    exchange_rate_manager = ExchangeRateManager(dao_exchange_rate, dao_provider, [], [], mock_logger)
+    exchange_rate_manager = ExchangeRateManager(dao_exchange_rate, dao_provider, [], set(), mock_logger)
 
     def _get_sum_of_rates_in_period(start_date, end_date, currency):
         return {

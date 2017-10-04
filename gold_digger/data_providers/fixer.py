@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from datetime import date, timedelta
+from functools import lru_cache
 
 from ._provider import Provider
 
@@ -9,6 +10,22 @@ class Fixer(Provider):
     BASE_CURRENCY = "USD"
     BASE_URL = "https://api.fixer.io/{date}"
     name = "fixer.io"
+
+    @lru_cache(maxsize=1)
+    def get_supported_currencies(self, date_of_exchange):
+        """
+        :type date_of_exchange: datetime.date
+        :rtype: set
+        """
+        currencies = set()
+        response = self._get(self.BASE_URL.format(date=date_of_exchange))
+        if response:
+            currencies = set(response.json().get("rates").keys())
+        if currencies:
+            self.logger.debug("Fixer supported currencies: %s", currencies)
+        else:
+            self.logger.error("Fixer supported currencies not found.")
+        return currencies
 
     def get_by_date(self, date_of_exchange, currency):
         """
@@ -87,3 +104,6 @@ class Fixer(Provider):
                 self.logger.exception("Fixer.io - Exception while parsing of the HTTP response.")
 
         return None
+
+    def __str__(self):
+        return self.name

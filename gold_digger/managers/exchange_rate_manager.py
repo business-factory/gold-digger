@@ -8,6 +8,13 @@ from collections import defaultdict, Counter
 
 class ExchangeRateManager:
     def __init__(self, dao_exchange_rate, dao_provider, data_providers, supported_currencies, logger):
+        """
+        :type dao_exchange_rate: gold_digger.database.DaoExchangeRate
+        :type dao_provider: gold_digger.database.DaoProvider
+        :type data_providers: list[gold_digger.data_providers._provider.Provider]
+        :type supported_currencies: set[str]
+        :type logger: logging.Logger
+        """
         self._dao_exchange_rate = dao_exchange_rate
         self._dao_provider = dao_provider
         self._data_providers = data_providers
@@ -15,6 +22,9 @@ class ExchangeRateManager:
         self._logger = logger
 
     def update_all_rates_by_date(self, date_of_exchange):
+        """
+        :type date_of_exchange: datetime.date
+        """
         for data_provider in self._data_providers:
             try:
                 self._logger.info("Updating all today rates from %s provider" % data_provider)
@@ -28,6 +38,9 @@ class ExchangeRateManager:
                 self._logger.exception("Updating of all today rates from %s provider failed.")
 
     def update_all_historical_rates(self, origin_date):
+        """
+        :type origin_date: datetime.date
+        """
         for data_provider in self._data_providers:
             self._logger.info("Updating all historical rates from %s provider" % data_provider)
             date_rates = data_provider.get_historical(origin_date, self._supported_currencies)
@@ -40,11 +53,18 @@ class ExchangeRateManager:
         """
         Get records of exchange rates for the date from all data providers.
         If rates are missing for the date from some providers request data only from these providers to update database.
+
+        :type date_of_exchange: datetime.date
+        :type currency: str
+        :rtype: list[gold_digger.database.db_model.ExchangeRate]
         """
+        today = date.today()
         exchange_rates = self._dao_exchange_rate.get_rates_by_date_currency(date_of_exchange, currency)
         exchange_rates_providers = set(r.provider.name for r in exchange_rates)
         missing_provider_rates = [provider for provider in self._data_providers if provider.name not in exchange_rates_providers]
         for data_provider in missing_provider_rates:
+            if currency not in data_provider.get_supported_currencies(today):
+                continue
             rate = data_provider.get_by_date(date_of_exchange, currency)
             if rate:
                 db_provider = self._dao_provider.get_or_create_provider_by_name(data_provider.name)
@@ -58,6 +78,9 @@ class ExchangeRateManager:
         Compare rates to each other and group then by absolute difference.
         If there is group with minimal difference of two rates, choose one of them according the order of providers.
         If there is group with minimal difference with more than two rates, choose rate in the middle / aka most common rate in the list.
+
+        :type rates_records: list[gold_digger.database.db_model.ExchangeRate]
+        :rtype: gold_digger.database.db_model.ExchangeRate
         """
         if len(rates_records) in (1, 2):
             return rates_records[0]
@@ -73,6 +96,10 @@ class ExchangeRateManager:
             return Counter(rates).most_common(1)[0][0]  # [(ExchangeRate, occurrences)]
 
     def future_date_to_today(self, date_of_exchange):
+        """
+        :type date_of_exchange: datetime.date
+        :rtype: datetime.date
+        """
         today = date.today()
         if date_of_exchange > today:
             self._logger.warning("Request for future date %s. Exchange rate of today will be returned instead.", date_of_exchange)
@@ -83,6 +110,11 @@ class ExchangeRateManager:
         """
         Compute exchange rate between 'from_currency' and 'to_currency'.
         If the date is missing request data providers to update database.
+
+        :type date_of_exchange: datetime.date
+        :type from_currency: str
+        :type to_currency: str
+        :rtype: Decimal
         """
         date_of_exchange = self.future_date_to_today(date_of_exchange)
 
@@ -104,6 +136,12 @@ class ExchangeRateManager:
         """
         Compute average exchange rate of currency in specified period.
         Log warnings for missing days.
+
+        :type start_date: datetime.date
+        :type end_date: datetime.date
+        :type from_currency: str
+        :type to_currency: str
+        :rtype: Decimal
         """
         today_or_past_date = self.future_date_to_today(start_date)
         if today_or_past_date != start_date:
