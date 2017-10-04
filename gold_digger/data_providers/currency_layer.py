@@ -32,7 +32,10 @@ class CurrencyLayer(Provider):
         response = self._get("https://currencylayer.com/downloads/cl-currencies-table.txt")
         if response:
             currencies = set(re.findall("<td>([A-Z]{3})</td>", response.text))
-        self.logger.debug("CurrencyLayer currencies: %s", currencies)
+        if currencies:
+            self.logger.debug("CurrencyLayer supported currencies: %s", currencies)
+        else:
+            self.logger.error("CurrencyLayer supported currencies not found.")
         return currencies
 
     def get_by_date(self, date_of_exchange, currency):

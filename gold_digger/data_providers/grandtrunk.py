@@ -26,7 +26,10 @@ class GrandTrunk(Provider):
         response = self._get("{url}/currencies".format(url=self.BASE_URL))
         if response:
             currencies = set(response.text.split("\n"))
-        self.logger.debug("Grandtrunk currencies: %s", currencies)
+        if currencies:
+            self.logger.debug("Grandtrunk supported currencies: %s", currencies)
+        else:
+            self.logger.error("Grandtrunk supported currencies not found.")
         return currencies
 
     def get_by_date(self, date_of_exchange, currency):

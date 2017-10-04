@@ -26,7 +26,10 @@ class Google(Provider):
         response = self._get("https://finance.google.com/finance/converter")
         if response:
             currencies = set(re.findall('<option +value="([A-Z]{3})">', response.text))
-        self.logger.debug("Google currencies: %s", currencies)
+        if currencies:
+            self.logger.debug("Google supported currencies: %s", currencies)
+        else:
+            self.logger.error("Google supported currencies not found.")
         return currencies
 
     def get_by_date(self, date_of_exchange, currency):

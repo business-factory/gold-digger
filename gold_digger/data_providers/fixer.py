@@ -21,7 +21,10 @@ class Fixer(Provider):
         response = self._get(self.BASE_URL.format(date=date_of_exchange))
         if response:
             currencies = set(response.json().get("rates").keys())
-        self.logger.debug("Fixer currencies: %s", currencies)
+        if currencies:
+            self.logger.debug("Fixer supported currencies: %s", currencies)
+        else:
+            self.logger.error("Fixer supported currencies not found.")
         return currencies
 
     def get_by_date(self, date_of_exchange, currency):

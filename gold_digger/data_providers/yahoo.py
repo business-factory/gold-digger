@@ -31,7 +31,10 @@ class Yahoo(Provider):
         """
         rates = self._get_all_latest(self._currencies)
         currencies = set(rates.keys())
-        self.logger.debug("Yahoo currencies: %s", currencies)
+        if currencies:
+            self.logger.debug("Yahoo supported currencies: %s", currencies)
+        else:
+            self.logger.error("Yahoo supported currencies not found.")
         return currencies
 
     def get_by_date(self, date_of_exchange, currency):
