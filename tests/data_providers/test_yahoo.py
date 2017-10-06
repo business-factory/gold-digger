@@ -39,7 +39,7 @@ def test_yahoo_get_by_date(currencies, logger):
             }
         }
         """
-    yahoo._post = lambda *a, **kw: sample
+    yahoo._get = lambda *a, **kw: sample
     rate_eur = yahoo.get_by_date(date.today(), "EUR")
 
     assert rate_eur == Decimal("0.8555")
@@ -76,7 +76,7 @@ def test_yahoo_get_by_date_unsupported_currency(currencies, logger):
             }
         }
         """
-    yahoo._post = lambda *a, **kw: sample
+    yahoo._get = lambda *a, **kw: sample
     rate_eur = yahoo.get_by_date(date.today(), "EUR")
 
     assert rate_eur is None
@@ -133,7 +133,7 @@ def test_yahoo_get_all_by_date(currencies, logger):
             }
         }
         """
-    yahoo._post = lambda *a, **kw: sample
+    yahoo._get = lambda *a, **kw: sample
 
     rates = yahoo.get_all_by_date(date.today(), {"EUR", "CZK", "EEK"})
 

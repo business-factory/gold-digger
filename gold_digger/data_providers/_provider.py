@@ -44,16 +44,6 @@ class Provider(metaclass=ABCMeta):
         except requests.exceptions.RequestException as e:
             self.logger.error("%s - exception: %s, URL: %s, Params: %s", self, e, url, params)
 
-    def _post(self, url, params=None):
-        try:
-            response = requests.post(url, params=params, timeout=self.DEFAULT_REQUEST_TIMEOUT)
-            if response.status_code == 200:
-                return response
-            else:
-                self.logger.error("%s - status code: %s, URL: %s, Params: %s", self, response.status_code, url, params)
-        except requests.exceptions.RequestException as e:
-            self.logger.error("%s - exception: %s, URL: %s, Params: %s", self, e, url, params)
-
     def _to_decimal(self, value, currency=None):
         try:
             return Decimal(value)

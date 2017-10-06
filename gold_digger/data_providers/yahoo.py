@@ -60,7 +60,7 @@ class Yahoo(Provider):
 
     def _get_latest(self, currency):
         self.params["q"] = self.PREPARED_YQL.format(currencies=currency)
-        response = self._post(self.BASE_URL, params=self.params)
+        response = self._get(self.BASE_URL, params=self.params)
         if response:
             rate = self._get_rates_from_response(response)
             return self._to_decimal(rate.get("Rate"), currency)
@@ -68,7 +68,7 @@ class Yahoo(Provider):
     def _get_all_latest(self, currencies):
         day_rates = {}
         self.params["q"] = self.PREPARED_YQL.format(currencies=",".join(currencies))
-        response = self._post(self.BASE_URL, params=self.params)
+        response = self._get(self.BASE_URL, params=self.params)
         for rates in self._get_rates_from_response(response):
             currency = rates.get("id")
             currency = currency[:3] if currency else currency
