@@ -10,8 +10,21 @@ from decimal import Decimal, InvalidOperation
 class Provider(metaclass=ABCMeta):
     DEFAULT_REQUEST_TIMEOUT = 15  # 15 seconds for both connect & read timeouts
 
-    def __init__(self, logger):
-        self.logger = logger
+    def __init__(self, base_currency, logger):
+        """
+        :type base_currency: str
+        :type logger: logging.Logger
+        """
+        self._base_currency = base_currency
+        self._logger = logger
+
+    @property
+    def base_currency(self):
+        return self._base_currency
+
+    @property
+    def logger(self):
+        return self._logger
 
     @property
     @abstractmethod

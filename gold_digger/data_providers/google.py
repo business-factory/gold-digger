@@ -12,7 +12,6 @@ class Google(Provider):
     Offers only latest exchange rates for only one currency pair at the moment.
     """
     BASE_URL = "https://finance.google.com/finance/converter?a=1&from={}&to={}"
-    BASE_CURRENCY = "USD"
     RESULT_REGEX = re.compile("class=bld>([\d.]+)")
     name = "google"
 
@@ -44,7 +43,7 @@ class Google(Provider):
             return self._get_all_latest(date_of_exchange, currencies)
 
     def _get_latest(self, currency):
-        response = self._get(self.BASE_URL.format(self.BASE_CURRENCY, currency))
+        response = self._get(self.BASE_URL.format(self.base_currency, currency))
         if response:
             result = self.RESULT_REGEX.search(response.text)
             if result:

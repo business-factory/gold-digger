@@ -14,7 +14,6 @@ class CurrencyLayer(Provider):
     Implicit base currency is USD.
     """
     BASE_URL = "http://www.apilayer.net/api/live?access_key=%s"
-    BASE_CURRENCY = "USD"
     name = "currency_layer"
 
     def __init__(self, access_keys, *args, **kwargs):
@@ -57,7 +56,7 @@ class CurrencyLayer(Provider):
             return None
 
         records = response.get("quotes", {}) if response else {}
-        value = records.get("%s%s" % (self.BASE_CURRENCY, currency))
+        value = records.get("%s%s" % (self.base_currency, currency))
         return self._to_decimal(value, currency) if value is not None else None
 
     def get_all_by_date(self, date_of_exchange, currencies):

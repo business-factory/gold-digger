@@ -5,15 +5,11 @@ from decimal import Decimal
 
 from requests import Response
 
-from gold_digger.data_providers.google import Google
 
-
-def test_google_find_rate_in_html(logger):
+def test_google_find_rate_in_html(google):
     """
     https://finance.google.com/finance/converter?a=1&from=USD&to=EUR
     """
-    google = Google(logger)
-
     sample = Response()
     sample.status_code = 200
     sample._content = b"""

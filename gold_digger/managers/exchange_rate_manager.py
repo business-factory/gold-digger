@@ -5,19 +5,23 @@ from decimal import Decimal
 from itertools import combinations
 from collections import defaultdict, Counter
 
+from gold_digger.database.db_model import ExchangeRate
+
 
 class ExchangeRateManager:
-    def __init__(self, dao_exchange_rate, dao_provider, data_providers, supported_currencies, logger):
+    def __init__(self, dao_exchange_rate, dao_provider, data_providers, base_currency, supported_currencies, logger):
         """
         :type dao_exchange_rate: gold_digger.database.DaoExchangeRate
         :type dao_provider: gold_digger.database.DaoProvider
         :type data_providers: list[gold_digger.data_providers._provider.Provider]
+        :type base_currency: str
         :type supported_currencies: set[str]
         :type logger: logging.Logger
         """
         self._dao_exchange_rate = dao_exchange_rate
         self._dao_provider = dao_provider
         self._data_providers = data_providers
+        self._base_currency = base_currency
         self._supported_currencies = supported_currencies
         self._logger = logger
 
@@ -27,7 +31,7 @@ class ExchangeRateManager:
         """
         for data_provider in self._data_providers:
             try:
-                self._logger.info("Updating all today rates from %s provider" % data_provider)
+                self._logger.info("Updating all today rates from %s provider", data_provider)
                 day_rates = data_provider.get_all_by_date(date_of_exchange, self._supported_currencies)
                 if day_rates:
                     provider = self._dao_provider.get_or_create_provider_by_name(data_provider.name)
@@ -42,7 +46,7 @@ class ExchangeRateManager:
         :type origin_date: datetime.date
         """
         for data_provider in self._data_providers:
-            self._logger.info("Updating all historical rates from %s provider" % data_provider)
+            self._logger.info("Updating all historical rates from %s provider", data_provider)
             date_rates = data_provider.get_historical(origin_date, self._supported_currencies)
             provider = self._dao_provider.get_or_create_provider_by_name(data_provider.name)
             for day, day_rates in date_rates.items():
@@ -58,6 +62,9 @@ class ExchangeRateManager:
         :type currency: str
         :rtype: list[gold_digger.database.db_model.ExchangeRate]
         """
+        if currency == self._base_currency:
+            return [ExchangeRate.base(self._base_currency)]
+
         today = date.today()
         exchange_rates = self._dao_exchange_rate.get_rates_by_date_currency(date_of_exchange, currency)
         exchange_rates_providers = set(r.provider.name for r in exchange_rates)
@@ -132,6 +139,18 @@ class ExchangeRateManager:
         conversion = 1 / _from_currency.rate
         return Decimal(_to_currency.rate * conversion)
 
+    def _get_sum_of_rates_in_period(self, start_date, end_date, currency):
+        """
+        :type start_date: datetime.date
+        :type end_date: datetime.date
+        :type currency: str
+        :rtype: list[(str,int,Decimal)]
+        """
+        if currency == self._base_currency:
+            return [("BASE", 1, ExchangeRate.base(self._base_currency).rate),]
+
+        return self._dao_exchange_rate.get_sum_of_rates_in_period(start_date, end_date, currency)
+
     def get_average_exchange_rate_by_dates(self, start_date, end_date, from_currency, to_currency):
         """
         Compute average exchange rate of currency in specified period.
@@ -148,26 +167,32 @@ class ExchangeRateManager:
             return self.get_exchange_rate_by_date(today_or_past_date, from_currency, to_currency)
 
         number_of_days = abs((end_date - start_date).days) + 1  # we want interval <start_date, end_date>
-        _from_currency = self._dao_exchange_rate.get_sum_of_rates_in_period(start_date, end_date, from_currency)
-        _to_currency = self._dao_exchange_rate.get_sum_of_rates_in_period(start_date, end_date, to_currency)
+        _from_currency = self._get_sum_of_rates_in_period(start_date, end_date, from_currency)
+        _to_currency = self._get_sum_of_rates_in_period(start_date, end_date, to_currency)
 
         for (from_provider, from_count, from_sum), (to_provider, to_count, to_sum) in zip(_from_currency, _to_currency):
 
-            self._logger.info("Sum of currencies %s (%s records) = %s, %s (%s records) = %s in period %s - %s by (%s, %s)" %
-                              (from_currency, from_count, from_sum, to_currency, to_count, to_sum, start_date, end_date, from_provider,
-                              to_provider))
-            if from_count != number_of_days:
-                self._logger.warning("Provider %s miss %s days with currency %s while range request on %s - %s" %
-                                     (from_provider, number_of_days - from_count, from_currency, start_date, end_date))
-            if to_count != number_of_days:
-                self._logger.warning("Provider %s miss %s days with currency %s while range request on %s - %s" %
-                                     (to_provider, number_of_days - to_count, to_currency, start_date, end_date))
+            self._logger.info(
+                "Sum of currencies %s (%s records) = %s, %s (%s records) = %s in period %s - %s by (%s, %s)",
+                from_currency, from_count, from_sum, to_currency, to_count, to_sum, start_date, end_date, from_provider, to_provider
+            )
+            if from_count != number_of_days and from_currency != self._base_currency:
+                self._logger.warning(
+                    "Provider %s misses %s days with currency %s while range request on %s - %s",
+                    from_provider, number_of_days - from_count, from_currency, start_date, end_date
+                )
+            if to_count != number_of_days and to_currency != self._base_currency:
+                self._logger.warning(
+                    "Provider %s misses %s days with currency %s while range request on %s - %s",
+                    to_provider, number_of_days - to_count, to_currency, start_date, end_date
+                )
 
             if from_count and from_sum and to_count and to_sum:
                 from_average = from_sum / from_count
                 to_average = to_sum / to_count
                 conversion = 1 / from_average
                 return Decimal(to_average * conversion)
+
             self._logger.error("Date range 'count' and/or 'sum' are empty")
 
-        self._logger.debug("Range request failed: from %s to %s" % (_from_currency, _to_currency))
+        self._logger.exception("Range request failed: from %s to %s", _from_currency, _to_currency)

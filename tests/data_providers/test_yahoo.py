@@ -5,18 +5,14 @@ from decimal import Decimal
 
 from requests import Response
 
-from gold_digger.data_providers.yahoo import Yahoo
 
-
-def test_yahoo_get_by_date(currencies, logger):
+def test_yahoo_get_by_date(yahoo):
     """
     https://query.yahooapis.com/v1/public/yql
     ?q=SELECT%20*%20FROM%20yahoo.finance.xchange%20WHERE%20pair%20IN%20(%27EUR%27)
     &env=store://datatables.org/alltableswithkeys
     &format=json
     """
-    yahoo = Yahoo(currencies, logger)
-
     sample = Response()
     sample.status_code = 200
     sample._content = b"""        
@@ -45,15 +41,13 @@ def test_yahoo_get_by_date(currencies, logger):
     assert rate_eur == Decimal("0.8555")
 
 
-def test_yahoo_get_by_date_unsupported_currency(currencies, logger):
+def test_yahoo_get_by_date_unsupported_currency(yahoo):
     """
     https://query.yahooapis.com/v1/public/yql
     ?q=SELECT%20*%20FROM%20yahoo.finance.xchange%20WHERE%20pair%20IN%20(%27EEK%27)
     &env=store://datatables.org/alltableswithkeys
     &format=json
     """
-    yahoo = Yahoo(currencies, logger)
-
     sample = Response()
     sample.status_code = 200
     sample._content = b"""        
@@ -82,15 +76,13 @@ def test_yahoo_get_by_date_unsupported_currency(currencies, logger):
     assert rate_eur is None
 
 
-def test_yahoo_get_all_by_date(currencies, logger):
+def test_yahoo_get_all_by_date(yahoo):
     """
     https://query.yahooapis.com/v1/public/yql
     ?q=SELECT%20*%20FROM%20yahoo.finance.xchange%20WHERE%20pair%20IN%20(%27EUR,CZK,EEK%27)
     &env=store://datatables.org/alltableswithkeys
     &format=json
     """
-    yahoo = Yahoo(currencies, logger)
-
     sample = Response()
     sample.status_code = 200
     sample._content = b"""        
