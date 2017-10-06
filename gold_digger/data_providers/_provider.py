@@ -54,8 +54,8 @@ class Provider(metaclass=ABCMeta):
         except requests.exceptions.RequestException as e:
             self.logger.error("%s - exception: %s, URL: %s, Params: %s", self, e, url, params)
 
-    def _to_decimal(self, value, currency=""):
+    def _to_decimal(self, value, currency=None):
         try:
             return Decimal(value)
         except InvalidOperation:
-            self.logger.error("%s - Invalid operation: value %s is not a number (currency %s)" % (self, value, currency))
+            self.logger.error("%s - Invalid operation: value %s is not a number (currency %s)", self, value, currency)
