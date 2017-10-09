@@ -95,8 +95,7 @@ class Yahoo(Provider):
         """
         if response:
             try:
-                rates = response.json()["query"]["results"]["rate"]
-                return rates
+                return response.json()["query"]["results"]["rate"]
             except KeyError as e:
                 self.logger.error("%s - Accessing records failed: %s. Response: %s.", self, e, response.json())
         return []

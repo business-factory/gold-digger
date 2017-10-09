@@ -178,12 +178,12 @@ class ExchangeRateManager:
             )
             if from_count != number_of_days and from_currency != self._base_currency:
                 self._logger.warning(
-                    "Provider %s misses %s days with currency %s while range request on %s - %s",
+                    "Provider %s is missing %s days with currency %s while range request on %s - %s",
                     from_provider, number_of_days - from_count, from_currency, start_date, end_date
                 )
             if to_count != number_of_days and to_currency != self._base_currency:
                 self._logger.warning(
-                    "Provider %s misses %s days with currency %s while range request on %s - %s",
+                    "Provider %s is missing %s days with currency %s while range request on %s - %s",
                     to_provider, number_of_days - to_count, to_currency, start_date, end_date
                 )
 
@@ -195,4 +195,4 @@ class ExchangeRateManager:
 
             self._logger.error("Date range 'count' and/or 'sum' are empty")
 
-        self._logger.exception("Range request failed: from %s to %s", _from_currency, _to_currency)
+        self._logger.error("Range request failed: from %s to %s", _from_currency, _to_currency)
