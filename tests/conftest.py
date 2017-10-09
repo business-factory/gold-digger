@@ -21,6 +21,11 @@ def logger():
 
 
 @pytest.fixture
+def base_currency():
+    return "USD"
+
+
+@pytest.fixture
 def currencies():
     return {"USD", "EUR", "CZK", "GBP"}
 

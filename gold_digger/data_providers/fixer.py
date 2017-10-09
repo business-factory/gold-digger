@@ -7,7 +7,6 @@ from ._provider import Provider
 
 
 class Fixer(Provider):
-    BASE_CURRENCY = "USD"
     BASE_URL = "https://api.fixer.io/{date}"
     name = "fixer.io"
 
@@ -47,7 +46,7 @@ class Fixer(Provider):
         day_rates = {}
 
         url = self.BASE_URL.format(date=date_of_exchange_string)
-        response = self._get(url, params={"base": self.BASE_CURRENCY})
+        response = self._get(url, params={"base": self.base_currency})
 
         if response:
             try:
@@ -93,7 +92,7 @@ class Fixer(Provider):
         self.logger.debug("Requesting Fixer for %s (%s)", currency, date_of_exchange, extra={"currency": currency, "date": date_of_exchange})
 
         url = self.BASE_URL.format(date=date_of_exchange)
-        response = self._get(url, params={"base": self.BASE_CURRENCY, "symbols": currency})
+        response = self._get(url, params={"base": self.base_currency, "symbols": currency})
         if response:
             try:
                 response = response.json()

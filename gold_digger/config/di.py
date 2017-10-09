@@ -67,14 +67,18 @@ class DiContainer:
         self._db_session = scoped_session(sessionmaker(self.db_connection))
         return self._db_session()
 
+    @property
+    def base_currency(self):
+        return "USD"
+
     @service
     def data_providers(self):
         return (
-            GrandTrunk(self.logger),
-            CurrencyLayer(self["secrets"]["currency_layer"], self.logger),
-            Yahoo(self["supported_currencies"], self.logger),
-            Google(self.logger),
-            Fixer(self.logger),
+            GrandTrunk(self.base_currency, self.logger),
+            CurrencyLayer(self["secrets"]["currency_layer"], self.base_currency, self.logger),
+            Yahoo(self["supported_currencies"], self.base_currency, self.logger),
+            Google(self.base_currency, self.logger),
+            Fixer(self.base_currency, self.logger),
         )
 
     @service
@@ -83,6 +87,7 @@ class DiContainer:
             DaoExchangeRate(self.db_session, self.logger),
             DaoProvider(self.db_session),
             self.data_providers,
+            self.base_currency,
             self["supported_currencies"],
             self.logger
         )
