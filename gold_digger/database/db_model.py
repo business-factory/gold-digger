@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+
+from decimal import Decimal
+
 from sqlalchemy import UniqueConstraint, Column, Date, String, DECIMAL, Integer, ForeignKey, BigInteger
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
@@ -25,3 +28,10 @@ class ExchangeRate(Base):
     provider_id = Column(Integer, ForeignKey("provider.id"))
     currency = Column(String, nullable=False)
     rate = Column(DECIMAL)
+
+    @classmethod
+    def base(cls, base_currency):
+        return cls(
+            currency=base_currency,
+            rate=Decimal(1.0)
+        )

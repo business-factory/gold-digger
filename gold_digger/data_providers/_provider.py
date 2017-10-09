@@ -8,8 +8,32 @@ from decimal import Decimal, InvalidOperation
 
 
 class Provider(metaclass=ABCMeta):
-    def __init__(self, logger):
-        self.logger = logger
+    DEFAULT_REQUEST_TIMEOUT = 15  # 15 seconds for both connect & read timeouts
+
+    def __init__(self, base_currency, logger):
+        """
+        :type base_currency: str
+        :type logger: logging.Logger
+        """
+        self._base_currency = base_currency
+        self._logger = logger
+
+    @property
+    def base_currency(self):
+        return self._base_currency
+
+    @property
+    def logger(self):
+        return self._logger
+
+    @property
+    @abstractmethod
+    def name(self):
+        pass
+
+    @abstractmethod
+    def get_supported_currencies(self, date_of_exchange):
+        pass
 
     @abstractmethod
     def get_by_date(self, date_of_exchange, currency):
@@ -25,26 +49,16 @@ class Provider(metaclass=ABCMeta):
 
     def _get(self, url, params=None):
         try:
-            response = requests.get(url, params=params)
+            response = requests.get(url, params=params, timeout=self.DEFAULT_REQUEST_TIMEOUT)
             if response.status_code == 200:
                 return response
             else:
-                self.logger.error("%s get %s status code on %s" % (self, response.status_code, url))
+                self.logger.error("%s - status code: %s, URL: %s, Params: %s", self, response.status_code, url, params)
         except requests.exceptions.RequestException as e:
-            self.logger.error("%s get %s exception on %s" % (self, e, url))
+            self.logger.error("%s - exception: %s, URL: %s, Params: %s", self, e, url, params)
 
-    def _post(self, url, **kwargs):
-        try:
-            response = requests.post(url, **kwargs)
-            if response.status_code == 200:
-                return response
-            else:
-                self.logger.error("%s get %s status code on %s" % (self, response.status_code, url))
-        except requests.exceptions.RequestException as e:
-            self.logger.error("%s get %s exception on %s" % (self, e, url))
-
-    def _to_decimal(self, value, currency=""):
+    def _to_decimal(self, value, currency=None):
         try:
             return Decimal(value)
         except InvalidOperation:
-            self.logger.error("%s - Invalid operation: value %s is not a number (currency %s)" % (self, value, currency))
+            self.logger.error("%s - Invalid operation: value %s is not a number (currency %s)", self, value, currency)

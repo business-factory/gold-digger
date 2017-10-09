@@ -5,12 +5,11 @@ from decimal import Decimal
 
 from requests import Response
 
-from gold_digger.data_providers.google import Google
 
-
-def test_google_find_rate_in_html(logger):
-    google = Google(logger)
-
+def test_google_find_rate_in_html(google):
+    """
+    https://finance.google.com/finance/converter?a=1&from=USD&to=EUR
+    """
     sample = Response()
     sample.status_code = 200
     sample._content = b"""
@@ -41,7 +40,7 @@ def test_google_find_rate_in_html(logger):
                 </select>
                 </div>
                 &nbsp;
-                <div id=currency_converter_result>1 EUR = <span class=bld>26.0434 CZK</span>
+                <div id=currency_converter_result>1 EUR = <span class=bld>0.8550 EUR</span>
                 <input type=submit value="Convert">
                 </div>
                 <input type=hidden name=meta value=ei&#61;lOB5Wfm3CsGCsgGshZOQDg>
@@ -50,9 +49,7 @@ def test_google_find_rate_in_html(logger):
         </div>
         </html>
         """
-    google._get = lambda x: sample
+    google._get = lambda *a, **kw: sample
+    rate_eur = google.get_by_date(date.today(), "EUR")
 
-    rate = google.get_by_date(date.today(), "EUR")
-
-    assert isinstance(rate, Decimal)
-    assert float(rate) == 26.0434
+    assert rate_eur == Decimal("0.8550")

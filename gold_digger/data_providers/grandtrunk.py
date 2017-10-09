@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
-from datetime import datetime, date
+
 from collections import defaultdict
+from datetime import datetime, date
+from functools import lru_cache
+
 from ._provider import Provider
 
 
@@ -10,15 +13,30 @@ class GrandTrunk(Provider):
     It is currently free for use in low-volume and non-commercial settings.
     """
     BASE_URL = "http://currencies.apps.grandtrunk.net"
-    BASE_CURRENCY = "USD"
     name = "grandtrunk"
+
+    @lru_cache(maxsize=1)
+    def get_supported_currencies(self, date_of_exchange):
+        """
+        :type date_of_exchange: date
+        :rtype: set
+        """
+        currencies = set()
+        response = self._get("{url}/currencies".format(url=self.BASE_URL))
+        if response:
+            currencies = set(response.text.split("\n"))
+        if currencies:
+            self.logger.debug("Grandtrunk supported currencies: %s", currencies)
+        else:
+            self.logger.error("Grandtrunk supported currencies not found.")
+        return currencies
 
     def get_by_date(self, date_of_exchange, currency):
         date_str = date_of_exchange.strftime(format="%Y-%m-%d")
         self.logger.debug("Requesting GrandTrunk for %s (%s)", currency, date_str, extra={"currency": currency, "date": date_str})
 
         response = self._get("{url}/getrate/{date}/{from_currency}/{to}".format(
-            url=self.BASE_URL, date=date_str, from_currency=self.BASE_CURRENCY, to=currency))
+            url=self.BASE_URL, date=date_str, from_currency=self.base_currency, to=currency))
         if response:
             return self._to_decimal(response.text.strip(), currency)
 
@@ -26,7 +44,7 @@ class GrandTrunk(Provider):
         day_rates = {}
         for currency in currencies:
             response = self._get("{url}/getrate/{date}/{from_currency}/{to}".format(
-                url=self.BASE_URL, date=date_of_exchange, from_currency=self.BASE_CURRENCY, to=currency))
+                url=self.BASE_URL, date=date_of_exchange, from_currency=self.base_currency, to=currency))
             if response:
                 decimal_value = self._to_decimal(response.text.strip(), currency)
                 if decimal_value:
@@ -38,7 +56,7 @@ class GrandTrunk(Provider):
         origin_date_string = origin_date.strftime(format="%Y-%m-%d")
         for currency in currencies:
             response = self._get("{url}/getrange/{from_date}/{to_date}/{from_currency}/{to}".format(
-                url=self.BASE_URL, from_date=origin_date_string, to_date=date.today(), from_currency=self.BASE_CURRENCY, to=currency
+                url=self.BASE_URL, from_date=origin_date_string, to_date=date.today(), from_currency=self.base_currency, to=currency
             ))
             records = response.text.strip().split("\n") if response else []
             for record in records:
