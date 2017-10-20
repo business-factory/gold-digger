@@ -2,11 +2,14 @@
 
 
 ## Used technologies
- - [Python 3.5](https://www.python.org/)
+ - [Python 3.6](https://www.python.org/)
  - [PostgreSQL](http://www.postgresql.org/)
 
 
 ## Development setup
+
+Create, activate your virtual environment and install requirements for your virtual environment.
+
 ```sh
 python -m venv .env
 . ./.env/bin/activate  # or for BFU .env\Scripts\activate.bat
@@ -14,16 +17,30 @@ pip install -U pip wheel
 pip install --use-wheel -r requirements-dev.txt
 ```
 
-Create PostgreSQL database and user named *gold-digger*.
+Create PostgreSQL database and user named *golddigger*.
 
-Create local configuration file called `gold_digger/config/params_local.py` with configuration for local machine.
+```sql
+CREATE DATABASE "golddigger" WITH OWNER = postgres ENCODING = 'UTF8';
+```
+
+Create local settings file called `gold_digger/settings/_settings_local.py` with configuration for local machine.
 For development purposes there is no configuration required so file may look like the below one:
 
 ```python
 # -*- coding: utf-8 -*-
-
-LOCAL_CONFIG_PARAMS = {}
 ```
+
+For custom database connection use something like this to overwrite default configuration in `gold_digger/settings/_settings_default.py`:
+
+```python
+# -*- coding: utf-8 -*-
+DATABASE_HOST = "<your_PG_server>"
+DATABASE_PORT = "<database_port>"
+DATABASE_USER = "<database_user>"
+DATABASE_PASSWORD = "<secret_password>"
+DATABASE_NAME = "<database_name>"
+```
+
 
 ## Usage
 Available commands:
@@ -35,37 +52,83 @@ Available commands:
 
 For running the tests simply use:
 * `py.test` or `ptw` which starts watchdog which run the tests after every save of Python file
-* `py.test --database-tests --db-connection postgres://postgres:postgres@localhost:5432/golddigger-test` (with custom db connection) which runs also tests marked as `@database_test`.
+* `py.test --database-tests --db-connection postgres://postgres:postgres@localhost/golddigger-test` (with custom db connection) which runs also tests marked as `@database_test`.
  These tests are executed against real test database.
 
 
 ## API endpoints
 
 * `/rate?from=X&to=Y&date=YYYY-MM-DD`
-	* from currency - required
-	* to currency - required 
-	* date of exchange - optional; returns last exchange rates if omitted 
-
-	* example: [http://localhost:8000/rate?from=EUR&to=USD&date=2005-12-22](http://localhost:8000/rate?from=EUR&to=USD&date=2005-12-22)
+    * from currency - required
+    * to currency - required
+    * date of exchange - optional; returns last exchange rates if omitted
+    * example: [http://localhost:8000/rate?from=EUR&to=USD&date=2005-12-22](http://localhost:8000/rate?from=EUR&to=USD&date=2005-12-22)
 
 * `/range?from=X&to=Y&start_date=YYYY-MM-DD&end_date=YYYY-MM-DD`
-	* from currency - required
-	* to currency - required
-	* start date & end date of exchange - required
-	
+    * from currency - required
+    * to currency - required
+    * start date & end date of exchange - required
     * example: [http://localhost:8000/range?from=EUR&to=AED&start_date=2016-02-15&end_date=2016-02-15](http://localhost:8000/range?from=EUR&to=AED&start_date=2016-02-15&end_date=2016-02-15)
-    
+
+
 ## Docker
-Ensure you have created local params file according to *Development setup* section. Then build docker image.
 
-`docker build -t gold-digger-ubuntu .`
+To build a docker image run:
 
-If you are connecting to local database on the host (outside the container) run the container with --net=host option.
+`docker build -t gold-digger:latest .`
 
-`docker run --name gold-digger --net=host -t -i -p 8000:8000 gold-digger-ubuntu`
+Docker container starts the Gunicorn server by default.
 
-Run production container as daemon (production).
+* This command runs API container with Gunicorn server:
 
-`docker run --name gold-digger -d -p 8000:8000 gold-digger-ubuntu`
+`docker run --rm --detach --restart=always --publish=8000:8000 --name=gold-digger gold-digger:latest`
 
-Docker container starts the Gunicorn server. Web server is kept alive by supervisor. Cron performs daily updates at 00:05.
+* To control Gunicorn's parameters use this:
+
+`docker run --rm --detach --restart=always --publish=8000:8000 -e GUNICORN_WORKERS=4 -e GUNICORN_BIND=0.0.0.0:8000 --name=gold-digger gold-digger:latest`
+
+* To run Cron container with daily updates at 00:05 use command:
+
+`docker run --rm --detach --restart=always --name gold-digger-cron gold-digger:latest cron -f`
+
+* If you are connecting to local database on the host run the container with --net=host option:
+
+`docker run --rm --detach --restart=always --net=host --publish=8000:8000 --name=gold-digger gold-digger:latest`
+
+`docker run --rm --detach --restart=always --net=host --name gold-digger-cron gold-digger:latest cron -f`
+
+* To inject your database user, password, host, port and name use:
+
+```bash
+docker run --rm --detach --restart=always \
+    -e GOLD_DIGGER_DATABASE_HOST=<your_database_host> \
+    -e GOLD_DIGGER_DATABASE_PORT=<your_database_port> \
+    -e GOLD_DIGGER_DATABASE_USER=<your_database_user> \
+    -e GOLD_DIGGER_DATABASE_PASSWORD=<your_database_secret_password> \
+    -e GOLD_DIGGER_DATABASE_NAME=<your_database_name> \
+    --publish=8000:8000 --name=gold-digger gold-digger:latest
+```
+
+```bash
+docker run --rm --detach --restart=always \
+    -e GOLD_DIGGER_DATABASE_HOST=<your_database_host> \
+    -e GOLD_DIGGER_DATABASE_PORT=<your_database_port> \
+    -e GOLD_DIGGER_DATABASE_USER=<your_database_user> \
+    -e GOLD_DIGGER_DATABASE_PASSWORD=<your_database_secret_password> \
+    -e GOLD_DIGGER_DATABASE_NAME=<your_database_name> \
+    --name gold-digger-cron gold-digger:latest cron -f
+```
+
+
+## Settings profiles
+
+Currently you can use two settings profiles:
+
+* default profile named `local` with definitions in `gold_digger/settings/_settings_local.py`
+* production profile named `master` with definitions in `gold_digger/settings/_settings_master.py`
+
+To run this application with production settings `master`  you need to export environment variable `GOLD_DIGGER_PROFILE`.
+
+`docker run --rm --detach --restart=always -e GOLD_DIGGER_PROFILE=master --publish=8000:8000 --name=gold-digger gold-digger:latest`
+
+`docker run --rm --detach --restart=always -e GOLD_DIGGER_PROFILE=master --name gold-digger-cron gold-digger:latest cron -f`
