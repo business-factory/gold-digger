@@ -76,7 +76,7 @@ class DiContainer:
         return (
             GrandTrunk(self.base_currency, self.logger),
             CurrencyLayer(self["secrets"]["currency_layer"], self.base_currency, self.logger),
-            # Yahoo(self["supported_currencies"], self.base_currency, self.logger),
+            Yahoo(self.base_currency, self.logger),
             Google(self.base_currency, self.logger),
             Fixer(self.base_currency, self.logger),
         )
