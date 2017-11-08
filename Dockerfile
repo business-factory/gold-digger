@@ -31,12 +31,6 @@ RUN pip3 install -U pip wheel && \
 # Create local config file
 ADD gold_digger/config/params_local.py gold_digger/config/params_local.py
 
-# Setup cron for daily updates
-# Add crontab file in the cron directory
-ADD crontab.conf /etc/cron.d/daily-exchange-rates
-RUN chmod 600 /etc/cron.d/daily-exchange-rates
-RUN touch cron.log
-
 # Setup supervisor
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 RUN mkdir -p /var/log/gold-digger
