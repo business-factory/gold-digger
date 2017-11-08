@@ -9,17 +9,17 @@
 # RUN CONTAINER
 #   docker run --rm -it --publish=8000:8000 --name=gold-digger gold-digger:latest
 #   docker run --rm -it --publish=8000:8000 --name=gold-digger -v "<path to you gold_digger project>:/app" gold-digger:latest
-#   docker run --rm --detach --restart=always --publish=8000:8000 --name=gold-digger gold-digger:latest
+#   docker run --detach --restart=always --publish=8000:8000 --name=gold-digger gold-digger:latest
 #
-#   docker run --name gold-digger-cron -ti gold-digger:latest cron -f
-#   docker run --rm --detach --restart=always --name gold-digger-cron gold-digger:latest cron -f
+#   docker run --rm --name gold-digger-cron -ti gold-digger:latest python -m gold_digger cron
+#   docker run --detach --restart=always --name gold-digger-cron gold-digger:latest python -m gold_digger cron
 #
 
 FROM python:3.6
 MAINTAINER ROI Hunter
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y libpq-dev cron locales locales-all
+RUN apt-get update && apt-get install -y libpq-dev locales locales-all
 
 # Setup system locale
 RUN locale-gen en_US.utf8
@@ -42,12 +42,6 @@ RUN pip install -U pip wheel && pip install --use-wheel -r requirements.txt
 
 # Add all files to container
 ADD . /app
-
-# Setup cron for daily updates
-# Add crontab file in the cron directory
-ADD crontab.conf /etc/cron.d/daily-exchange-rates
-RUN chmod 600 /etc/cron.d/daily-exchange-rates
-RUN touch cron.log
 
 EXPOSE 8000
 

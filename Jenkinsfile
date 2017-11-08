@@ -75,10 +75,11 @@ pipeline {
                                     -e GOLD_DIGGER_DATABASE_USER='''$gold_digger_master_db_user''' \
                                     -e GOLD_DIGGER_DATABASE_PASSWORD='''$gold_digger_master_db_password''' \
                                     -e GOLD_DIGGER_SECRETS_CURRENCY_LAYER_ACCESS_KEY='''$gold_digger_master_secrets_currency_layer_access_key''' \
+                                    --hostname=golddigger-cron-master-"$item" \
                                     --name=golddigger-cron-master \
                                     --restart=always \
                                     roihunter.azurecr.io/golddigger/master \
-                                    cron -f
+                                    python -m gold_digger cron
 
                                 exit
                                 EOF"""

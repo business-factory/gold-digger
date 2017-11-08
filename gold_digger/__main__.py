@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import click
+from crontab import CronTab
 from datetime import datetime, date
 from . import di_container
 from .api_server.api_server import API
@@ -19,6 +20,23 @@ def _parse_date(ctx, param, value):
 @click.group()
 def cli():
     pass
+
+
+@cli.command("cron", help="Run cron jobs")
+def cron(**kwargs):
+    with di_container(__file__) as c:
+        cron_tab = CronTab(
+            tab="""
+                # m h dom mon dow command
+                5 0 * * * cd /app && python -m gold_digger update {redirect}
+                * * * * * echo "cron health check (hourly)" {redirect}
+            """.format(redirect="> /proc/1/fd/1 2>/proc/1/fd/2")  # redirect to stdout/stderr
+        )
+
+        c.logger.info("Cron started. Commands:\n{}\n---".format("\n".join(list(map(str, cron_tab.crons)))))
+
+        for result in cron_tab.run_scheduler():
+            print(result)
 
 
 @cli.command("initialize-db", help="Create empty table (drop if exists)")

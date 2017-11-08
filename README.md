@@ -81,26 +81,26 @@ Docker container starts the Gunicorn server by default.
 
 * This command runs API container with Gunicorn server:
 
-`docker run --rm --detach --restart=always --publish=8000:8000 --name=gold-digger gold-digger:latest`
+`docker run --detach --restart=always --publish=8000:8000 --name=gold-digger gold-digger:latest`
 
 * To control Gunicorn's parameters use this:
 
-`docker run --rm --detach --restart=always --publish=8000:8000 -e GUNICORN_WORKERS=4 -e GUNICORN_BIND=0.0.0.0:8000 --name=gold-digger gold-digger:latest`
+`docker run --detach --restart=always --publish=8000:8000 -e GUNICORN_WORKERS=4 -e GUNICORN_BIND=0.0.0.0:8000 --name=gold-digger gold-digger:latest`
 
 * To run Cron container with daily updates at 00:05 use command:
 
-`docker run --rm --detach --restart=always --name gold-digger-cron gold-digger:latest cron -f`
+`docker run --detach --restart=always --name gold-digger-cron gold-digger:latest python -m gold_digger cron`
 
 * If you are connecting to local database on the host run the container with --net=host option:
 
-`docker run --rm --detach --restart=always --net=host --publish=8000:8000 --name=gold-digger gold-digger:latest`
+`docker run --detach --restart=always --net=host --publish=8000:8000 --name=gold-digger gold-digger:latest`
 
-`docker run --rm --detach --restart=always --net=host --name gold-digger-cron gold-digger:latest cron -f`
+`docker run --detach --restart=always --net=host --name gold-digger-cron gold-digger:latest python -m gold_digger cron`
 
 * To inject your database user, password, host, port and name use:
 
 ```bash
-docker run --rm --detach --restart=always \
+docker run --detach --restart=always \
     -e GOLD_DIGGER_DATABASE_HOST=<your_database_host> \
     -e GOLD_DIGGER_DATABASE_PORT=<your_database_port> \
     -e GOLD_DIGGER_DATABASE_USER=<your_database_user> \
@@ -110,13 +110,13 @@ docker run --rm --detach --restart=always \
 ```
 
 ```bash
-docker run --rm --detach --restart=always \
+docker run --detach --restart=always \
     -e GOLD_DIGGER_DATABASE_HOST=<your_database_host> \
     -e GOLD_DIGGER_DATABASE_PORT=<your_database_port> \
     -e GOLD_DIGGER_DATABASE_USER=<your_database_user> \
     -e GOLD_DIGGER_DATABASE_PASSWORD=<your_database_secret_password> \
     -e GOLD_DIGGER_DATABASE_NAME=<your_database_name> \
-    --name gold-digger-cron gold-digger:latest cron -f
+    --name gold-digger-cron gold-digger:latest python -m gold_digger cron
 ```
 
 
@@ -129,6 +129,6 @@ Currently you can use two settings profiles:
 
 To run this application with production settings `master`  you need to export environment variable `GOLD_DIGGER_PROFILE`.
 
-`docker run --rm --detach --restart=always -e GOLD_DIGGER_PROFILE=master --publish=8000:8000 --name=gold-digger gold-digger:latest`
+`docker run --detach --restart=always -e GOLD_DIGGER_PROFILE=master --publish=8000:8000 --name=gold-digger gold-digger:latest`
 
-`docker run --rm --detach --restart=always -e GOLD_DIGGER_PROFILE=master --name gold-digger-cron gold-digger:latest cron -f`
+`docker run --detach --restart=always -e GOLD_DIGGER_PROFILE=master --name gold-digger-cron gold-digger:latest python -m gold_digger cron`
