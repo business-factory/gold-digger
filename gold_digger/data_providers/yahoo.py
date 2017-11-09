@@ -48,7 +48,7 @@ class Yahoo(Provider):
         """
         if date_of_exchange == date.today():
             rates = self._get_all_latest()
-            return {currency: rate for currency, rate in rates if currency in currencies}
+            return {currency: rate for currency, rate in rates.items() if currency in currencies}
 
     def _get_latest(self, currency):
         response = self._get(self.BASE_URL)
