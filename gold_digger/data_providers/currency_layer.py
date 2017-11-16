@@ -16,11 +16,11 @@ class CurrencyLayer(Provider):
     BASE_URL = "http://www.apilayer.net/api/live?access_key=%s"
     name = "currency_layer"
 
-    def __init__(self, access_keys, *args, **kwargs):
+    def __init__(self, access_key, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        try:
-            self._url = self.BASE_URL % access_keys[1]
-        except IndexError:
+        if access_key:
+            self._url = self.BASE_URL % access_key
+        else:
             self.logger.critical("You need an access token to use CurrencyLayer provider!")
             self._url = self.BASE_URL % ""
 

@@ -12,7 +12,7 @@ def pytest_addoption(parser):
 @pytest.fixture(scope="module")
 def db_connection_string(request):
     cmd = request.config.getoption("--db-connection")
-    return cmd if cmd else "postgres://postgres:postgres@localhost/gold-digger"
+    return cmd if cmd else "postgres://postgres:postgres@localhost/gold-digger-test"
 
 
 @pytest.fixture
@@ -28,4 +28,3 @@ def base_currency():
 @pytest.fixture
 def currencies():
     return {"USD", "EUR", "CZK", "GBP"}
-
