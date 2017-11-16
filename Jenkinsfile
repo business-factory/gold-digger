@@ -21,16 +21,28 @@ pipeline {
             defaultValue: '55432',
             description: 'Postgresql DB port.'
         )
+        booleanParam(name: 'build_image', defaultValue: true, description: 'Build image and upload it to Docker registry')
+        booleanParam(name: 'send_notification', defaultValue: true, description: 'Send notification about deploy to Slack')
     }
 
     stages {
         stage('Build') {
+            when {
+                expression {
+                    return params.build_image
+                }
+            }
             steps {
                 sh "docker build --rm=true -t golddigger-master ."
             }
         }
 
         stage('Prepare and upload to registry ') {
+            when {
+                expression {
+                    return params.build_image
+                }
+            }
             steps {
                 withCredentials([string(credentialsId: 'docker-registry-azure', variable: 'DRpass')]) {
                     sh 'docker login roihunter.azurecr.io -u roihunter -p "$DRpass"'
@@ -104,6 +116,19 @@ pipeline {
                             }
                         }
                     }
+                }
+            }
+        }
+
+        stage('Send notification') {
+            when {
+                expression {
+                    return params.send_notification
+                }
+            }
+            steps {
+                withCredentials([string(credentialsId: 'slack-bot-token', variable: 'slackToken')]) {
+                    slackSend channel: 'deploy', message: 'GoldDigger application was deployed', color: '#0E8A16', token: slackToken, botUser: true
                 }
             }
         }
