@@ -2,45 +2,27 @@
 
 import graypy
 import logging
-import collections
 from os.path import dirname, normpath, abspath
 from cached_property import cached_property as service
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
-from ..data_providers import *
-from ..database.dao_provider import DaoProvider
-from ..database.dao_exchange_rate import DaoExchangeRate
-from ..managers.exchange_rate_manager import ExchangeRateManager
+
+import gold_digger.settings as settings
+from .data_providers import *
+from .database.dao_exchange_rate import DaoExchangeRate
+from .database.dao_provider import DaoProvider
+from .managers.exchange_rate_manager import ExchangeRateManager
 
 
 class DiContainer:
-    def __init__(self, main_file_path, *params_set):
+    def __init__(self, main_file_path):
         self._file_path = normpath(abspath(main_file_path))
 
         self._db_connection = None
         self._db_session = None
 
-        self._params = {}
-        for params in params_set:
-            self._params = self._merge_params(self._params, params)
-
         self._logger = logging.getLogger("gold-digger")
         self.setup_logger(self._logger)
-
-    def _merge_params(self, dest, src):
-        for key, value in src.items():
-            if isinstance(value, collections.Mapping):
-                nested_params = dest.get(key, {})
-                value = self._merge_params(nested_params, value)
-            elif isinstance(value, str):
-                value = value.format(base_dir=self.base_dir)
-
-            dest[key] = value
-
-        return dest
-
-    def __getitem__(self, item):
-        return self._params.get(item)
 
     def __enter__(self):
         return self
@@ -59,7 +41,14 @@ class DiContainer:
 
     @service
     def db_connection(self):
-        self._db_connection = create_engine("{dialect}://{user}:{pass}@{host}:{port}/{name}".format(**self["database"]))
+        self._db_connection = create_engine("{dialect}://{user}:{password}@{host}:{port}/{name}".format(
+            dialect=settings.DATABASE_DIALECT,
+            user=settings.DATABASE_USER,
+            password=settings.DATABASE_PASSWORD,
+            host=settings.DATABASE_HOST,
+            port=settings.DATABASE_PORT,
+            name=settings.DATABASE_NAME
+        ))
         return self._db_connection
 
     @service
@@ -75,7 +64,7 @@ class DiContainer:
     def data_providers(self):
         return (
             GrandTrunk(self.base_currency, self.logger),
-            CurrencyLayer(self["secrets"]["currency_layer"], self.base_currency, self.logger),
+            CurrencyLayer(settings.SECRETS_CURRENCY_LAYER_ACCESS_KEY, self.base_currency, self.logger),
             Yahoo(self.base_currency, self.logger),
             Google(self.base_currency, self.logger),
             Fixer(self.base_currency, self.logger),
@@ -88,7 +77,7 @@ class DiContainer:
             DaoProvider(self.db_session),
             self.data_providers,
             self.base_currency,
-            self["supported_currencies"],
+            settings.SUPPORTED_CURRENCIES,
             self.logger
         )
 
@@ -101,7 +90,7 @@ class DiContainer:
             logger = logging.getLogger(logger)
 
         if level is None:
-            logger.setLevel(logging.DEBUG if self["development_mode"] else logging.DEBUG)
+            logger.setLevel(logging.DEBUG if settings.DEVELOPMENT_MODE else logging.DEBUG)
         else:
             logger.setLevel(level)
 
@@ -115,8 +104,8 @@ class DiContainer:
         )
         logger.addHandler(handler)
 
-        if not self["development_mode"]:
-            handler = graypy.GELFHandler(self["graylog"]["address"], self["graylog"]["port"])
+        if not settings.DEVELOPMENT_MODE:
+            handler = graypy.GELFHandler(settings.GRAYLOG_ADDRESS, settings.GRAYLOG_PORT)
             logger.addHandler(handler)
 
         return logger

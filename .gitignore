@@ -1,5 +1,5 @@
 # Project specific files
-/gold_digger/config/params_local.py
+/gold_digger/settings/_settings_local.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -12,6 +12,7 @@ __pycache__/
 # Distribution / packaging
 .Python
 env/
+.env/
 build/
 develop-eggs/
 dist/

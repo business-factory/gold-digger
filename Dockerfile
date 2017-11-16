@@ -2,9 +2,24 @@
 # Dockerfile to build Python application 'gold-digger'
 # Based on Ubuntu
 ########################################################
+#
+# BUILD IMAGE
+#   docker build --rm=true -t gold-digger:latest .
+#
+# RUN CONTAINER
+#   docker run --rm -it --publish=8000:8000 --name=gold-digger gold-digger:latest
+#   docker run --rm -it --publish=8000:8000 --name=gold-digger -v "<path to you gold_digger project>:/app" gold-digger:latest
+#   docker run --detach --restart=always --publish=8000:8000 --name=gold-digger gold-digger:latest
+#
+#   docker run --rm --name gold-digger-cron -ti gold-digger:latest python -m gold_digger cron
+#   docker run --detach --restart=always --name gold-digger-cron gold-digger:latest python -m gold_digger cron
+#
 
-FROM ubuntu
+FROM python:3.6
 MAINTAINER ROI Hunter
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y libpq-dev locales locales-all
 
 # Setup system locale
 RUN locale-gen en_US.utf8
@@ -13,27 +28,24 @@ ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.utf8
 RUN update-locale LANG=en_US.utf8
 
-# Install system dependencies
-RUN apt-get update && \
-	apt-get install -y git python3 python3-pip && \
-	apt-get install -y libpq-dev supervisor cron
-
-# Get GIT repository with project
-RUN git clone -b master https://github.com/business-factory/gold-digger.git
+# Timezone
+ENV TZ=Europe/Prague
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # Set the default directory
-WORKDIR /gold-digger
+WORKDIR /app
+
+ADD ./requirements.txt /app
 
 # Install Python dependencies
-RUN pip3 install -U pip wheel && \
-	pip3 install --use-wheel -r requirements.txt
+RUN pip install -U pip wheel && pip install --use-wheel -r requirements.txt
 
-# Create local config file
-ADD gold_digger/config/params_local.py gold_digger/config/params_local.py
+# Add all files to container
+ADD . /app
 
-# Setup supervisor
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-RUN mkdir -p /var/log/gold-digger
+EXPOSE 8000
 
-# Command to execute
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+ENV GUNICORN_WORKERS=4
+ENV GUNICORN_BIND="0.0.0.0:8000"
+
+CMD ["gunicorn", "--config=gold_digger/settings/settings_gunicorn.py", "gold_digger.api_server.app:app"]

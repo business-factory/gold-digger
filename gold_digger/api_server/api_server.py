@@ -5,7 +5,8 @@ import falcon
 from sqlalchemy.exc import DatabaseError
 from datetime import date
 from wsgiref import simple_server
-from ..config import DiContainer, DEFAULT_CONFIG_PARAMS, LOCAL_CONFIG_PARAMS
+from .. import di_container
+from ..settings import SUPPORTED_CURRENCIES
 
 
 class DatabaseResource:
@@ -20,7 +21,7 @@ class DateRateResource(DatabaseResource):
         date_of_exchange = req.get_param_as_date("date")
         date_of_exchange = date_of_exchange if date_of_exchange else date.today()
 
-        invalid_currencies = [currency for currency in (from_currency, to_currency) if currency not in self.container["supported_currencies"]]
+        invalid_currencies = [currency for currency in (from_currency, to_currency) if currency not in SUPPORTED_CURRENCIES]
         if invalid_currencies:
             raise falcon.HTTPInvalidParam("Invalid currency", " and ".join(invalid_currencies))
 
@@ -57,7 +58,7 @@ class RangeRateResource(DatabaseResource):
         start_date = req.get_param_as_date("start_date", required=True)
         end_date = req.get_param_as_date("end_date", required=True)
 
-        invalid_currencies = [currency for currency in (from_currency, to_currency) if currency not in self.container["supported_currencies"]]
+        invalid_currencies = [currency for currency in (from_currency, to_currency) if currency not in SUPPORTED_CURRENCIES]
         if invalid_currencies:
             raise falcon.HTTPInvalidParam("Invalid currency", " and ".join(invalid_currencies))
 
@@ -112,7 +113,7 @@ class HealthCheckResource(DatabaseResource):
 class API(falcon.API):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.container = DiContainer(__file__, DEFAULT_CONFIG_PARAMS, LOCAL_CONFIG_PARAMS)
+        self.container = di_container(__file__)
         self.add_route("/rate", DateRateResource(self.container))
         self.add_route("/range", RangeRateResource(self.container))
         self.add_route("/health", HealthCheckResource(self.container))
