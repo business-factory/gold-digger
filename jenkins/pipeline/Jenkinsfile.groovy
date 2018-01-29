@@ -6,21 +6,6 @@ pipeline {
     }
 
     parameters {
-        string(
-            name: 'app_servers',
-            defaultValue: '10.10.10.185',
-            description: 'Deploy container to these servers. List of servers separated by comma.'
-        )
-        string(
-            name: 'database_host',
-            defaultValue: '10.10.10.122',
-            description: 'Postgresql DB host.'
-        )
-        string(
-            name: 'database_port',
-            defaultValue: '55432',
-            description: 'Postgresql DB port.'
-        )
         booleanParam(name: 'build_image', defaultValue: true, description: 'Build image and upload it to Docker registry')
         booleanParam(name: 'send_notification', defaultValue: true, description: 'Send notification about deploy to Slack')
     }
