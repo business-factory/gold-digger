@@ -48,7 +48,7 @@ pipeline {
                             [credentialsId: 'docker-azure-credentials', url: 'http://roihunter.azurecr.io']
                         ],
                         kubeConfig: [
-                            path: '$kube-config'
+                            path: "$kube-config"
                         ],
                         secretName: 'regsecret',
                         ssh: [
