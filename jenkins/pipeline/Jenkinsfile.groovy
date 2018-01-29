@@ -41,14 +41,14 @@ pipeline {
 
         stage('Deploy containers') {
             steps {
-                withCredentials([file(credentialsId: 'testing-kubernetes-cred', variable: 'kube-config')]) {
+                withCredentials([file(credentialsId: 'testing-kubernetes-cred', variable: 'kube_config')]) {
                     kubernetesDeploy(
                         configs: '**/kubernetes/gold_digger.yaml',
                         dockerCredentials: [
                             [credentialsId: 'docker-azure-credentials', url: 'http://roihunter.azurecr.io']
                         ],
                         kubeConfig: [
-                            path: "$kube-config"
+                            path: "$kube_config"
                         ],
                         secretName: 'regsecret',
                         ssh: [
