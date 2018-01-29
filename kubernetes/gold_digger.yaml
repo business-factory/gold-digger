@@ -1,0 +1,65 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+    name: gold-digger-deployment
+    labels:
+        app: gold-digger
+spec:
+    replicas: 3
+    selector:
+        matchLabels:
+            app: gold-digger
+    template:
+        metadata:
+            labels:
+                app: gold-digger
+        spec:
+            containers:
+                - name: golddigger-master
+                  image: roihunter.azurecr.io/golddigger/master:latest
+                  imagePullPolicy: Always
+                  env:
+                      - name: GOLD_DIGGER_DATABASE_USER
+                        valueFrom:
+                            secretKeyRef:
+                                name: golddigger-secret
+                                key: username
+                      - name: GOLD_DIGGER_DATABASE_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: golddigger-secret
+                                key: password
+                      - name: GOLD_DIGGER_SECRETS_CURRENCY_LAYER_ACCESS_KEY
+                        valueFrom:
+                            secretKeyRef:
+                                name: golddigger-access-key
+                                key: secret
+                      - name: GOLD_DIGGER_DATABASE_HOST
+                        value: '35.195.34.11'
+                      - name: GOLD_DIGGER_DATABASE_PORT
+                        value: '5432'
+                      - name: GOLD_DIGGER_PROFILE
+                        value: 'master'
+                      - name: GUNICORN_WORKERS
+                        value: '1'
+                      - name: GUNICORN_BIND
+                        value: '0.0.0.0:8000'
+                  ports: 
+                    - containerPort: 8000
+            imagePullSecrets:
+                - name: regsecret
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    name: gold-digger-service
+  name: gold-digger-service
+spec:
+  ports:
+    # The port that this service should serve on.
+    - port: 8000
+  # Label keys and values that must match in order to receive traffic for this service.
+  selector:
+    app: gold-digger
+  type: ClusterIP
