@@ -48,18 +48,3 @@ spec:
                     - containerPort: 8000
             imagePullSecrets:
                 - name: regsecret
-
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    name: gold-digger-service
-  name: gold-digger-service
-spec:
-  ports:
-    # The port that this service should serve on.
-    - port: 8000
-  # Label keys and values that must match in order to receive traffic for this service.
-  selector:
-    app: gold-digger
-  type: ClusterIP
