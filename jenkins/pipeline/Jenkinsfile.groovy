@@ -31,10 +31,11 @@ pipeline {
             steps {
                 withCredentials([string(credentialsId: 'docker-registry-azure', variable: 'DRpass')]) {
                     sh 'docker login roihunter.azurecr.io -u roihunter -p "$DRpass"'
-                    sh "docker tag golddigger-stage roihunter.azurecr.io/golddigger/master"
+                    sh "docker tag golddigger-stage roihunter.azurecr.io/golddigger/stage"
                     sh "docker push roihunter.azurecr.io/golddigger/stage"
                     sh "docker rmi golddigger-stage"
                     sh "docker rmi roihunter.azurecr.io/golddigger/stage"
+                    sh "sleep 120"
                 }
             }
         }
