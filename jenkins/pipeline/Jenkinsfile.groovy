@@ -18,7 +18,7 @@ pipeline {
                 }
             }
             steps {
-                sh "docker build --rm=true -t golddigger-master ."
+                sh "docker build --rm=true -t golddigger-stage ."
             }
         }
 
@@ -31,16 +31,17 @@ pipeline {
             steps {
                 withCredentials([string(credentialsId: 'docker-registry-azure', variable: 'DRpass')]) {
                     sh 'docker login roihunter.azurecr.io -u roihunter -p "$DRpass"'
-                    sh "docker tag golddigger-master roihunter.azurecr.io/golddigger/master"
-                    sh "docker push roihunter.azurecr.io/golddigger/master"
-                    sh "docker rmi golddigger-master"
-                    sh "docker rmi roihunter.azurecr.io/golddigger/master"
+                    sh "docker tag golddigger-stage roihunter.azurecr.io/golddigger/master"
+                    sh "docker push roihunter.azurecr.io/golddigger/stage"
+                    sh "docker rmi golddigger-stage"
+                    sh "docker rmi roihunter.azurecr.io/golddigger/stage"
                 }
             }
         }
 
         stage('Deploy containers') {
             steps {
+                adshuihaiushdiuwhi
                 withCredentials([file(credentialsId: 'testing-kubernetes-cred', variable: 'kube_config')]) {
                     kubernetesDeploy(
                         configs: '**/kubernetes/gold-digger-deployment.yaml,**/kubernetes/gold-digger-service.yaml',
