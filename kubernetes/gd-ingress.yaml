@@ -12,4 +12,4 @@ spec:
                   - path: /
                     backend:
                       serviceName: gold-digger-service
-                      servicePort: 8000
+                      servicePort: 80
