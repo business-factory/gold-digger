@@ -6,7 +6,7 @@ metadata:
       kubernetes.io/ingress.global-static-ip-name: k8s-ingress
 spec:
     rules:
-        - host: gdcloud.roihunter.com
+        - host: currency-stage.roihunter.com
           http:
               paths:
                   - path: /
