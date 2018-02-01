@@ -1,13 +1,15 @@
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: gold-digger-ingress
+    name: k8s-ingress
+    annotations:
+      kubernetes.io/ingress.global-static-ip-name: k8s-ingress
 spec:
-  rules:
-  - host: gd.t.roihunter.com
-    http:
-      paths:
-      - path: /
-        backend:
-          serviceName: gold-digger-service
-          servicePort: 8000
+    rules:
+        - host: gdcloud.roihunter.com
+          http:
+              paths:
+                  - path: /
+                    backend:
+                      serviceName: gold-digger-service
+                      servicePort: 8000
