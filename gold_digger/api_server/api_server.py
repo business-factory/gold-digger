@@ -110,10 +110,17 @@ class HealthCheckResource(DatabaseResource):
         resp.status = falcon.HTTP_200
 
 
+class APIHealthCheckResource:
+    def on_get(self, req, resp):
+        resp.body = '{"status": "UP"}'
+        resp.status = falcon.HTTP_200
+
+
 class API(falcon.API):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.container = di_container(__file__)
+        self.add_route("/", APIHealthCheckResource())
         self.add_route("/rate", DateRateResource(self.container))
         self.add_route("/range", RangeRateResource(self.container))
         self.add_route("/health", HealthCheckResource(self.container))
