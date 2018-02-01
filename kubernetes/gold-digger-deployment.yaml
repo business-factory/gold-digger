@@ -43,8 +43,8 @@ spec:
                       - name: GUNICORN_WORKERS
                         value: '1'
                       - name: GUNICORN_BIND
-                        value: '0.0.0.0:8000'
+                        value: '0.0.0.0:80'
                   ports: 
-                    - containerPort: 8000
+                    - containerPort: 80
             imagePullSecrets:
                 - name: regsecret
