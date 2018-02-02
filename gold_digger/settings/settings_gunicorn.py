@@ -13,6 +13,7 @@ import sys
 
 sys.path.append(".")
 
+timeout = 300  # 5 minutes in seconds
 bind = "0.0.0.0:8000"
 workers = 4
 
