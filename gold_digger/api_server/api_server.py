@@ -16,6 +16,8 @@ class DatabaseResource:
 
 class DateRateResource(DatabaseResource):
     def on_get(self, req, resp):
+        self.container.logger.info("Data rate request: %s", req)
+
         from_currency = req.get_param("from", required=True)
         to_currency = req.get_param("to", required=True)
         date_of_exchange = req.get_param_as_date("date")
@@ -53,6 +55,8 @@ class DateRateResource(DatabaseResource):
 
 class RangeRateResource(DatabaseResource):
     def on_get(self, req, resp):
+        self.container.logger.info("Range rate request: %s", req)
+
         from_currency = req.get_param("from", required=True)
         to_currency = req.get_param("to", required=True)
         start_date = req.get_param_as_date("start_date", required=True)
