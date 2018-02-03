@@ -16,8 +16,14 @@ spec:
         spec:
             containers:
                 - name: golddigger-master
-                  image: roihunter.azurecr.io/golddigger/master:latest
+                  image: roihunter.azurecr.io/golddigger/stage
                   imagePullPolicy: Always
+                  readinessProbe:
+                    httpGet:
+                      path: /health
+                      port: 8080
+                    initialDelaySeconds: 5
+                    periodSeconds: 10
                   env:
                       - name: GOLD_DIGGER_DATABASE_USER
                         valueFrom:
@@ -35,7 +41,7 @@ spec:
                                 name: golddigger-access-key
                                 key: secret
                       - name: GOLD_DIGGER_DATABASE_HOST
-                        value: '35.195.34.11'
+                        value: '35.198.91.147'
                       - name: GOLD_DIGGER_DATABASE_PORT
                         value: '5432'
                       - name: GOLD_DIGGER_PROFILE
@@ -43,8 +49,8 @@ spec:
                       - name: GUNICORN_WORKERS
                         value: '1'
                       - name: GUNICORN_BIND
-                        value: '0.0.0.0:80'
+                        value: '0.0.0.0:8080'
                   ports: 
-                    - containerPort: 80
+                    - containerPort: 8080
             imagePullSecrets:
                 - name: regsecret
