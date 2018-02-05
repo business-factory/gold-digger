@@ -35,7 +35,6 @@ pipeline {
                     sh "docker push roihunter.azurecr.io/golddigger/stage"
                     sh "docker rmi golddigger-stage"
                     sh "docker rmi roihunter.azurecr.io/golddigger/stage"
-                    sh "sleep 120"
                 }
             }
         }
