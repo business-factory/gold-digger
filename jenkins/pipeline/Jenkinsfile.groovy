@@ -44,7 +44,7 @@ pipeline {
                 
                 withCredentials([file(credentialsId: 'jenkins-stage-kubeconfig', variable: 'kube_config')]) {
                     kubernetesDeploy(
-                        configs: '**/kubernetes/gold-digger-deployment.yaml,**/kubernetes/gold-digger-service.yaml',
+                        configs: '**/kubernetes/gold-digger-deployment.yaml,**/kubernetes/gold-digger-service.yaml,**/kubernetes/gold-digger-cron-deployment.yaml',
                         dockerCredentials: [
                              [credentialsId: 'docker-azure-credentials', url: 'http://roihunter.azurecr.io']
                         ],
