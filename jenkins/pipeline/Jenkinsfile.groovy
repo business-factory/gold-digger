@@ -43,7 +43,7 @@ pipeline {
         stage('Deploy containers') {
             steps {
                 
-                withCredentials([file(credentialsId: 'testing-kubernetes-cred', variable: 'kube_config')]) {
+                withCredentials([file(credentialsId: 'jenkins-stage-kubeconfig', variable: 'kube_config')]) {
                     kubernetesDeploy(
                         configs: '**/kubernetes/gold-digger-deployment.yaml,**/kubernetes/gold-digger-service.yaml',
                         dockerCredentials: [

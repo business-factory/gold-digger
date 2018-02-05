@@ -38,7 +38,7 @@ spec:
                       - name: GOLD_DIGGER_SECRETS_CURRENCY_LAYER_ACCESS_KEY
                         valueFrom:
                             secretKeyRef:
-                                name: golddigger-access-key
+                                name: golddigger-staging-access-key
                                 key: secret
                       - name: GOLD_DIGGER_DATABASE_HOST
                         value: '35.198.91.147'
