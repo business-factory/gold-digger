@@ -95,17 +95,23 @@ class RangeRateResource(DatabaseResource):
 class HealthCheckResource(DatabaseResource):
     def on_get(self, req, resp):
         try:
-            exchange_rate = self.container.exchange_rate_manager.get_exchange_rate_by_date(date.today(), "USD", "USD")
+            exchange_rate = self.container.exchange_rate_manager.get_exchange_rate_by_date(date.today(), "CZK", "USD")
             if exchange_rate:
                 resp.body = '{"status": "UP"}'
+                self.container.logger.info("Health check - OK.")
             else:
-                resp.body = '{"status": "DOWN", "info": "No exchange rate available."}'
+                info = "No exchange rate available."
+                resp.body = '{"status": "DOWN", "info": "%s"}' % info
+                self.container.logger.error("Health check - %s", info)
 
         except DatabaseError as e:
             self.container.db_session.rollback()
-            resp.body = '{"status": "DOWN", "info": "Database error. Service will reconnect to the DB automatically. Exception: %s"}' % e
+            info = "Database error. Service will reconnect to the DB automatically. Exception: %s" % e
+            resp.body = '{"status": "DOWN", "info": "%s"}' % info
+            self.container.logger.exception(info)
         except Exception as e:
             resp.body = '{"status": "DOWN", "info": "%s"}' % e
+            self.container.logger.exception("Unexpected exception.")
 
         resp.status = falcon.HTTP_200
 
