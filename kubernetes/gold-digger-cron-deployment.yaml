@@ -19,9 +19,10 @@ spec:
                   image: roihunter.azurecr.io/golddigger/stage
                   imagePullPolicy: Always
                   readinessProbe:
-                    httpGet:
-                      path: /health
-                      port: 8080
+                    exec:
+                      command:
+                          - echo
+                          - 'OK!'
                     initialDelaySeconds: 5
                     periodSeconds: 10
                   command: ["python"]
