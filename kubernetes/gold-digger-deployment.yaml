@@ -4,8 +4,11 @@ metadata:
     name: gold-digger-deployment
     labels:
         app: gold-digger
+        tier: backend
+        maintainer: python
 spec:
     replicas: 3
+    revisionHistoryLimit: 3
     selector:
         matchLabels:
             app: gold-digger
@@ -16,7 +19,7 @@ spec:
         spec:
             containers:
                 - name: golddigger-master
-                  image: roihunter.azurecr.io/golddigger/stage
+                  image: roihunter.azurecr.io/golddigger/stage:$BUILD_NUMBER
                   imagePullPolicy: Always
                   readinessProbe:
                     httpGet:
