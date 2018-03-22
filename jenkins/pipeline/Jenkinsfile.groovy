@@ -23,7 +23,7 @@ pipeline {
                     sh 'docker login roihunter.azurecr.io -u roihunter -p "$DRpass"'
                     sh("""
                         for tag in $BUILD_NUMBER latest; do
-                            docker tag docker tag roihunter.azurecr.io/golddigger/master roihunter.azurecr.io/golddigger/master:\${tag}
+                            docker tag roihunter.azurecr.io/golddigger/master roihunter.azurecr.io/golddigger/master:\${tag}
                             docker push roihunter.azurecr.io/golddigger/master:\${tag}
                             docker rmi roihunter.azurecr.io/golddigger/master:\${tag}
                         done
