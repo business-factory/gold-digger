@@ -16,7 +16,7 @@ spec:
         spec:
             containers:
                 - name: golddigger-cron-master
-                  image: roihunter.azurecr.io/golddigger/master
+                  image: roihunter.azurecr.io/golddigger/master:$BUILD_NUMBER
                   imagePullPolicy: Always
                   readinessProbe:
                     exec:

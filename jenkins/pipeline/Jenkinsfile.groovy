@@ -33,6 +33,10 @@ pipeline {
         }
 
         stage('Deploy containers') {
+            environment {
+                IMAGE_TAG = getImageTag(params.BUILD_IMAGE)
+            }
+
             steps {
                 withCredentials([file(credentialsId: 'jenkins-master-kubeconfig', variable: 'kube_config')]) {
                     kubernetesDeploy(
@@ -77,5 +81,13 @@ pipeline {
             // Clean Workspace
             cleanWs()
         }
+    }
+}
+
+String getImageTag(Boolean build_image) {
+    if (build_image) {
+        return env.BUILD_NUMBER
+    } else {
+        return "latest"
     }
 }
