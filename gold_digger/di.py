@@ -97,14 +97,14 @@ class DiContainer:
         for handler in logging.root.handlers:
             handler.addFilter(logging.Filter("gold-digger"))
 
-        handler = logging.StreamHandler()
-        handler.setFormatter(logging.Formatter(
-            "[%(levelname)s] %(asctime)s at %(filename)s:%(lineno)d (%(processName)s) -- %(message)s",
-            "%Y-%m-%d %H:%M:%S")
-        )
-        logger.addHandler(handler)
-
-        if not settings.DEVELOPMENT_MODE:
+        if settings.DEVELOPMENT_MODE:
+            handler = logging.StreamHandler()
+            handler.setFormatter(logging.Formatter(
+                "[%(levelname)s] %(asctime)s at %(filename)s:%(lineno)d (%(processName)s) -- %(message)s",
+                "%Y-%m-%d %H:%M:%S")
+            )
+            logger.addHandler(handler)
+        else:
             handler = graypy.GELFHandler(settings.GRAYLOG_ADDRESS, settings.GRAYLOG_PORT)
             logger.addHandler(handler)
 
