@@ -72,9 +72,11 @@ class Yahoo(Provider):
         if response:
             data = response.json()
             for resource in data["list"]["resources"]:
-                currency = resource["resource"]["fields"]["symbol"][:3]
-                rate = resource["resource"]["fields"]["price"]
-                rates[currency] = self._to_decimal(rate, currency)
+                fields = resource["resource"]["fields"]
+                if fields:
+                    currency = fields["symbol"][:3]
+                    rate = fields["price"]
+                    rates[currency] = self._to_decimal(rate, currency)
         return rates
 
     def get_historical(self, origin_date, currencies):
