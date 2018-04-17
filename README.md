@@ -14,7 +14,7 @@ Create, activate your virtual environment and install requirements for your virt
 python -m venv .env
 . ./.env/bin/activate  # or for BFU .env\Scripts\activate.bat
 pip install -U pip wheel
-pip install --use-wheel -r requirements-dev.txt
+pip install -r requirements-dev.txt
 ```
 
 Create PostgreSQL database and user named *golddigger*.

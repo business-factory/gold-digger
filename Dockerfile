@@ -38,7 +38,7 @@ WORKDIR /app
 ADD ./requirements.txt /app
 
 # Install Python dependencies
-RUN pip install -U pip wheel && pip install --use-wheel -r requirements.txt
+RUN pip install -U pip wheel && pip install -r requirements.txt
 
 # Add all files to container
 ADD . /app
