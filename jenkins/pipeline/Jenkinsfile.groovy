@@ -1,42 +1,36 @@
 pipeline {
-    agent {label 'docker01'}
+    agent {
+        label 'docker01'
+    }
 
     options {
         ansiColor colorMapName: 'XTerm'
     }
 
     parameters {
-        booleanParam(name: 'build_image', defaultValue: true, description: 'Build image and upload it to Docker registry')
-        booleanParam(name: 'send_notification', defaultValue: true, description: 'Send notification about deploy to Slack')
+        booleanParam(
+            name: 'SEND_SLACK_NOTIFICATION',
+            defaultValue: true,
+            description: 'Send notification about deploy to Slack.'
+        )
+    }
+
+    environment {
+        BRANCH_NAME = env.GIT_BRANCH.replaceFirst("origin/", "")
     }
 
     stages {
-        stage('Build') {
-            when {
-                expression {
-                    return params.build_image
-                }
-            }
+        stage("Build Docker image") {
             steps {
-                sh "docker build --rm=true -t roihunter.azurecr.io/golddigger/master ."
-                withCredentials([string(credentialsId: 'docker-registry-azure', variable: 'DRpass')]) {
-                    sh 'docker login roihunter.azurecr.io -u roihunter -p "$DRpass"'
-                    sh("""
-                        for tag in $BUILD_NUMBER latest; do
-                            docker tag roihunter.azurecr.io/golddigger/master roihunter.azurecr.io/golddigger/master:\${tag}
-                            docker push roihunter.azurecr.io/golddigger/master:\${tag}
-                            docker rmi roihunter.azurecr.io/golddigger/master:\${tag}
-                        done
-                    """)
+                script {
+                    def rootDir = pwd()
+                    def build = load "${rootDir}/jenkins/pipeline/_build.groovy"
+                    build.buildDockerImage(env.BRANCH_NAME)
                 }
             }
         }
 
-        stage('Deploy containers') {
-            environment {
-                IMAGE_TAG = getImageTag(params.BUILD_IMAGE)
-            }
-
+        stage('Deploy service to Kubernetes') {
             steps {
                 withCredentials([file(credentialsId: 'jenkins-master-kubeconfig', variable: 'kube_config')]) {
                     kubernetesDeploy(
@@ -63,31 +57,26 @@ pipeline {
             }
         }
 
-        stage('Send notification') {
+        stage('Send Slack notification') {
             when {
                 expression {
-                    return params.send_notification
+                    return params.SEND_SLACK_NOTIFICATION
                 }
             }
             steps {
-                withCredentials([string(credentialsId: 'slack-bot-token', variable: 'slackToken')]) {
-                    slackSend channel: 'deploy', message: 'GoldDigger application was deployed', color: '#0E8A16', token: slackToken, botUser: true
+                script {
+                    def rootDir = pwd()
+                    def utils = load "${rootDir}/jenkins/pipeline/_utils.groovy"
+                    utils.sendSlackNotification(env.BRANCH_NAME, '#0E8A16')
                 }
             }
         }
     }
+
     post {
         always {
             // Clean Workspace
             cleanWs()
         }
-    }
-}
-
-String getImageTag(Boolean build_image) {
-    if (build_image) {
-        return env.BUILD_NUMBER
-    } else {
-        return "latest"
     }
 }
