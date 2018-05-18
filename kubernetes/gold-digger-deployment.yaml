@@ -44,7 +44,7 @@ spec:
                                 name: golddigger-access-key
                                 key: secret
                       - name: GOLD_DIGGER_DATABASE_HOST
-                        value: '35.198.177.138'
+                        value: '35.205.178.65'
                       - name: GOLD_DIGGER_DATABASE_PORT
                         value: '5432'
                       - name: GOLD_DIGGER_PROFILE
