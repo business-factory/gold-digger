@@ -32,7 +32,7 @@ pipeline {
 
         stage('Deploy service to Kubernetes') {
             steps {
-                withCredentials([file(credentialsId: 'jenkins-master-kubeconfig', variable: 'kube_config')]) {
+                withCredentials([file(credentialsId: 'jenkins-roihunter-master-kubeconfig', variable: 'kube_config')]) {
                     kubernetesDeploy(
                         configs: '**/kubernetes/gold-digger-deployment.yaml,**/kubernetes/gold-digger-service.yaml,**/kubernetes/gold-digger-cron-deployment.yaml',
                         dockerCredentials: [
