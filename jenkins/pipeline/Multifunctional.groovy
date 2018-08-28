@@ -39,6 +39,10 @@ pipeline {
                         credentialsId: 'gold_digger_master_secrets_currency_layer_access_key',
                         variable: 'gold_digger_master_secrets_currency_layer_access_key'
                     ),
+                    string(
+                        credentialsId: 'gold_digger_master_secrets_fixer_access_key',
+                        variable: 'gold_digger_master_secrets_fixer_access_key'
+                    ),
                     usernamePassword(
                         credentialsId: 'gold_digger_master_database',
                         usernameVariable: 'gold_digger_master_db_user',
@@ -63,6 +67,7 @@ pipeline {
                                     -e GOLD_DIGGER_DATABASE_USER='''$gold_digger_master_db_user''' \
                                     -e GOLD_DIGGER_DATABASE_PASSWORD='''$gold_digger_master_db_password''' \
                                     -e GOLD_DIGGER_SECRETS_CURRENCY_LAYER_ACCESS_KEY='''$gold_digger_master_secrets_currency_layer_access_key''' \
+                                    -e GOLD_DIGGER_SECRETS_FIXER_ACCESS_KEY='''$gold_digger_master_secrets_fixer_access_key''' \
                                     --hostname="golddigger-one-time-${command_name}-${env.BUILD_ID}" \
                                     --name="golddigger-one-time-${command_name}-${env.BUILD_ID}" \
                                     roihunter.azurecr.io/golddigger/master \

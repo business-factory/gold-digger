@@ -34,3 +34,4 @@ SUPPORTED_CURRENCIES = {
 }
 
 SECRETS_CURRENCY_LAYER_ACCESS_KEY = get_env("secrets_currency_layer_access_key", default="")
+SECRETS_FIXER_ACCESS_KEY = get_env("secrets_fixer_access_key", default="")
