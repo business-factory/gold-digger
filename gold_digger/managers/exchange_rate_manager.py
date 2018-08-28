@@ -31,15 +31,17 @@ class ExchangeRateManager:
         """
         for data_provider in self._data_providers:
             try:
-                self._logger.info("Updating all today rates from %s provider", data_provider)
+                self._logger.info("Update started: Provider %s, date %s.", data_provider, date_of_exchange)
                 day_rates = data_provider.get_all_by_date(date_of_exchange, self._supported_currencies)
                 if day_rates:
                     provider = self._dao_provider.get_or_create_provider_by_name(data_provider.name)
-                    records = [dict(currency=currency, rate=rate, date=date_of_exchange, provider_id=provider.id) for currency, rate in
-                               day_rates.items()]
+                    records = [dict(currency=currency, rate=rate, date=date_of_exchange, provider_id=provider.id) for currency, rate in day_rates.items()]
                     self._dao_exchange_rate.insert_exchange_rate_to_db(records)
+                    self._logger.info("Update succeeded: Provider %s, date %s.", data_provider, date_of_exchange)
+                else:
+                    self._logger.error("Update failed: Provider %s did not return any exchange rates, date %s.", data_provider, date_of_exchange)
             except Exception:
-                self._logger.exception("Updating of all today rates from %s provider failed.")
+                self._logger.exception("Update failed: Provider %s raised unexpected exception, date %s.", data_provider, date_of_exchange)
 
     def update_all_historical_rates(self, origin_date):
         """

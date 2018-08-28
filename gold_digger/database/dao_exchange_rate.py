@@ -17,13 +17,21 @@ class DaoExchangeRate:
         so in the case of explicit update some rates could be already in database and they
         can also come at random times while updating explicitly.
         """
+        duplicates = set()
         for record in records:
             try:
+                # TODO: use Postgres feature ON CONFLICT DO UPDATE instead of this
                 self.db_session.add(ExchangeRate(**record))
                 self.db_session.commit()
-            except IntegrityError as e:
+            except IntegrityError:
                 self.db_session.rollback()
-                self._logger.warning("Session rollback. Error: %s. Record %s", e, record)
+                duplicates.add(record["currency"])
+
+        if duplicates:
+            self._logger.info(
+                "Exchange rates of following currencies were not updated because rates from this provider are already in DB. Currencies: %s", duplicates
+            )
+
         self.db_session.commit()
 
     def get_rates_by_date_currency(self, date_of_exchange, currency):

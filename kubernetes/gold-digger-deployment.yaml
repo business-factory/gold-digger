@@ -43,6 +43,11 @@ spec:
                             secretKeyRef:
                                 name: golddigger-access-key
                                 key: secret
+                      - name: GOLD_DIGGER_SECRETS_FIXER_ACCESS_KEY
+                        valueFrom:
+                            secretKeyRef:
+                                name: golddigger-fixer-access-key
+                                key: secret
                       - name: GOLD_DIGGER_DATABASE_HOST
                         value: '35.205.178.65'
                       - name: GOLD_DIGGER_DATABASE_PORT

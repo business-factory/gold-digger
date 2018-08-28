@@ -67,7 +67,7 @@ class DiContainer:
             CurrencyLayer(settings.SECRETS_CURRENCY_LAYER_ACCESS_KEY, self.base_currency, self.logger),
             Yahoo(self.base_currency, self.logger),
             Google(self.base_currency, self.logger),
-            Fixer(self.base_currency, self.logger),
+            Fixer(settings.SECRETS_FIXER_ACCESS_KEY, self.base_currency, self.logger),
         )
 
     @service
