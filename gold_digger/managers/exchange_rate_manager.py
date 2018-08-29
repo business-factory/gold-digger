@@ -96,6 +96,9 @@ class ExchangeRateManager:
         :type rates_records: list[gold_digger.database.db_model.ExchangeRate]
         :rtype: gold_digger.database.db_model.ExchangeRate
         """
+        if not rates_records:
+            raise ValueError("Missing exchange rate.")
+
         if len(rates_records) in (1, 2):
             return rates_records[0]
 

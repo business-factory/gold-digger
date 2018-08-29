@@ -31,11 +31,17 @@ class Fixer(Provider):
         currencies = set()
         response = self._get(self._url.format(date=date_of_exchange))
         if response:
-            currencies = set(response.json().get("rates").keys())
+            response = response.json()
+            if response.get("success"):
+                currencies = set((response.get("rates") or {}).keys())
+            else:
+                self.logger.error("Fixer supported currencies not found. Error: %s", response)
+        else:
+            self.logger.error("Fixer unexpected response. Response: %s", response)
+
         if currencies:
             self.logger.debug("Fixer supported currencies: %s", currencies)
-        else:
-            self.logger.error("Fixer supported currencies not found.")
+
         return currencies
 
     def get_by_date(self, date_of_exchange, currency):
@@ -63,18 +69,26 @@ class Fixer(Provider):
         if response:
             try:
                 response = response.json()
+                if not response.get("success"):
+                    self.logger.error("Fixer.io - Unsuccessful response. Response: %s", response)
+                    return {}
+
+                rates = response.get("rates", {})
+
                 for currency in currencies:
-                    if currency in response["rates"]:
-                        decimal_value = self._to_decimal(response['rates'][currency])
+                    if currency in rates:
+                        decimal_value = self._to_decimal(rates[currency])
                         if decimal_value is not None:
                             day_rates_in_eur[currency] = decimal_value
             except Exception:
                 self.logger.exception("Fixer.io - Exception while parsing of the HTTP response.")
+                return {}
 
         day_rates = {}
-        base_currency_rate = day_rates_in_eur[self.base_currency]
-        for currency, day_rate in day_rates_in_eur.items():
-            day_rates[currency] = self._conversion_to_base_currency(base_currency_rate, day_rate)
+        base_currency_rate = day_rates_in_eur.get(self.base_currency)
+        if base_currency_rate is not None:
+            for currency, day_rate in day_rates_in_eur.items():
+                day_rates[currency] = self._conversion_to_base_currency(base_currency_rate, day_rate)
 
         return day_rates
 
@@ -113,10 +127,15 @@ class Fixer(Provider):
         if response:
             try:
                 response = response.json()
-                if currency in response["rates"] and self.base_currency in response["rates"]:
+                if not response.get("success"):
+                    self.logger.error("Fixer.io - Unsuccessful response. Response: %s", response)
+                    return None
+
+                rates = response.get("rates", {})
+                if currency in rates and self.base_currency in rates:
                     return self._conversion_to_base_currency(
-                        self._to_decimal(response['rates'][self.base_currency]),
-                        self._to_decimal(response['rates'][currency])
+                        self._to_decimal(rates[self.base_currency]),
+                        self._to_decimal(rates[currency])
                      )
 
             except Exception:
