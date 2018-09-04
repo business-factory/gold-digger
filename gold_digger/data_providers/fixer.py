@@ -29,13 +29,13 @@ class Fixer(Provider):
         :rtype: set
         """
         currencies = set()
-        response = self._get(self._url.format(date=date_of_exchange))
+        response = self._get(self._url.format(date=date_of_exchange.isoformat()))
         if response:
             response = response.json()
             if response.get("success"):
                 currencies = set((response.get("rates") or {}).keys())
             else:
-                self.logger.error("Fixer supported currencies not found. Error: %s", response)
+                self.logger.error("Fixer supported currencies not found. Error: %s. Date: %s", response, date_of_exchange)
         else:
             self.logger.error("Fixer unexpected response. Response: %s", response)
 
