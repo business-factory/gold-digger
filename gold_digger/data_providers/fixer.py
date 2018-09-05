@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from datetime import date, timedelta
-from functools import lru_cache
 
 from ._provider import Provider
 
@@ -21,26 +20,37 @@ class Fixer(Provider):
         else:
             self.logger.critical("You need an access token to use Fixer provider!")
             self._url = self.BASE_URL % ""
+        self._supported_currencies = {}
 
-    @lru_cache(maxsize=1)
     def get_supported_currencies(self, date_of_exchange):
         """
         :type date_of_exchange: datetime.date
         :rtype: set
         """
+        currencies = self._supported_currencies.get(date_of_exchange)
+        if currencies:
+            return currencies
+
         currencies = set()
         response = self._get(self._url.format(date=date_of_exchange.isoformat()))
         if response:
             response = response.json()
             if response.get("success"):
                 currencies = set((response.get("rates") or {}).keys())
+            elif response["error"]["type"] == "invalid_date":
+                # Fixer returns error `invalid_date` if the date is in future
+                # We refresh supported currencies at midnight and Fixer thinks that today date is future date
+                # We should not cache such wrong result and try again later
+                return currencies
             else:
-                self.logger.error("Fixer supported currencies not found. Error: %s. Date: %s", response, date_of_exchange)
+                self.logger.error("Fixer supported currencies not found. Error: %s. Date: %s", response, date_of_exchange.isoformat())
         else:
             self.logger.error("Fixer unexpected response. Response: %s", response)
 
         if currencies:
             self.logger.debug("Fixer supported currencies: %s", currencies)
+
+        self._supported_currencies = {date_of_exchange: currencies}
 
         return currencies
 
