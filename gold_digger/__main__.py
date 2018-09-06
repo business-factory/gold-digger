@@ -28,7 +28,8 @@ def cron(**kwargs):
         cron_tab = CronTab(
             tab="""
                 # m h dom mon dow command
-                5 0 * * * cd /app && python -m gold_digger update {redirect}
+                5 0 * * * cd /app && python -m gold_digger update --exclude-providers fixer.io {redirect}
+                5 1 * * * cd /app && python -m gold_digger update --providers fixer.io {redirect}
                 * * * * * echo "cron health check (hourly)" {redirect}
             """.format(redirect="> /proc/1/fd/1 2>/proc/1/fd/2")  # redirect to stdout/stderr
         )
@@ -58,9 +59,21 @@ def command(**kwargs):
 
 @cli.command("update", help="Update rates of specified day (default today)")
 @click.option("--date", default=date.today(), callback=_parse_date, help="Specify date in format 'yyyy-mm-dd'")
+@click.option("--providers", type=str, help="Specify data providers names separated by comma.")
+@click.option("--exclude-providers", type=str, help="Specify data providers names separated by comma.")
 def command(**kwargs):
     with di_container(__file__) as c:
-        c.exchange_rate_manager.update_all_rates_by_date(kwargs["date"])
+        if kwargs["providers"]:
+            providers = kwargs["providers"].split(",")
+        else:
+            providers = list(c.data_providers)
+
+        if kwargs["exclude_providers"]:
+            excluded_providers = kwargs["exclude_providers"].split(",")
+            providers = [p for p in providers if p not in excluded_providers]
+
+        data_providers = [c.data_providers[provider_name] for provider_name in providers]
+        c.exchange_rate_manager.update_all_rates_by_date(kwargs["date"], data_providers)
 
 
 @cli.command("serve", help="Run API server (simple)")
