@@ -25,11 +25,12 @@ class ExchangeRateManager:
         self._supported_currencies = supported_currencies
         self._logger = logger
 
-    def update_all_rates_by_date(self, date_of_exchange):
+    def update_all_rates_by_date(self, date_of_exchange, data_providers):
         """
         :type date_of_exchange: datetime.date
+        :type data_providers: list[gold_digger.data_providers._provider.Provider]
         """
-        for data_provider in self._data_providers:
+        for data_provider in data_providers:
             try:
                 self._logger.info("Update started: Provider %s, date %s.", data_provider, date_of_exchange)
                 day_rates = data_provider.get_all_by_date(date_of_exchange, self._supported_currencies)

@@ -57,7 +57,7 @@ def test_update_all_rates_by_date(dao_exchange_rate, dao_provider, currency_laye
     _date = date(2016, 2, 17)
 
     exchange_rate_manager = ExchangeRateManager(dao_exchange_rate, dao_provider, [currency_layer], base_currency, currencies, logger)
-    exchange_rate_manager.update_all_rates_by_date(_date)
+    exchange_rate_manager.update_all_rates_by_date(_date, [currency_layer])
 
     (actual_records,), _ = dao_exchange_rate.insert_exchange_rate_to_db.call_args
     (provider_name,), _ = dao_provider.get_or_create_provider_by_name.call_args
