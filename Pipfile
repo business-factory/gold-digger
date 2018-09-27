@@ -1,0 +1,26 @@
+[[source]]
+
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+
+[packages]
+
+cached-property = "*" 
+click = "*" 
+falcon = "*" 
+graypy = "*" 
+gunicorn = "*" 
+psycopg2-binary = "*"
+python-crontab = "*" 
+requests = "*"
+SQLAlchemy = "*"
+
+
+[dev-packages]
+
+pytest = "*"
+pytest-cov = "*"
+pytest-watch = "*"
+SQLAlchemy-Utils = "*"

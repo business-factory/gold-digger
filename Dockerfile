@@ -32,16 +32,19 @@ RUN update-locale LANG=en_US.utf8
 ENV TZ=Europe/Prague
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
+RUN pip install pipenv
+
 # Set the default directory
 WORKDIR /app
 
-ADD ./requirements.txt /app
+COPY ./Pipfile .
+COPY ./Pipfile.lock .
 
 # Install Python dependencies
-RUN pip install -U pip wheel && pip install -r requirements.txt
+RUN pipenv install --deploy --system
 
 # Add all files to container
-ADD . /app
+COPY ./ ./
 
 EXPOSE 8000
 
