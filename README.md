@@ -8,18 +8,18 @@
 
 ## Development setup
 
-Create, activate your virtual environment and install requirements for your virtual environment.
+Setup python environment:
 
 ```sh
-python -m venv .env
-. ./.env/bin/activate  # or for BFU .env\Scripts\activate.bat
-pip install -U pip wheel
-pip install -r requirements-dev.txt
+pip install pipenv
+pipenv install
 ```
 
-Create PostgreSQL database and user named *golddigger*.
+To install `dev` packages too, run `pipenv install --dev`.
 
-```sql
+Create PostgreSQL database `golddigger` and grant permissions to user `postgres`.
+
+```postgresql
 CREATE DATABASE "golddigger" WITH OWNER = postgres ENCODING = 'UTF8';
 ```
 
