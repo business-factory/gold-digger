@@ -8,13 +8,13 @@ name = "pypi"
 [packages]
 
 cached-property = "*" 
-click = "*"
-croniter = "*"
+click = "==6.2"
+croniter = "==0.3.20"
 falcon = "*" 
 graypy = "*" 
 gunicorn = "*" 
 psycopg2-binary = "*"
-python-crontab = "*" 
+python-crontab = "==2.2.6"
 requests = "*"
 SQLAlchemy = "*"
 
