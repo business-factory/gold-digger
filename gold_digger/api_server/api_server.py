@@ -102,7 +102,6 @@ class HealthCheckResource(DatabaseResource):
             exchange_rate = self.container.exchange_rate_manager.get_exchange_rate_by_date(date.today(), "CZK", "USD")
             if exchange_rate:
                 resp.body = '{"status": "UP"}'
-                self.container.logger.info("Health check - OK.")
             else:
                 info = "No exchange rate available."
                 resp.body = '{"status": "DOWN", "info": "%s"}' % info
@@ -120,7 +119,7 @@ class HealthCheckResource(DatabaseResource):
         resp.status = falcon.HTTP_200
 
 
-class APIHealthCheckResource:
+class HealthAliveResource:
     def on_get(self, req, resp):
         resp.body = '{"status": "UP"}'
         resp.status = falcon.HTTP_200
@@ -130,10 +129,10 @@ class API(falcon.API):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.container = di_container(__file__)
-        self.add_route("/", APIHealthCheckResource())
         self.add_route("/rate", DateRateResource(self.container))
         self.add_route("/range", RangeRateResource(self.container))
         self.add_route("/health", HealthCheckResource(self.container))
+        self.add_route("/health/alive", HealthAliveResource())
 
     def simple_server(self, host, port):
         print("Starting HTTP server at {}:{}".format(host, port))

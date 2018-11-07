@@ -26,7 +26,15 @@ spec:
                       path: /health
                       port: 8080
                     initialDelaySeconds: 5
-                    periodSeconds: 10
+                    periodSeconds: 30
+                    timeoutSeconds: 20
+                  livenessProbe:
+                    httpGet:
+                      path: /health/alive
+                      port: 8080
+                    initialDelaySeconds: 5
+                    periodSeconds: 30
+                    timeoutSeconds: 10
                   env:
                       - name: GOLD_DIGGER_DATABASE_USER
                         valueFrom:
@@ -64,5 +72,8 @@ spec:
                     limits:
                       memory: "64Mi"
                       cpu: "300m"
+                    requests:
+                      memory: "64Mi"
+                      cpu: "100m"
             imagePullSecrets:
                 - name: regsecret
