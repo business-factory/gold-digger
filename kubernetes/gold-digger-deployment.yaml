@@ -64,5 +64,8 @@ spec:
                     limits:
                       memory: "64Mi"
                       cpu: "300m"
+                    requests:
+                      memory: "64Mi"
+                      cpu: "100m"
             imagePullSecrets:
                 - name: regsecret
