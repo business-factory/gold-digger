@@ -24,7 +24,7 @@ spec:
                           - echo
                           - 'OK!'
                     initialDelaySeconds: 5
-                    periodSeconds: 10
+                    periodSeconds: 30
                   command: ["python"]
                   args: ["-m", "gold_digger", "cron"]
                   env:
