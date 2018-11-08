@@ -18,62 +18,62 @@ spec:
                 app: gold-digger
         spec:
             containers:
-                - name: golddigger-master
-                  image: roihunter.azurecr.io/golddigger/master:$BUILD_NUMBER
-                  imagePullPolicy: Always
-                  readinessProbe:
-                    httpGet:
-                      path: /health
-                      port: 8080
-                    initialDelaySeconds: 5
-                    periodSeconds: 30
-                    timeoutSeconds: 20
-                  livenessProbe:
-                    httpGet:
-                      path: /health/alive
-                      port: 8080
-                    initialDelaySeconds: 5
-                    periodSeconds: 30
-                    timeoutSeconds: 10
-                  env:
-                      - name: GOLD_DIGGER_DATABASE_USER
-                        valueFrom:
-                            secretKeyRef:
-                                name: golddigger-secret
-                                key: username
-                      - name: GOLD_DIGGER_DATABASE_PASSWORD
-                        valueFrom:
-                            secretKeyRef:
-                                name: golddigger-secret
-                                key: password
-                      - name: GOLD_DIGGER_SECRETS_CURRENCY_LAYER_ACCESS_KEY
-                        valueFrom:
-                            secretKeyRef:
-                                name: golddigger-access-key
-                                key: secret
-                      - name: GOLD_DIGGER_SECRETS_FIXER_ACCESS_KEY
-                        valueFrom:
-                            secretKeyRef:
-                                name: golddigger-fixer-access-key
-                                key: secret
-                      - name: GOLD_DIGGER_DATABASE_HOST
-                        value: '35.205.178.65'
-                      - name: GOLD_DIGGER_DATABASE_PORT
-                        value: '5432'
-                      - name: GOLD_DIGGER_PROFILE
-                        value: 'master'
-                      - name: GUNICORN_WORKERS
-                        value: '1'
-                      - name: GUNICORN_BIND
-                        value: '0.0.0.0:8080'
-                  ports: 
-                    - containerPort: 8080
-                  resources:
-                    limits:
-                      memory: "64Mi"
-                      cpu: "300m"
-                    requests:
-                      memory: "64Mi"
-                      cpu: "100m"
+                -   name: golddigger-master
+                    image: roihunter.azurecr.io/golddigger/master:$BUILD_NUMBER
+                    imagePullPolicy: Always
+                    readinessProbe:
+                        httpGet:
+                            path: /health
+                            port: 8080
+                        initialDelaySeconds: 5
+                        periodSeconds: 30
+                        timeoutSeconds: 20
+                    livenessProbe:
+                        httpGet:
+                            path: /health/alive
+                            port: 8080
+                        initialDelaySeconds: 5
+                        periodSeconds: 30
+                        timeoutSeconds: 10
+                    env:
+                        -   name: GOLD_DIGGER_DATABASE_USER
+                            valueFrom:
+                                secretKeyRef:
+                                    name: golddigger-secret
+                                    key: username
+                        -   name: GOLD_DIGGER_DATABASE_PASSWORD
+                            valueFrom:
+                                secretKeyRef:
+                                    name: golddigger-secret
+                                    key: password
+                        -   name: GOLD_DIGGER_SECRETS_CURRENCY_LAYER_ACCESS_KEY
+                            valueFrom:
+                                secretKeyRef:
+                                    name: golddigger-access-key
+                                    key: secret
+                        -   name: GOLD_DIGGER_SECRETS_FIXER_ACCESS_KEY
+                            valueFrom:
+                                secretKeyRef:
+                                    name: golddigger-fixer-access-key
+                                    key: secret
+                        -   name: GOLD_DIGGER_DATABASE_HOST
+                            value: '35.205.178.65'
+                        -   name: GOLD_DIGGER_DATABASE_PORT
+                            value: '5432'
+                        -   name: GOLD_DIGGER_PROFILE
+                            value: 'master'
+                        -   name: GUNICORN_WORKERS
+                            value: '1'
+                        -   name: GUNICORN_BIND
+                            value: '0.0.0.0:8080'
+                    ports:
+                        -   containerPort: 8080
+                    resources:
+                        limits:
+                            memory: "64Mi"
+                            cpu: "300m"
+                        requests:
+                            memory: "64Mi"
+                            cpu: "100m"
             imagePullSecrets:
-                - name: regsecret
+                -   name: regsecret
