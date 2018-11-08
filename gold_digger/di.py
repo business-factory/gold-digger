@@ -87,7 +87,8 @@ class DiContainer:
     def logger(self):
         return self._logger
 
-    def setup_logger(self, logger, level=None):
+    @staticmethod
+    def setup_logger(logger, level=None):
         if isinstance(logger, str):
             logger = logging.getLogger(logger)
 
