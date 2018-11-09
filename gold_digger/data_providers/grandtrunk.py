@@ -22,7 +22,7 @@ class GrandTrunk(Provider):
         :rtype: set
         """
         currencies = set()
-        response = self._get("{url}/currencies".format(url=self.BASE_URL))
+        response = self._get("{url}/currencies/{date}".format(url=self.BASE_URL, date=date_of_exchange.strftime("%Y-%m-%d")))
         if response:
             currencies = set(response.text.split("\n"))
         if currencies:
@@ -42,13 +42,15 @@ class GrandTrunk(Provider):
 
     def get_all_by_date(self, date_of_exchange, currencies):
         day_rates = {}
+        supported_currencies = self.get_supported_currencies(date_of_exchange)
         for currency in currencies:
-            response = self._get("{url}/getrate/{date}/{from_currency}/{to}".format(
-                url=self.BASE_URL, date=date_of_exchange, from_currency=self.base_currency, to=currency))
-            if response:
-                decimal_value = self._to_decimal(response.text.strip(), currency)
-                if decimal_value:
-                    day_rates[currency] = decimal_value
+            if currency in supported_currencies:
+                response = self._get("{url}/getrate/{date}/{from_currency}/{to}".format(
+                    url=self.BASE_URL, date=date_of_exchange, from_currency=self.base_currency, to=currency))
+                if response:
+                    decimal_value = self._to_decimal(response.text.strip(), currency)
+                    if decimal_value:
+                        day_rates[currency] = decimal_value
         return day_rates
 
     def get_historical(self, origin_date, currencies):
