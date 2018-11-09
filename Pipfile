@@ -1,12 +1,9 @@
 [[source]]
-
 url = "https://pypi.python.org/simple"
 verify_ssl = true
 name = "pypi"
 
-
 [packages]
-
 cached-property = "*" 
 click = "==6.2"
 croniter = "==0.3.20"
@@ -17,10 +14,9 @@ psycopg2-binary = "*"
 python-crontab = "==2.2.6"
 requests = "*"
 SQLAlchemy = "*"
-
+fake-useragent = "*"
 
 [dev-packages]
-
 pytest = "*"
 pytest-cov = "*"
 pytest-watch = "*"
