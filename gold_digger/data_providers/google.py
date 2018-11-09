@@ -5,6 +5,7 @@ from datetime import date
 from functools import lru_cache
 
 import requests
+from fake_useragent import UserAgent
 
 from ._provider import Provider
 
@@ -19,6 +20,7 @@ class Google(Provider):
 
     def __init__(self, base_currency, logger):
         super().__init__(base_currency, logger)
+        self._user_agent = UserAgent()
         self._google_blocks_requests = None
 
     @lru_cache(maxsize=1)
@@ -75,7 +77,7 @@ class Google(Provider):
             return
 
         try:
-            response = requests.get(url, timeout=self.DEFAULT_REQUEST_TIMEOUT)
+            response = requests.get(url, timeout=self.DEFAULT_REQUEST_TIMEOUT, headers={"User-Agent": self._user_agent.random})
             if response.status_code == 200:
                 self._google_blocks_requests = None
                 return response
