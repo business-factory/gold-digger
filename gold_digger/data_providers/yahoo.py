@@ -24,7 +24,6 @@ class Yahoo(Provider):
         :type date_of_exchange: date
         :rtype: set
         """
-        self.logger.debug("Yahoo supported currencies: %s", self._supported_currencies)
         return self._supported_currencies
 
     def get_by_date(self, date_of_exchange, currency):
@@ -58,12 +57,11 @@ class Yahoo(Provider):
         """
         :rtype: dict[str,decimal.Decimal]
         """
-        default_rates = {i: None for i in self.get_supported_currencies()}
-
-        response = self._get(self.BASE_URL.format(",".join({self.SYMBOLS_PATTERN.format(self.base_currency, i) for i in self.get_supported_currencies()})))
+        symbols = {self.SYMBOLS_PATTERN.format(self.base_currency, currency) for currency in self.get_supported_currencies()}
+        response = self._get(self.BASE_URL.format(",".join(symbols)))
         currency_rates = self._parse_response(response)
 
-        return {**default_rates, **currency_rates}
+        return currency_rates
 
     def _parse_response(self, response):
         """
