@@ -9,6 +9,7 @@ from ..settings import SUPPORTED_CURRENCIES
 
 class Yahoo(Provider):
     BASE_URL = "https://query1.finance.yahoo.com/v7/finance/spark?symbols={}&range=1d&interval=1d"
+    SYMBOLS_PATTERN = "{}{}%3DX"
     name = "yahoo"
 
     def __init__(self, base_currency, logger):
@@ -32,7 +33,7 @@ class Yahoo(Provider):
 
     def get_by_date(self, date_of_exchange, currency):
         """
-        :type date_of_exchange: date
+        :type date_of_exchange: datetime.date
         :type currency: str
         :rtype: decimal.Decimal | None
         """
@@ -53,7 +54,7 @@ class Yahoo(Provider):
             return {currency: rate for currency, rate in rates.items() if currency in currencies}
 
     def _get_latest(self, currency):
-        response = self._get(self.BASE_URL.format(currency + "%3DX"))
+        response = self._get(self.BASE_URL.format(self.SYMBOLS_PATTERN.format(self.base_currency, currency)))
         currencies_rates = self._parse_response(response)
         return currencies_rates.get(currency)
 
@@ -63,7 +64,7 @@ class Yahoo(Provider):
         """
         default_rates = {i: None for i in self.get_supported_currencies()}
 
-        response = self._get(self.BASE_URL.format(",".join({i + "%3DX" for i in self.get_supported_currencies()})))
+        response = self._get(self.BASE_URL.format(",".join({self.SYMBOLS_PATTERN.format(self.base_currency, i) for i in self.get_supported_currencies()})))
         currency_rates = self._parse_response(response)
 
         return {**default_rates, **currency_rates}
@@ -84,7 +85,8 @@ class Yahoo(Provider):
 
                     if currency in self._supported_currencies:
                         rates[currency] = rate
-                except (KeyError, IndexError) as e:
+
+                except (KeyError, IndexError):
                     self.logger.warning("Cannot get rate for {}.".format(currency))
 
         return rates
