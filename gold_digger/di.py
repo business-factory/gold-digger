@@ -65,7 +65,7 @@ class DiContainer:
         providers = (
             GrandTrunk(self.base_currency, self.logger),
             CurrencyLayer(settings.SECRETS_CURRENCY_LAYER_ACCESS_KEY, self.base_currency, self.logger),
-            Yahoo(self.base_currency, self.logger),
+            Yahoo(self.base_currency, settings.SUPPORTED_CURRENCIES, self.logger),
             # TODO: temporarily disabled because Google blocks our requests, let's see if he will stop blocking us after some time
             # Google(self.base_currency, self.logger),
             Fixer(settings.SECRETS_FIXER_ACCESS_KEY, self.base_currency, self.logger),
@@ -87,7 +87,8 @@ class DiContainer:
     def logger(self):
         return self._logger
 
-    def setup_logger(self, logger, level=None):
+    @staticmethod
+    def setup_logger(logger, level=None):
         if isinstance(logger, str):
             logger = logging.getLogger(logger)
 

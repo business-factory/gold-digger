@@ -8,43 +8,153 @@ from requests import Response
 
 YAHOO_RESPONSE = b"""
 {
-    "list": {
-        "meta": {
-            "type": "resource-list",
-            "start": 0,
-            "count": 188
-        },
-        "resources": [
-            {
-                "resource": {
-                    "classname": "Quote",
-                    "fields": {
-                        "vname": "USD/EUR",
-                        "price": "0.861800",
-                        "symbol": "EUR=X",
-                        "ts": "1510220668",
-                        "type": "currency",
-                        "utctime": "2017-11-09T09:44:28+0000",
-                        "volume": "0"
-                    }
+  "spark": {
+    "result": [
+      {
+        "symbol": "USDEUR=X",
+        "response": [
+          {
+            "meta": {
+              "currency": "EUR",
+              "symbol": "USDEUR=X",
+              "exchangeName": "CCY",
+              "instrumentType": "CURRENCY",
+              "firstTradeDate": 1070236800,
+              "gmtoffset": 0,
+              "timezone": "GMT",
+              "exchangeTimezoneName": "Europe/London",
+              "chartPreviousClose": 0.8816,
+              "priceHint": 4,
+              "currentTradingPeriod": {
+                "pre": {
+                  "timezone": "GMT",
+                  "start": 1541980800,
+                  "end": 1541980800,
+                  "gmtoffset": 0
+                },
+                "regular": {
+                  "timezone": "GMT",
+                  "start": 1541980800,
+                  "end": 1542067140,
+                  "gmtoffset": 0
+                },
+                "post": {
+                  "timezone": "GMT",
+                  "start": 1542067140,
+                  "end": 1542067140,
+                  "gmtoffset": 0
                 }
+              },
+              "dataGranularity": "1d",
+              "validRanges": [
+                "1d",
+                "5d",
+                "1mo",
+                "3mo",
+                "6mo",
+                "1y",
+                "2y",
+                "5y",
+                "10y",
+                "ytd",
+                "max"
+              ]
             },
-            {
-                "resource": {
-                    "classname": "Quote",
-                    "fields": {
-                        "name": "USD/CZK",
-                        "price": "21.988899",
-                        "symbol": "CZK=X",
-                        "ts": "1510220626",
-                        "type": "currency",
-                        "utctime": "2017-11-09T09:43:46+0000",
-                        "volume": "0"
-                    }
+            "timestamp": [
+              1542021900
+            ],
+            "indicators": {
+              "quote": [
+                {
+                  "close": [
+                    0.8884
+                  ]
                 }
+              ],
+              "adjclose": [
+                {
+                  "adjclose": [
+                    0.8884
+                  ]
+                }
+              ]
             }
+          }
         ]
-    }
+      },
+      {
+        "symbol": "EURCZK=X",
+        "response": [
+          {
+            "meta": {
+              "currency": "CZK",
+              "symbol": "EURCZK=X",
+              "exchangeName": "CCY",
+              "instrumentType": "CURRENCY",
+              "firstTradeDate": 1497913200,
+              "gmtoffset": 0,
+              "timezone": "GMT",
+              "exchangeTimezoneName": "Europe/London",
+              "chartPreviousClose": 25.904,
+              "priceHint": 3,
+              "currentTradingPeriod": {
+                "pre": {
+                  "timezone": "GMT",
+                  "start": 1541980800,
+                  "end": 1541980800,
+                  "gmtoffset": 0
+                },
+                "regular": {
+                  "timezone": "GMT",
+                  "start": 1541980800,
+                  "end": 1542067140,
+                  "gmtoffset": 0
+                },
+                "post": {
+                  "timezone": "GMT",
+                  "start": 1542067140,
+                  "end": 1542067140,
+                  "gmtoffset": 0
+                }
+              },
+              "dataGranularity": "1d",
+              "validRanges": [
+                "1d",
+                "5d",
+                "1mo",
+                "3mo",
+                "6mo",
+                "1y",
+                "2y",
+                "ytd",
+                "max"
+              ]
+            },
+            "timestamp": [
+              1542021967
+            ],
+            "indicators": {
+              "quote": [
+                {
+                  "close": [
+                    25.959
+                  ]
+                }
+              ],
+              "adjclose": [
+                {
+                  "adjclose": [
+                    25.959
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "error": null
+  }
 }
 """
 
@@ -55,7 +165,14 @@ def test_yahoo_get_by_date(yahoo):
     sample._content = YAHOO_RESPONSE
     yahoo._get = lambda *a, **kw: sample
 
-    assert yahoo.get_by_date(date.today(), "EUR") == Decimal("0.861800")
+    assert yahoo.get_by_date(date.today(), "CZK") == Decimal("25.959")
+
+
+def test_yahoo_get_by_date__unsupported_currency(yahoo):
+    sample = Response()
+    sample.status_code = 404
+    sample._content = "404 Not Found"
+    yahoo._get = lambda *a, **kw: sample
     assert yahoo.get_by_date(date.today(), "XXX") is None  # unsupported currency
 
 
@@ -63,11 +180,12 @@ def test_yahoo_get_all_by_date(yahoo):
     sample = Response()
     sample.status_code = 200
     sample._content = YAHOO_RESPONSE
-    yahoo._get = lambda *a, **kw: sample
 
-    rates = yahoo.get_all_by_date(date.today(), {"EUR", "CZK", "EEK"})
+    yahoo._get = lambda url, **kw: sample
+
+    rates = yahoo.get_all_by_date(date.today(), {"EUR", "CZK", "AED"})
 
     assert rates == {
-        "EUR": Decimal("0.861800"),
-        "CZK": Decimal("21.988899"),
+        "EUR": Decimal("0.8884"),
+        "CZK": Decimal("25.959"),
     }

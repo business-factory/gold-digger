@@ -48,7 +48,7 @@ Available commands:
 * `python -m gold_digger initialize-db` creates all tables in new database
 * `python -m gold_digger update [--date="yyyy-mm-dd"]` updates exchange rates for specified date (default today)
 * `python -m gold_digger update-all [--origin-date="yyyy-mm-dd"]` updates exchange rates since specified origin date
-* `python -m gold_digger serve` starts API server
+* `python -m gold_digger api` starts development API server
 
 For running the tests simply use:
 * `py.test` or `ptw` which starts watchdog which run the tests after every save of Python file

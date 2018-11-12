@@ -15,53 +15,53 @@ spec:
                 app: gold-digger-cron
         spec:
             containers:
-                - name: golddigger-cron-master
-                  image: roihunter.azurecr.io/golddigger/master:$BUILD_NUMBER
-                  imagePullPolicy: Always
-                  readinessProbe:
-                    exec:
-                      command:
-                          - echo
-                          - 'OK!'
-                    initialDelaySeconds: 5
-                    periodSeconds: 30
-                  command: ["python"]
-                  args: ["-m", "gold_digger", "cron"]
-                  env:
-                      - name: GOLD_DIGGER_DATABASE_USER
-                        valueFrom:
-                            secretKeyRef:
-                                name: golddigger-secret
-                                key: username
-                      - name: GOLD_DIGGER_DATABASE_PASSWORD
-                        valueFrom:
-                            secretKeyRef:
-                                name: golddigger-secret
-                                key: password
-                      - name: GOLD_DIGGER_SECRETS_CURRENCY_LAYER_ACCESS_KEY
-                        valueFrom:
-                            secretKeyRef:
-                                name: golddigger-access-key
-                                key: secret
-                      - name: GOLD_DIGGER_SECRETS_FIXER_ACCESS_KEY
-                        valueFrom:
-                            secretKeyRef:
-                                name: golddigger-fixer-access-key
-                                key: secret
-                      - name: GOLD_DIGGER_DATABASE_HOST
-                        value: '35.205.178.65'
-                      - name: GOLD_DIGGER_DATABASE_PORT
-                        value: '5432'
-                      - name: GOLD_DIGGER_PROFILE
-                        value: 'master'
-                  ports: 
-                    - containerPort: 8080
-                  resources:
-                    limits:
-                      memory: "100Mi"
-                      cpu: "300m"
-                    requests:
-                      memory: "100Mi"
-                      cpu: "100m"
+                -   name: golddigger-cron-master
+                    image: roihunter.azurecr.io/golddigger/master:$BUILD_NUMBER
+                    imagePullPolicy: Always
+                    readinessProbe:
+                        exec:
+                            command:
+                                - echo
+                                - 'OK!'
+                        initialDelaySeconds: 5
+                        periodSeconds: 30
+                    command: ["python"]
+                    args: ["-m", "gold_digger", "cron"]
+                    env:
+                        -   name: GOLD_DIGGER_DATABASE_USER
+                            valueFrom:
+                                secretKeyRef:
+                                    name: golddigger-secret
+                                    key: username
+                        -   name: GOLD_DIGGER_DATABASE_PASSWORD
+                            valueFrom:
+                                secretKeyRef:
+                                    name: golddigger-secret
+                                    key: password
+                        -   name: GOLD_DIGGER_SECRETS_CURRENCY_LAYER_ACCESS_KEY
+                            valueFrom:
+                                secretKeyRef:
+                                    name: golddigger-access-key
+                                    key: secret
+                        -   name: GOLD_DIGGER_SECRETS_FIXER_ACCESS_KEY
+                            valueFrom:
+                                secretKeyRef:
+                                    name: golddigger-fixer-access-key
+                                    key: secret
+                        -   name: GOLD_DIGGER_DATABASE_HOST
+                            value: '35.205.178.65'
+                        -   name: GOLD_DIGGER_DATABASE_PORT
+                            value: '5432'
+                        -   name: GOLD_DIGGER_PROFILE
+                            value: 'master'
+                    ports:
+                        -   containerPort: 8080
+                    resources:
+                        limits:
+                            memory: "100Mi"
+                            cpu: "300m"
+                        requests:
+                            memory: "100Mi"
+                            cpu: "100m"
             imagePullSecrets:
-                - name: regsecret
+                -   name: regsecret

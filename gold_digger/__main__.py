@@ -76,7 +76,7 @@ def command(**kwargs):
         c.exchange_rate_manager.update_all_rates_by_date(kwargs["date"], data_providers)
 
 
-@cli.command("serve", help="Run API server (simple)")
+@cli.command("api", help="Run API server (simple)")
 @click.option("--host", default="localhost")
 @click.option("--port", default=8000)
 def command(**kwargs):
