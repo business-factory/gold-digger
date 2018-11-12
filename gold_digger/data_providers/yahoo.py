@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from datetime import date
-from functools import lru_cache
 
 from ._provider import Provider
-from ..settings import SUPPORTED_CURRENCIES
 
 
 class Yahoo(Provider):
@@ -12,22 +10,20 @@ class Yahoo(Provider):
     SYMBOLS_PATTERN = "{}{}%3DX"
     name = "yahoo"
 
-    def __init__(self, base_currency, logger):
+    def __init__(self, base_currency, supported_currencies, logger):
         super().__init__(base_currency, logger)
         self._downloaded_rates = {}
-        self._supported_currencies = SUPPORTED_CURRENCIES - {
-            "GGP", "GRD", "LUF", "NLG", "BEF", "ATS", "VAL", "MTL", "MCF", "FIM", "IMP", "JEP", "VEB",
-            "ESP", "EEK", "SML", "KGS", "CYP", "LTL", "BYR", "VEF", "FRF", "MGA", "DEM", "ITL", "ZWL",
-            "ZMK", "IEP",  "LVL", "SIT", "CUC"
+        self._supported_currencies = supported_currencies - {
+            "ATS", "BEF", "BYR", "CUC", "CYP", "DEM", "EEK", "ESP", "FIM", "FRF", "GGP", "GRD", "IEP",
+            "IMP", "ITL", "JEP", "KGS", "LTL", "LUF", "LVL", "MCF", "MGA", "MTL", "NLG", "PTE", "SIT",
+            "SML", "VAL", "VEB", "VEF", "ZMK", "ZWL"
         }
 
-    @lru_cache(maxsize=1)
     def get_supported_currencies(self, date_of_exchange=date.today()):
         """
         :type date_of_exchange: date
         :rtype: set
         """
-
         self.logger.debug("Yahoo supported currencies: %s", self._supported_currencies)
         return self._supported_currencies
 
