@@ -1,18 +1,17 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: gold-digger-service
-  labels:
     name: gold-digger-service
-    tier: backend
-    maintainer: python
+    labels:
+        name: gold-digger-service
+        tier: backend
+        maintainer: python
 spec:
-  ports:
-    # The port that this service should serve on.
-    - port: 80
-      targetPort: 8080
-  type: NodePort
-# Label keys and values that must match in order to receive traffic for this service.
-  selector:
-    app: gold-digger
-  type: NodePort
+    ports:
+        # The port that this service should serve on.
+        -   port: 80
+            targetPort: 8080
+    type: NodePort
+    # Label keys and values that must match in order to receive traffic for this service.
+    selector:
+        app: gold-digger

@@ -1,40 +1,38 @@
 # -*- coding: utf-8 -*-
 
 from datetime import date
-from functools import lru_cache
 
 from ._provider import Provider
 
 
 class Yahoo(Provider):
-    """
-    Yahoo provides exchange rates pairs also here:
-      https://query1.finance.yahoo.com/v8/finance/chart/USDEUR=X?range=1d&interval=1d
-    """
-    BASE_URL = "https://finance.yahoo.com/webservice/v1/symbols/allcurrencies/quote?format=json"
+    BASE_URL = "https://query1.finance.yahoo.com/v7/finance/spark?symbols={}&range=1d&interval=1d"
+    SYMBOLS_PATTERN = "{}{}%3DX"
     name = "yahoo"
 
-    @lru_cache(maxsize=1)
-    def get_supported_currencies(self, date_of_exchange):
+    def __init__(self, base_currency, supported_currencies, logger):
+        super().__init__(base_currency, logger)
+        self._downloaded_rates = {}
+        self._supported_currencies = supported_currencies - {
+            "ATS", "BEF", "BYR", "CUC", "CYP", "DEM", "EEK", "ESP", "FIM", "FRF", "GGP", "GRD", "IEP",
+            "IMP", "ITL", "JEP", "KGS", "LTL", "LUF", "LVL", "MCF", "MGA", "MTL", "NLG", "PTE", "SIT",
+            "SML", "VAL", "VEB", "VEF", "ZMK", "ZWL"
+        }
+
+    def get_supported_currencies(self, date_of_exchange=date.today()):
         """
         :type date_of_exchange: date
         :rtype: set
         """
-        rates = self._get_all_latest()
-        currencies = set(rates.keys())
-        if currencies:
-            self.logger.debug("Yahoo supported currencies: %s", currencies)
-        else:
-            self.logger.error("Yahoo supported currencies not found.")
-        return currencies
+        return self._supported_currencies
 
     def get_by_date(self, date_of_exchange, currency):
         """
-        :type date_of_exchange: date
+        :type date_of_exchange: datetime.date
         :type currency: str
         :rtype: decimal.Decimal | None
         """
-        date_str = date_of_exchange.strftime(format="%Y-%m-%d")
+        date_str = date_of_exchange.strftime("%Y-%m-%d")
         self.logger.debug("Requesting Yahoo for %s (%s)", currency, date_str, extra={"currency": currency, "date": date_str})
 
         if date_of_exchange == date.today():
@@ -51,32 +49,40 @@ class Yahoo(Provider):
             return {currency: rate for currency, rate in rates.items() if currency in currencies}
 
     def _get_latest(self, currency):
-        response = self._get(self.BASE_URL)
-        rates = self._parse_response(response)
-        return rates.get(currency)
+        response = self._get(self.BASE_URL.format(self.SYMBOLS_PATTERN.format(self.base_currency, currency)))
+        currencies_rates = self._parse_response(response)
+        return currencies_rates.get(currency)
 
     def _get_all_latest(self):
-        response = self._get(self.BASE_URL)
-        return self._parse_response(response)
+        """
+        :rtype: dict[str,decimal.Decimal]
+        """
+        symbols = {self.SYMBOLS_PATTERN.format(self.base_currency, currency) for currency in self.get_supported_currencies()}
+        response = self._get(self.BASE_URL.format(",".join(symbols)))
+        currency_rates = self._parse_response(response)
+
+        return currency_rates
 
     def _parse_response(self, response):
         """
-        :rtype: dict
-        :return:
-        {
-            "EUR": 0.864,
-            ...
-        }
+        :rtype: dict[str, Decimal] | None
         """
         rates = {}
         if response:
             data = response.json()
-            for resource in data["list"]["resources"]:
-                fields = resource["resource"]["fields"]
-                if fields:
-                    currency = fields["symbol"][:3]
-                    rate = fields["price"]
-                    rates[currency] = self._to_decimal(rate, currency)
+            for i in data["spark"]["result"]:
+                currency = ""
+                try:
+                    currency = i["response"][0]["meta"]["currency"]
+                    rate = i["response"][0]["indicators"]["quote"][0]["close"][0]
+                    rate = self._to_decimal(str(rate), currency)
+
+                    if currency in self._supported_currencies:
+                        rates[currency] = rate
+
+                except (KeyError, IndexError):
+                    self.logger.warning("Cannot get rate for {}.".format(currency))
+
         return rates
 
     def get_historical(self, origin_date, currencies):

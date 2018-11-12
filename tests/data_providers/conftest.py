@@ -11,5 +11,5 @@ def google(base_currency, logger):
 
 
 @pytest.fixture
-def yahoo(base_currency, logger):
-    return Yahoo(base_currency, logger)
+def yahoo(base_currency, currencies, logger):
+    return Yahoo(base_currency, currencies, logger)
