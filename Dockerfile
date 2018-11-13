@@ -51,4 +51,4 @@ EXPOSE 8000
 ENV GUNICORN_WORKERS=4
 ENV GUNICORN_BIND="0.0.0.0:8000"
 
-CMD ["gunicorn", "--config=gold_digger/settings/settings_gunicorn.py", "gold_digger.api_server.app:app"]
+CMD gunicorn --config=gold_digger/settings/settings_gunicorn.py --log-config=$LOGGING_GUNICORN gold_digger.api_server.app:app
