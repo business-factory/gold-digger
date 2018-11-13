@@ -22,7 +22,7 @@ spec:
                         exec:
                             command:
                                 - echo
-                                - 'OK!'
+                                - "OK!"
                         initialDelaySeconds: 5
                         periodSeconds: 30
                     command: ["python"]
@@ -49,11 +49,11 @@ spec:
                                     name: golddigger-fixer-access-key
                                     key: secret
                         -   name: GOLD_DIGGER_DATABASE_HOST
-                            value: '35.205.178.65'
+                            value: "35.205.178.65"
                         -   name: GOLD_DIGGER_DATABASE_PORT
-                            value: '5432'
+                            value: "5432"
                         -   name: GOLD_DIGGER_PROFILE
-                            value: 'master'
+                            value: "master"
                     ports:
                         -   containerPort: 8080
                     resources:
