@@ -111,4 +111,6 @@ class DiContainer:
             handler = graypy.GELFHandler(settings.GRAYLOG_ADDRESS, settings.GRAYLOG_PORT)
             logger.addHandler(handler)
 
+        logger.propagate = False
+
         return logger
