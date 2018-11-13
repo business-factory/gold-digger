@@ -19,4 +19,4 @@ qualname=gunicorn.error
 
 [handler_graylog]
 class=graypy.GELFHandler
-args=("logs.roihunter.com", 12204)
+args=("logs.roihunter.com", 12211)
