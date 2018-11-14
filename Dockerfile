@@ -48,4 +48,4 @@ COPY ./ ./
 
 EXPOSE 8080
 
-CMD gunicorn --config=gold_digger/settings/settings_gunicorn.py --log-config=gunicorn_logging_master gold_digger.api_server.app:app
+CMD gunicorn --config=gold_digger/settings/settings_gunicorn.py --log-config=$LOGGING_GUNICORN gold_digger.api_server.app:app
