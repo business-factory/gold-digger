@@ -14,8 +14,8 @@ import sys
 sys.path.append(".")
 
 timeout = 300  # 5 minutes in seconds
-bind = "0.0.0.0:8000"
-workers = 4
+bind = "0.0.0.0:8080"
+workers = 1
 
 # Overwrite some Gunicorns params by ENV variables
 for k, v in os.environ.items():

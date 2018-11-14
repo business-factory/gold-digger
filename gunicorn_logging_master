@@ -1,0 +1,22 @@
+[loggers]
+keys=root, gunicorn.error
+
+[handlers]
+keys=graylog
+
+[formatters]
+keys=
+
+[logger_root]
+level=INFO
+handlers=graylog
+
+[logger_gunicorn.error]
+level=INFO
+handlers=graylog
+propagate=0
+qualname=gunicorn.error
+
+[handler_graylog]
+class=graypy.GELFHandler
+args=("logs.roihunter.com", 12211)
