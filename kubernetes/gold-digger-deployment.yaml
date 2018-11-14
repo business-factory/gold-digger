@@ -62,10 +62,6 @@ spec:
                             value: "5432"
                         -   name: GOLD_DIGGER_PROFILE
                             value: "master"
-                        -   name: GUNICORN_WORKERS
-                            value: "1"
-                        -   name: GUNICORN_BIND
-                            value: "0.0.0.0:8080"
                         -   name: LOGGING_GUNICORN
                             value: "gunicorn_logging_master"
                     ports:
