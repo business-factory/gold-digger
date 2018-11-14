@@ -3,8 +3,8 @@
 Related article: https://sebest.github.io/post/protips-using-gunicorn-inside-a-docker-image/
 
 Parameters you might want to override:
-  GUNICORN_WORKERS=4
-  GUNICORN_BIND="0.0.0.0:8000"
+  GUNICORN_WORKERS=1
+  GUNICORN_BIND="0.0.0.0:8080"
 """
 
 import os
