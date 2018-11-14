@@ -62,13 +62,13 @@ For running the tests simply use:
     * from currency - required
     * to currency - required
     * date of exchange - optional; returns last exchange rates if omitted
-    * example: [http://localhost:8000/rate?from=EUR&to=USD&date=2005-12-22](http://localhost:8000/rate?from=EUR&to=USD&date=2005-12-22)
+    * example: [http://localhost:8080/rate?from=EUR&to=USD&date=2005-12-22](http://localhost:8080/rate?from=EUR&to=USD&date=2005-12-22)
 
 * `/range?from=X&to=Y&start_date=YYYY-MM-DD&end_date=YYYY-MM-DD`
     * from currency - required
     * to currency - required
     * start date & end date of exchange - required
-    * example: [http://localhost:8000/range?from=EUR&to=AED&start_date=2016-02-15&end_date=2016-02-15](http://localhost:8000/range?from=EUR&to=AED&start_date=2016-02-15&end_date=2016-02-15)
+    * example: [http://localhost:8080/range?from=EUR&to=AED&start_date=2016-02-15&end_date=2016-02-15](http://localhost:8080/range?from=EUR&to=AED&start_date=2016-02-15&end_date=2016-02-15)
 
 
 ## Docker
@@ -81,11 +81,11 @@ Docker container starts the Gunicorn server by default.
 
 * This command runs API container with Gunicorn server:
 
-`docker run --detach --restart=always --publish=8000:8000 --name=gold-digger gold-digger:latest`
+`docker run --detach --restart=always --publish=8080:8080 --name=gold-digger gold-digger:latest`
 
 * To control Gunicorn's parameters use this:
 
-`docker run --detach --restart=always --publish=8000:8000 -e GUNICORN_WORKERS=4 -e GUNICORN_BIND=0.0.0.0:8000 --name=gold-digger gold-digger:latest`
+`docker run --detach --restart=always --publish=8080:8080 -e GUNICORN_WORKERS=1 -e GUNICORN_BIND=0.0.0.0:8080 --name=gold-digger gold-digger:latest`
 
 * To run Cron container with daily updates at 00:05 use command:
 
@@ -93,7 +93,7 @@ Docker container starts the Gunicorn server by default.
 
 * If you are connecting to local database on the host run the container with --net=host option:
 
-`docker run --detach --restart=always --net=host --publish=8000:8000 --name=gold-digger gold-digger:latest`
+`docker run --detach --restart=always --net=host --publish=8080:8080 --name=gold-digger gold-digger:latest`
 
 `docker run --detach --restart=always --net=host --name gold-digger-cron gold-digger:latest python -m gold_digger cron`
 
@@ -106,7 +106,7 @@ docker run --detach --restart=always \
     -e GOLD_DIGGER_DATABASE_USER=<your_database_user> \
     -e GOLD_DIGGER_DATABASE_PASSWORD=<your_database_secret_password> \
     -e GOLD_DIGGER_DATABASE_NAME=<your_database_name> \
-    --publish=8000:8000 --name=gold-digger gold-digger:latest
+    --publish=8080:8080 --name=gold-digger gold-digger:latest
 ```
 
 ```bash
@@ -129,6 +129,6 @@ Currently you can use two settings profiles:
 
 To run this application with production settings `master`  you need to export environment variable `GOLD_DIGGER_PROFILE`.
 
-`docker run --detach --restart=always -e GOLD_DIGGER_PROFILE=master --publish=8000:8000 --name=gold-digger gold-digger:latest`
+`docker run --detach --restart=always -e GOLD_DIGGER_PROFILE=master --publish=8080:8080 --name=gold-digger gold-digger:latest`
 
 `docker run --detach --restart=always -e GOLD_DIGGER_PROFILE=master --name gold-digger-cron gold-digger:latest python -m gold_digger cron`

@@ -7,9 +7,9 @@
 #   docker build --rm=true -t gold-digger:latest .
 #
 # RUN CONTAINER
-#   docker run --rm -it --publish=8000:8000 --name=gold-digger gold-digger:latest
-#   docker run --rm -it --publish=8000:8000 --name=gold-digger -v "<path to you gold_digger project>:/app" gold-digger:latest
-#   docker run --detach --restart=always --publish=8000:8000 --name=gold-digger gold-digger:latest
+#   docker run --rm -it --publish=8080:8080 --name=gold-digger gold-digger:latest
+#   docker run --rm -it --publish=8080:8080 --name=gold-digger -v "<path to you gold_digger project>:/app" gold-digger:latest
+#   docker run --detach --restart=always --publish=8080:8080 --name=gold-digger gold-digger:latest
 #
 #   docker run --rm --name gold-digger-cron -ti gold-digger:latest python -m gold_digger cron
 #   docker run --detach --restart=always --name gold-digger-cron gold-digger:latest python -m gold_digger cron
