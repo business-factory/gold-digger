@@ -96,30 +96,7 @@ class RangeRateResource(DatabaseResource):
         )
 
 
-class HealthCheckResource(DatabaseResource):
-    def on_get(self, req, resp):
-        try:
-            exchange_rate = self.container.exchange_rate_manager.get_exchange_rate_by_date(date.today(), "CZK", "USD")
-            if exchange_rate:
-                resp.body = '{"status": "UP"}'
-            else:
-                info = "No exchange rate available."
-                resp.body = '{"status": "DOWN", "info": "%s"}' % info
-                self.container.logger.error("Health check - %s", info)
-
-        except DatabaseError as e:
-            self.container.db_session.rollback()
-            info = "Database error. Service will reconnect to the DB automatically. Exception: %s" % e
-            resp.body = '{"status": "DOWN", "info": "%s"}' % info
-            self.container.logger.exception(info)
-        except Exception as e:
-            resp.body = '{"status": "DOWN", "info": "%s"}' % e
-            self.container.logger.exception("Unexpected exception.")
-
-        resp.status = falcon.HTTP_200
-
-
-class HealthAliveResource:
+class HealthCheckResource:
     def on_get(self, req, resp):
         resp.body = '{"status": "UP"}'
         resp.status = falcon.HTTP_200
@@ -131,8 +108,7 @@ class API(falcon.API):
         self.container = di_container(__file__)
         self.add_route("/rate", DateRateResource(self.container))
         self.add_route("/range", RangeRateResource(self.container))
-        self.add_route("/health", HealthCheckResource(self.container))
-        self.add_route("/health/alive", HealthAliveResource())
+        self.add_route("/health", HealthCheckResource())
 
     def simple_server(self, host, port):
         print("Starting HTTP server at {}:{}".format(host, port))
