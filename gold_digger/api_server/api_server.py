@@ -102,6 +102,23 @@ class HealthCheckResource:
         resp.status = falcon.HTTP_200
 
 
+class HealthAliveResource(DatabaseResource):
+    def on_get(self, req, resp):
+        try:
+            self.container.db_session.execute("SELECT 1")
+            resp.body = '{"status": "UP"}'
+        except DatabaseError as e:
+            self.container.db_session.rollback()
+            info = "Database error. Service will reconnect to the DB automatically. Exception: %s" % e
+            resp.body = '{"status": "DOWN", "info": "%s"}' % info
+            self.container.logger.exception(info)
+        except Exception as e:
+            resp.body = '{"status": "DOWN", "info": "%s"}' % e
+            self.container.logger.exception("Unexpected exception.")
+
+        resp.status = falcon.HTTP_200
+
+
 class API(falcon.API):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -109,6 +126,7 @@ class API(falcon.API):
         self.add_route("/rate", DateRateResource(self.container))
         self.add_route("/range", RangeRateResource(self.container))
         self.add_route("/health", HealthCheckResource())
+        self.add_route("/health/alive", HealthAliveResource(self.container))
 
     def simple_server(self, host, port):
         print("Starting HTTP server at {}:{}".format(host, port))
