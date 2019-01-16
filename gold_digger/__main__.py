@@ -77,8 +77,8 @@ def command(**kwargs):
 
 
 @cli.command("api", help="Run API server (simple)")
-@click.option("--host", default="localhost")
-@click.option("--port", default=8080)
+@click.option("--host", "-h", default="localhost")
+@click.option("--port", "-p", default=8080)
 def command(**kwargs):
     app = API()
     app.simple_server(kwargs["host"], kwargs["port"])
