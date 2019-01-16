@@ -2,12 +2,7 @@
 
 import pytest
 
-from gold_digger.data_providers import Google, Yahoo
-
-
-@pytest.fixture
-def google(base_currency, logger):
-    return Google(base_currency, logger)
+from gold_digger.data_providers import Yahoo
 
 
 @pytest.fixture
