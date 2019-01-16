@@ -66,8 +66,6 @@ class DiContainer:
             GrandTrunk(self.base_currency, self.logger),
             CurrencyLayer(settings.SECRETS_CURRENCY_LAYER_ACCESS_KEY, self.base_currency, self.logger),
             Yahoo(self.base_currency, settings.SUPPORTED_CURRENCIES, self.logger),
-            # TODO: temporarily disabled because Google blocks our requests, let's see if he will stop blocking us after some time
-            # Google(self.base_currency, self.logger),
             Fixer(settings.SECRETS_FIXER_ACCESS_KEY, self.base_currency, self.logger),
         )
         return {provider.name: provider for provider in providers}
