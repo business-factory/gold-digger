@@ -5,6 +5,8 @@ import falcon
 from sqlalchemy.exc import DatabaseError
 from datetime import date
 from wsgiref import simple_server
+
+from .helpers import http_api_logger
 from .. import di_container
 from ..settings import SUPPORTED_CURRENCIES
 
@@ -15,7 +17,12 @@ class DatabaseResource:
 
 
 class DateRateResource(DatabaseResource):
+    @http_api_logger
     def on_get(self, req, resp):
+        """
+        :type req: falcon.request.Request
+        :type resp: falcon.request.Response
+        """
         self.container.logger.info("Data rate request: %s", req.params)
 
         from_currency = req.get_param("from", required=True)
@@ -45,7 +52,7 @@ class DateRateResource(DatabaseResource):
         resp.status = falcon.HTTP_200
         resp.body = json.dumps(
             {
-                "date": date_of_exchange.strftime(format="%Y-%m-%d"),
+                "date": date_of_exchange.strftime("%Y-%m-%d"),
                 "from_currency": from_currency,
                 "to_currency": to_currency,
                 "exchange_rate": str(exchange_rate)
@@ -54,7 +61,12 @@ class DateRateResource(DatabaseResource):
 
 
 class RangeRateResource(DatabaseResource):
+    @http_api_logger
     def on_get(self, req, resp):
+        """
+        :type req: falcon.request.Request
+        :type resp: falcon.request.Response
+        """
         self.container.logger.info("Range rate request: %s", req.params)
 
         from_currency = req.get_param("from", required=True)
@@ -98,12 +110,20 @@ class RangeRateResource(DatabaseResource):
 
 class HealthCheckResource:
     def on_get(self, req, resp):
+        """
+        :type req: falcon.request.Request
+        :type resp: falcon.request.Response
+        """
         resp.body = '{"status": "UP"}'
         resp.status = falcon.HTTP_200
 
 
 class HealthAliveResource(DatabaseResource):
     def on_get(self, req, resp):
+        """
+        :type req: falcon.request.Request
+        :type resp: falcon.request.Response
+        """
         try:
             self.container.db_session.execute("SELECT 1")
             resp.body = '{"status": "UP"}'
@@ -117,6 +137,7 @@ class HealthAliveResource(DatabaseResource):
             self.container.logger.exception("Unexpected exception.")
 
         resp.status = falcon.HTTP_200
+
 
 
 class API(falcon.API):
