@@ -6,6 +6,7 @@ from os.path import dirname, normpath, abspath
 from cached_property import cached_property as service
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
+from uuid import uuid4
 
 import gold_digger.settings as settings
 from .data_providers import *
@@ -34,6 +35,10 @@ class DiContainer:
         if self._db_connection is not None:
             self._db_connection.dispose()
             self._db_connection = None
+
+    @staticmethod
+    def flow_id():
+        return str(uuid4())
 
     @service
     def base_dir(self):
