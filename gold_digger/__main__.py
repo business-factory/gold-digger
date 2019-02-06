@@ -3,7 +3,7 @@ import click
 from crontab import CronTab
 from datetime import datetime, date
 from . import di_container
-from .api_server.api_server import API
+from .api_server.app import app
 from .database.db_model import Base
 from .settings import DATABASE_NAME
 
@@ -23,7 +23,7 @@ def cli():
 
 
 @cli.command("cron", help="Run cron jobs")
-def cron(**kwargs):
+def cron(**_):
     with di_container(__file__) as c:
         logger = c.logger()
         cron_tab = CronTab(
@@ -42,7 +42,7 @@ def cron(**kwargs):
 
 
 @cli.command("initialize-db", help="Create empty table (drop if exists)")
-def command(**kwargs):
+def command(**_):
     with di_container(__file__) as c:
         print("This will drop & create all tables in '%s'. To continue press 'c'" % DATABASE_NAME)
         if input() != "c":
@@ -83,7 +83,6 @@ def command(**kwargs):
 @click.option("--host", "-h", default="localhost")
 @click.option("--port", "-p", default=8080)
 def command(**kwargs):
-    app = API()
     app.simple_server(kwargs["host"], kwargs["port"])
 
 
