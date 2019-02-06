@@ -16,50 +16,65 @@ class GrandTrunk(Provider):
     name = "grandtrunk"
 
     @lru_cache(maxsize=1)
-    def get_supported_currencies(self, date_of_exchange):
+    def get_supported_currencies(self, date_of_exchange, logger):
         """
         :type date_of_exchange: date
+        :type logger: gold_digger.utils.context_logger.ContextLogger
         :rtype: set
         """
         currencies = set()
-        response = self._get("{url}/currencies/{date}".format(url=self.BASE_URL, date=date_of_exchange.strftime("%Y-%m-%d")))
+        response = self._get(f"{self.BASE_URL}/currencies/{date_of_exchange.strftime('%Y-%m-%d')}", logger=logger)
         if response:
             currencies = set(response.text.split("\n"))
         if currencies:
-            self.logger.debug("Grandtrunk supported currencies: %s", currencies)
+            logger.debug("Grandtrunk supported currencies: %s", currencies)
         else:
-            self.logger.error("Grandtrunk supported currencies not found.")
+            logger.error("Grandtrunk supported currencies not found.")
         return currencies
 
-    def get_by_date(self, date_of_exchange, currency):
+    def get_by_date(self, date_of_exchange, currency, logger):
+        """
+        :type date_of_exchange: datetime.datetime
+        :type currency: str
+        :type logger: gold_digger.utils.context_logger.ContextLogger
+        :rtype: decimal.Decimal | None
+        """
         date_str = date_of_exchange.strftime(format="%Y-%m-%d")
-        self.logger.debug("Requesting GrandTrunk for %s (%s)", currency, date_str, extra={"currency": currency, "date": date_str})
+        logger.debug("Requesting GrandTrunk for %s (%s)", currency, date_str, extra={"currency": currency, "date": date_str})
 
-        response = self._get("{url}/getrate/{date}/{from_currency}/{to}".format(
-            url=self.BASE_URL, date=date_str, from_currency=self.base_currency, to=currency))
+        response = self._get(f"{self.BASE_URL}/getrate/{date_str}/{self.base_currency}/{currency}", logger=logger)
         if response:
-            return self._to_decimal(response.text.strip(), currency)
+            return self._to_decimal(response.text.strip(), currency, logger=logger)
 
-    def get_all_by_date(self, date_of_exchange, currencies):
+    def get_all_by_date(self, date_of_exchange, currencies, logger):
+        """
+        :type date_of_exchange: datetime.datetime
+        :type currencies: [str]
+        :type logger: gold_digger.utils.context_logger.ContextLogger
+        :rtype: {str: decimal.Decimal | None}
+        """
         day_rates = {}
-        supported_currencies = self.get_supported_currencies(date_of_exchange)
+        supported_currencies = self.get_supported_currencies(date_of_exchange, logger)
         for currency in currencies:
             if currency in supported_currencies:
-                response = self._get("{url}/getrate/{date}/{from_currency}/{to}".format(
-                    url=self.BASE_URL, date=date_of_exchange, from_currency=self.base_currency, to=currency))
+                response = self._get(f"{self.BASE_URL}/getrate/{date_of_exchange}/{self.base_currency}/{currency}", logger=logger)
                 if response:
-                    decimal_value = self._to_decimal(response.text.strip(), currency)
+                    decimal_value = self._to_decimal(response.text.strip(), currency, logger=logger)
                     if decimal_value:
                         day_rates[currency] = decimal_value
         return day_rates
 
-    def get_historical(self, origin_date, currencies):
+    def get_historical(self, origin_date, currencies, logger):
+        """
+        :type origin_date: datetime
+        :type currencies: [str]
+        :type logger: gold_digger.utils.context_logger.ContextLogger
+        :rtype: {datetime.Datetime: {str: decimal.Decimal | None}}
+        """
         day_rates = defaultdict(dict)
-        origin_date_string = origin_date.strftime(format="%Y-%m-%d")
+        origin_date_string = origin_date.strftime("%Y-%m-%d")
         for currency in currencies:
-            response = self._get("{url}/getrange/{from_date}/{to_date}/{from_currency}/{to}".format(
-                url=self.BASE_URL, from_date=origin_date_string, to_date=date.today(), from_currency=self.base_currency, to=currency
-            ))
+            response = self._get(f"{self.BASE_URL}/getrange/{origin_date_string}/{date.today()}/{self.base_currency}/{currency}", logger=logger)
             records = response.text.strip().split("\n") if response else []
             for record in records:
                 record = record.rstrip()
@@ -68,9 +83,9 @@ class GrandTrunk(Provider):
                         date_string, exchange_rate_string = record.split(" ")
                         day = datetime.strptime(date_string, "%Y-%m-%d")
                     except ValueError as e:
-                        self.logger.error("%s - Parsing of rate&date on record '%s' failed: %s" % (self, record, e))
+                        logger.error("%s - Parsing of rate & date on record '%s' failed: %s" % (self, record, e))
                         continue
-                    decimal_value = self._to_decimal(exchange_rate_string, currency)
+                    decimal_value = self._to_decimal(exchange_rate_string, currency, logger=logger)
                     if decimal_value:
                         day_rates[day][currency] = decimal_value
         return day_rates

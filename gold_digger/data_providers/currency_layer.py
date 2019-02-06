@@ -16,72 +16,94 @@ class CurrencyLayer(Provider):
     BASE_URL = "http://www.apilayer.net/api/live?access_key=%s"
     name = "currency_layer"
 
-    def __init__(self, access_key, *args, **kwargs):
+    def __init__(self, access_key, logger, *args, **kwargs):
+        """
+        :type access_key: str
+        :type logger: gold_digger.utils.context_logger.ContextLogger
+        """
         super().__init__(*args, **kwargs)
         if access_key:
             self._url = self.BASE_URL % access_key
         else:
-            self.logger.critical("You need an access token to use CurrencyLayer provider!")
+            logger.critical("You need an access token to use CurrencyLayer provider!")
             self._url = self.BASE_URL % ""
 
     @lru_cache(maxsize=1)
-    def get_supported_currencies(self, date_of_exchange):
+    def get_supported_currencies(self, date_of_exchange, logger):
         """
         :type date_of_exchange: datetime.date
+        :type logger: gold_digger.utils.context_logger.ContextLogger
         :rtype: set
         """
         currencies = set()
-        response = self._get("https://currencylayer.com/downloads/cl-currencies-table.txt")
+        response = self._get("https://currencylayer.com/downloads/cl-currencies-table.txt", logger=logger)
         if response:
             currencies = set(re.findall("<td>([A-Z]{3})</td>", response.text))
         if currencies:
-            self.logger.debug("CurrencyLayer supported currencies: %s", currencies)
+            logger.debug("CurrencyLayer supported currencies: %s", currencies)
         else:
-            self.logger.error("CurrencyLayer supported currencies not found.")
+            logger.error("CurrencyLayer supported currencies not found.")
         return currencies
 
-    def get_by_date(self, date_of_exchange, currency):
-        date_str = date_of_exchange.strftime(format="%Y-%m-%d")
-        self.logger.debug("Requesting CurrencyLayer for %s (%s)", currency, date_str, extra={"currency": currency, "date": date_str})
+    def get_by_date(self, date_of_exchange, currency, logger):
+        """
+        :type date_of_exchange: datetime.datetime
+        :type currency: str
+        :type logger: gold_digger.utils.context_logger.ContextLogger
+        :rtype: decimal.Decimal | None
+        """
+        date_str = date_of_exchange.strftime("%Y-%m-%d")
+        logger.debug("Requesting CurrencyLayer for %s (%s)", currency, date_str, extra={"currency": currency, "date": date_str})
 
-        response = self._get("{url}&date={date}&currencies={currencies}".format(url=self._url, date=date_str, currencies=currency))
+        response = self._get(f"{self._url}&date={date_str}&currencies={currency}", logger=logger)
         if not response:
-            self.logger.warning("CurrencyLayer error. Status: %s", response.status_code, extra={"currency": currency, "date": date_str})
+            logger.warning("CurrencyLayer error. Status: %s", response.status_code, extra={"currency": currency, "date": date_str})
             return None
 
         response = response.json()
         if response and response.get("success") is False:
-            self.logger.warning("CurrencyLayer unsuccessful request. Error: %s",
-                                response.get("error", {}).get("info"), extra={"currency": currency, "date": date_str})
+            logger.warning(
+                "CurrencyLayer unsuccessful request. Error: %s", response.get("error", {}).get("info"), extra={"currency": currency, "date": date_str}
+            )
             return None
 
         records = response.get("quotes", {}) if response else {}
         value = records.get("%s%s" % (self.base_currency, currency))
-        return self._to_decimal(value, currency) if value is not None else None
+        return self._to_decimal(value, currency, logger=logger) if value is not None else None
 
-    def get_all_by_date(self, date_of_exchange, currencies):
-        response = self._get("{url}&date={date}&currencies={currencies}".format(
-            url=self._url, date=date_of_exchange.strftime(format="%Y-%m-%d"), currencies=",".join(currencies)))
+    def get_all_by_date(self, date_of_exchange, currencies, logger):
+        """
+        :type date_of_exchange: datetime.datetime
+        :type currencies: [str]
+        :type logger: gold_digger.utils.context_logger.ContextLogger
+        :rtype: {str: decimal.Decimal | None}
+        """
+        response = self._get(f"{self._url}&date={date_of_exchange.strftime('%Y-%m-%d')}&currencies={','.join(currencies)}", logger=logger)
         records = response.json().get("quotes", {}) if response else {}
         day_rates = {}
         for currency_pair, value in records.items():
             currency = currency_pair[3:]
-            decimal_value = self._to_decimal(value, currency) if value is not None else None
+            decimal_value = self._to_decimal(value, currency, logger=logger) if value is not None else None
             if currency and decimal_value:
                 day_rates[currency] = decimal_value
         return day_rates
 
-    def get_historical(self, origin_date, currencies):
+    def get_historical(self, origin_date, currencies, logger):
+        """
+        :type origin_date: datetime.datetime
+        :type currencies: [str]
+        :type logger: gold_digger.utils.context_logger.ContextLogger
+        :rtype: {datetime.Datetime: {str: decimal.Decimal | None}}
+        """
         day_rates = defaultdict(dict)
         date_of_exchange = origin_date
         date_of_today = date.today()
         while date_of_exchange != date_of_today:
-            response = self._get("{url}&date={date}&currencies={currencies}".format(
-                url=self._url, date=date_of_exchange.strftime(format="%Y-%m-%d"), currencies=",".join(currencies)))
+            response = self._get(f"{self._url}&date={date_of_exchange.strftime('%Y-%m-%d')}&currencies={','.join(currencies)}", logger=logger)
             records = response.json().get("quotes", {}) if response else {}
             for currency_pair, value in records.items():
                 currency = currency_pair[3:]
-                decimal_value = self._to_decimal(value, currency) if value is not None else None
+                decimal_value = self._to_decimal(value, currency, logger=logger) if value is not None else None
                 if currency and decimal_value:
                     day_rates[date_of_exchange][currency] = decimal_value
             date_of_exchange = date_of_exchange + timedelta(1)

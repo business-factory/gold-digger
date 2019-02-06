@@ -23,9 +23,6 @@ class DiContainer:
         self._db_connection = None
         self._db_session = None
 
-        self._logger = logging.getLogger("gold-digger")
-        self.setup_logger(self._logger)
-
     def __enter__(self):
         return self
 
@@ -59,6 +56,9 @@ class DiContainer:
 
     @service
     def db_session(self):
+        """
+        :rtype: sqlalchemy.orm.scoping.scoped_session
+        """
         self._db_session = scoped_session(sessionmaker(self.db_connection))
         return self._db_session()
 
@@ -69,22 +69,21 @@ class DiContainer:
     @service
     def data_providers(self):
         providers = (
-            GrandTrunk(self.base_currency, self.logger),
-            CurrencyLayer(settings.SECRETS_CURRENCY_LAYER_ACCESS_KEY, self.base_currency, self.logger),
-            Yahoo(self.base_currency, settings.SUPPORTED_CURRENCIES, self.logger),
-            Fixer(settings.SECRETS_FIXER_ACCESS_KEY, self.base_currency, self.logger),
+            GrandTrunk(self.base_currency),
+            CurrencyLayer(settings.SECRETS_CURRENCY_LAYER_ACCESS_KEY, self.logger(), self.base_currency),
+            Yahoo(self.base_currency, settings.SUPPORTED_CURRENCIES),
+            Fixer(settings.SECRETS_FIXER_ACCESS_KEY, self.logger(), self.base_currency),
         )
         return {provider.name: provider for provider in providers}
 
     @service
     def exchange_rate_manager(self):
         return ExchangeRateManager(
-            DaoExchangeRate(self.db_session, self.logger),
+            DaoExchangeRate(self.db_session),
             DaoProvider(self.db_session),
             list(self.data_providers.values()),
             self.base_currency,
             settings.SUPPORTED_CURRENCIES,
-            self.logger
         )
 
     @classmethod
@@ -92,7 +91,7 @@ class DiContainer:
         """
         :rtype: gold_digger.utils.context_logger.ContextLogger
         """
-        logger_ = cls.setup_logger()
+        logger_ = cls.setup_logger("gold-digger")
 
         extra_ = {"flow_id": cls.flow_id()}
         extra_.update(extra or {})

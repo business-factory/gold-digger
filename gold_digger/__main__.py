@@ -25,6 +25,7 @@ def cli():
 @cli.command("cron", help="Run cron jobs")
 def cron(**kwargs):
     with di_container(__file__) as c:
+        logger = c.logger()
         cron_tab = CronTab(
             tab="""
                 # m h dom mon dow command
@@ -34,7 +35,7 @@ def cron(**kwargs):
             """.format(redirect="> /proc/1/fd/1 2>/proc/1/fd/2")  # redirect to stdout/stderr
         )
 
-        c.logger.info("Cron started. Commands:\n{}\n---".format("\n".join(list(map(str, cron_tab.crons)))))
+        logger.info("Cron started. Commands:\n{}\n---".format("\n".join(list(map(str, cron_tab.crons)))))
 
         for result in cron_tab.run_scheduler():
             print(result)
@@ -54,7 +55,8 @@ def command(**kwargs):
 @click.option("--origin-date", default=date(2015, 1, 1), callback=_parse_date, help="Specify date in format 'yyyy-mm-dd'")
 def command(**kwargs):
     with di_container(__file__) as c:
-        c.exchange_rate_manager.update_all_historical_rates(kwargs["origin_date"])
+        logger = c.logger()
+        c.exchange_rate_manager.update_all_historical_rates(kwargs["origin_date"], logger)
 
 
 @cli.command("update", help="Update rates of specified day (default today)")
@@ -63,6 +65,7 @@ def command(**kwargs):
 @click.option("--exclude-providers", type=str, help="Specify data providers names separated by comma.")
 def command(**kwargs):
     with di_container(__file__) as c:
+        logger = c.logger()
         if kwargs["providers"]:
             providers = kwargs["providers"].split(",")
         else:
@@ -73,7 +76,7 @@ def command(**kwargs):
             providers = [p for p in providers if p not in excluded_providers]
 
         data_providers = [c.data_providers[provider_name] for provider_name in providers]
-        c.exchange_rate_manager.update_all_rates_by_date(kwargs["date"], data_providers)
+        c.exchange_rate_manager.update_all_rates_by_date(kwargs["date"], data_providers, logger)
 
 
 @cli.command("api", help="Run API server (simple)")
