@@ -2,6 +2,7 @@
 
 import graypy
 import logging
+from functools import lru_cache
 from os.path import dirname, normpath, abspath
 from cached_property import cached_property as service
 from sqlalchemy import create_engine
@@ -99,29 +100,24 @@ class DiContainer:
         return ContextLogger(logger_, extra_)
 
     @staticmethod
-    def setup_logger(logger, level=None):
-        if isinstance(logger, str):
-            logger = logging.getLogger(logger)
+    @lru_cache(maxsize=None)
+    def setup_logger(name="gold-digger"):
+        """
+        :type name: str
+        :rtype: logging.Logger
+        """
+        logger_ = logging.getLogger(name)
+        logger_.setLevel(logging.DEBUG if settings.DEVELOPMENT_MODE else logging.DEBUG)
+        logger_.propagate = False
 
-        if level is None:
-            logger.setLevel(logging.DEBUG if settings.DEVELOPMENT_MODE else logging.DEBUG)
+        if not settings.DEVELOPMENT_MODE:
+            handler = graypy.GELFHandler(settings.GRAYLOG_ADDRESS, settings.GRAYLOG_PORT)
         else:
-            logger.setLevel(level)
-
-        for handler in logging.root.handlers:
-            handler.addFilter(logging.Filter("gold-digger"))
-
-        if settings.DEVELOPMENT_MODE:
             handler = logging.StreamHandler()
             handler.setFormatter(logging.Formatter(
                 "[%(levelname)s] %(asctime)s at %(filename)s:%(lineno)d (%(processName)s) -- %(message)s",
-                "%Y-%m-%d %H:%M:%S")
-            )
-            logger.addHandler(handler)
-        else:
-            handler = graypy.GELFHandler(settings.GRAYLOG_ADDRESS, settings.GRAYLOG_PORT)
-            logger.addHandler(handler)
+                "%Y-%m-%d %H:%M:%S"
+            ))
 
-        logger.propagate = False
-
-        return logger
+        logger_.addHandler(handler)
+        return logger_
