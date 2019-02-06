@@ -8,11 +8,12 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 from uuid import uuid4
 
-import gold_digger.settings as settings
+from . import settings
 from .data_providers import *
 from .database.dao_exchange_rate import DaoExchangeRate
 from .database.dao_provider import DaoProvider
 from .managers.exchange_rate_manager import ExchangeRateManager
+from .utils.context_logger import ContextLogger
 
 
 class DiContainer:
@@ -86,9 +87,17 @@ class DiContainer:
             self.logger
         )
 
-    @service
-    def logger(self):
-        return self._logger
+    @classmethod
+    def logger(cls, **extra):
+        """
+        :rtype: gold_digger.utils.context_logger.ContextLogger
+        """
+        logger_ = cls.setup_logger()
+
+        extra_ = {"flow_id": cls.flow_id()}
+        extra_.update(extra or {})
+
+        return ContextLogger(logger_, extra_)
 
     @staticmethod
     def setup_logger(logger, level=None):
