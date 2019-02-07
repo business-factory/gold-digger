@@ -94,7 +94,7 @@ class Fixer(Provider):
 
                 for currency in currencies:
                     if currency in rates:
-                        decimal_value = self._to_decimal(rates[currency], logger=logger)
+                        decimal_value = self._to_decimal(rates[currency])
                         if decimal_value is not None:
                             day_rates_in_eur[currency] = decimal_value
             except Exception:
@@ -105,7 +105,7 @@ class Fixer(Provider):
         base_currency_rate = day_rates_in_eur.get(self.base_currency)
         if base_currency_rate is not None:
             for currency, day_rate in day_rates_in_eur.items():
-                day_rates[currency] = self._conversion_to_base_currency(base_currency_rate, day_rate, logger)
+                day_rates[currency] = self._conversion_to_base_currency(base_currency_rate, day_rate)
 
         return day_rates
 
@@ -153,9 +153,8 @@ class Fixer(Provider):
                 rates = response.get("rates", {})
                 if currency in rates and self.base_currency in rates:
                     return self._conversion_to_base_currency(
-                        self._to_decimal(rates[self.base_currency], logger=logger),
-                        self._to_decimal(rates[currency], logger=logger),
-                        logger=logger,
+                        self._to_decimal(rates[self.base_currency]),
+                        self._to_decimal(rates[currency]),
                      )
 
             except Exception:
@@ -163,15 +162,14 @@ class Fixer(Provider):
 
         return None
 
-    def _conversion_to_base_currency(self, base_currency_rate, currency_rate, logger):
+    def _conversion_to_base_currency(self, base_currency_rate, currency_rate):
         """
         :type base_currency_rate: decimal.Decimal
         :type currency_rate: decimal.Decimal
-        :type logger: gold_digger.utils.context_logger.ContextLogger
         :rtype: decimal.Decimal
         """
         conversion = 1 / base_currency_rate
-        return self._to_decimal(currency_rate * conversion, logger=logger)
+        return self._to_decimal(currency_rate * conversion)
 
     def __str__(self):
         return self.name

@@ -44,7 +44,7 @@ class GrandTrunk(Provider):
 
         response = self._get(f"{self.BASE_URL}/getrate/{date_str}/{self.base_currency}/{currency}", logger=logger)
         if response:
-            return self._to_decimal(response.text.strip(), currency, logger=logger)
+            return self._to_decimal(response.text.strip())
 
     def get_all_by_date(self, date_of_exchange, currencies, logger):
         """
@@ -59,7 +59,7 @@ class GrandTrunk(Provider):
             if currency in supported_currencies:
                 response = self._get(f"{self.BASE_URL}/getrate/{date_of_exchange}/{self.base_currency}/{currency}", logger=logger)
                 if response:
-                    decimal_value = self._to_decimal(response.text.strip(), currency, logger=logger)
+                    decimal_value = self._to_decimal(response.text.strip())
                     if decimal_value:
                         day_rates[currency] = decimal_value
         return day_rates
@@ -85,7 +85,7 @@ class GrandTrunk(Provider):
                     except ValueError as e:
                         logger.error("%s - Parsing of rate & date on record '%s' failed: %s" % (self, record, e))
                         continue
-                    decimal_value = self._to_decimal(exchange_rate_string, currency, logger=logger)
+                    decimal_value = self._to_decimal(exchange_rate_string)
                     if decimal_value:
                         day_rates[day][currency] = decimal_value
         return day_rates

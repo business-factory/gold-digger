@@ -85,7 +85,7 @@ class Yahoo(Provider):
                 try:
                     currency = i["response"][0]["meta"]["currency"]
                     rate = i["response"][0]["indicators"]["quote"][0]["close"][0]
-                    rate = self._to_decimal(str(rate), currency, logger=logger)
+                    rate = self._to_decimal(str(rate))
 
                     if currency in self._supported_currencies:
                         rates[currency] = rate

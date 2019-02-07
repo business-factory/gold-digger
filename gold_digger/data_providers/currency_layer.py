@@ -69,7 +69,7 @@ class CurrencyLayer(Provider):
 
         records = response.get("quotes", {}) if response else {}
         value = records.get("%s%s" % (self.base_currency, currency))
-        return self._to_decimal(value, currency, logger=logger) if value is not None else None
+        return self._to_decimal(value)
 
     def get_all_by_date(self, date_of_exchange, currencies, logger):
         """
@@ -83,7 +83,7 @@ class CurrencyLayer(Provider):
         day_rates = {}
         for currency_pair, value in records.items():
             currency = currency_pair[3:]
-            decimal_value = self._to_decimal(value, currency, logger=logger) if value is not None else None
+            decimal_value = self._to_decimal(value)
             if currency and decimal_value:
                 day_rates[currency] = decimal_value
         return day_rates
@@ -103,7 +103,7 @@ class CurrencyLayer(Provider):
             records = response.json().get("quotes", {}) if response else {}
             for currency_pair, value in records.items():
                 currency = currency_pair[3:]
-                decimal_value = self._to_decimal(value, currency, logger=logger) if value is not None else None
+                decimal_value = self._to_decimal(value)
                 if currency and decimal_value:
                     day_rates[date_of_exchange][currency] = decimal_value
             date_of_exchange = date_of_exchange + timedelta(1)

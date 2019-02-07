@@ -80,14 +80,16 @@ class Provider(metaclass=ABCMeta):
         except requests.exceptions.RequestException as e:
             logger.error("%s - exception: %s, URL: %s, Params: %s", self, e, url, params)
 
-    def _to_decimal(self, value, currency=None, *, logger):
+    @staticmethod
+    def _to_decimal(value):
         """
         :type value: str
-        :type currency: str | None
-        :type logger: gold_digger.utils.context_logger.ContextLogger
         :rtype: decimal.Decimal | None
         """
+        if value is None:
+            return None
+
         try:
             return Decimal(value)
         except InvalidOperation:
-            logger.error("%s - Invalid operation: value %s is not a number (currency %s)", self, value, currency)
+            return None
