@@ -12,8 +12,8 @@ from . import database_test
 
 
 @pytest.fixture
-def dao_exchange_rate(db_session, logger):
-    return DaoExchangeRate(db_session, logger)
+def dao_exchange_rate(db_session):
+    return DaoExchangeRate(db_session)
 
 
 @pytest.fixture
@@ -36,7 +36,7 @@ def test_insert_new_rate(dao_exchange_rate, dao_provider):
 
 
 @database_test
-def test_insert_exchange_rate_to_db(dao_exchange_rate, dao_provider):
+def test_insert_exchange_rate_to_db(dao_exchange_rate, dao_provider, logger):
     assert dao_exchange_rate.get_rates_by_date_currency(date.today(), "USD") == []
 
     provider1 = dao_provider.get_or_create_provider_by_name("test1")
@@ -47,7 +47,7 @@ def test_insert_exchange_rate_to_db(dao_exchange_rate, dao_provider):
         {"date": date.today(), "currency": "USD", "provider_id": provider2.id, "rate": Decimal(1)},
         {"date": date.today(), "currency": "USD", "provider_id": provider1.id, "rate": Decimal(1)}
     ]
-    dao_exchange_rate.insert_exchange_rate_to_db(records)
+    dao_exchange_rate.insert_exchange_rate_to_db(records, logger)
 
     assert len(dao_exchange_rate.get_rates_by_date_currency(date.today(), "USD")) == 2
 

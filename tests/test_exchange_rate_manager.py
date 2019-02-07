@@ -56,10 +56,10 @@ def test_update_all_rates_by_date(dao_exchange_rate, dao_provider, currency_laye
     """
     _date = date(2016, 2, 17)
 
-    exchange_rate_manager = ExchangeRateManager(dao_exchange_rate, dao_provider, [currency_layer], base_currency, currencies, logger)
-    exchange_rate_manager.update_all_rates_by_date(_date, [currency_layer])
+    exchange_rate_manager = ExchangeRateManager(dao_exchange_rate, dao_provider, [currency_layer], base_currency, currencies)
+    exchange_rate_manager.update_all_rates_by_date(_date, [currency_layer], logger)
 
-    (actual_records,), _ = dao_exchange_rate.insert_exchange_rate_to_db.call_args
+    (actual_records, _), _ = dao_exchange_rate.insert_exchange_rate_to_db.call_args
     (provider_name,), _ = dao_provider.get_or_create_provider_by_name.call_args
 
     assert provider_name == currency_layer.name
@@ -78,7 +78,7 @@ def test_get_or_update_rate_by_date(dao_exchange_rate, dao_provider, currency_la
     """
     _date = date(2016, 2, 17)
 
-    exchange_rate_manager = ExchangeRateManager(dao_exchange_rate, dao_provider, [currency_layer, grandtrunk], base_currency, currencies, logger)
+    exchange_rate_manager = ExchangeRateManager(dao_exchange_rate, dao_provider, [currency_layer, grandtrunk], base_currency, currencies)
 
     grandtrunk.get_by_date.return_value = Decimal(0.75)
     dao_exchange_rate.get_rates_by_date_currency.return_value = [
@@ -88,7 +88,7 @@ def test_get_or_update_rate_by_date(dao_exchange_rate, dao_provider, currency_la
         ExchangeRate(provider=Provider(name="grandtrunk"), date=_date, currency="EUR", rate=Decimal(0.75))
     ]
 
-    exchange_rates = exchange_rate_manager.get_or_update_rate_by_date(_date, currency="EUR")
+    exchange_rates = exchange_rate_manager.get_or_update_rate_by_date(_date, currency="EUR", logger=logger)
     insert_new_rate_args, _ = dao_exchange_rate.insert_new_rate.call_args
 
     assert dao_exchange_rate.insert_new_rate.call_count == 1
@@ -99,16 +99,16 @@ def test_get_or_update_rate_by_date(dao_exchange_rate, dao_provider, currency_la
 def test_get_exchange_rate_by_date(dao_exchange_rate, dao_provider, base_currency, logger):
     _date = date(2016, 2, 17)
 
-    exchange_rate_manager = ExchangeRateManager(dao_exchange_rate, dao_provider, [], base_currency, set(), logger)
+    exchange_rate_manager = ExchangeRateManager(dao_exchange_rate, dao_provider, [], base_currency, set())
 
-    def _get_rates_by_date_currency(date_of_exchange, currency):
+    def _get_rates_by_date_currency(_, currency):
         return {
             "EUR": [ExchangeRate(id=1, currency="EUR", rate=Decimal(0.89), provider=Provider(name="currency_layer"))],
             "CZK": [ExchangeRate(id=2, currency="CZK", rate=Decimal(24.20), provider=Provider(name="currency_layer"))]
         }.get(currency)
 
     dao_exchange_rate.get_rates_by_date_currency.side_effect = _get_rates_by_date_currency
-    exchange_rate = exchange_rate_manager.get_exchange_rate_by_date(_date, "EUR", "CZK")
+    exchange_rate = exchange_rate_manager.get_exchange_rate_by_date(_date, "EUR", "CZK", logger)
 
     assert exchange_rate == Decimal(24.20) * (1 / Decimal(0.89))
 
@@ -124,9 +124,9 @@ def test_get_average_exchange_rate_by_dates(dao_exchange_rate, dao_provider, bas
     _end_date = date(2016, 2, 17)
 
     mock_logger = Mock(logger)
-    exchange_rate_manager = ExchangeRateManager(dao_exchange_rate, dao_provider, [], base_currency, set(), mock_logger)
+    exchange_rate_manager = ExchangeRateManager(dao_exchange_rate, dao_provider, [], base_currency, set())
 
-    def _get_sum_of_rates_in_period(start_date, end_date, currency):
+    def _get_sum_of_rates_in_period(_, __, currency):
         return {
             "EUR": [[Provider(name="currency_layer"), 11, Decimal(8.9)]],
             "CZK": [[Provider(name="currency_layer"), 9, Decimal(217.8)]],
@@ -134,7 +134,7 @@ def test_get_average_exchange_rate_by_dates(dao_exchange_rate, dao_provider, bas
 
     dao_exchange_rate.get_sum_of_rates_in_period.side_effect = _get_sum_of_rates_in_period
 
-    exchange_rate = exchange_rate_manager.get_average_exchange_rate_by_dates(_start_date, _end_date, "EUR", "CZK")
+    exchange_rate = exchange_rate_manager.get_average_exchange_rate_by_dates(_start_date, _end_date, "EUR", "CZK", mock_logger)
     eur_average = Decimal(8.9) / 11
     czk_average = Decimal(217.8) / 9
 

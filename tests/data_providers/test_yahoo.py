@@ -159,31 +159,31 @@ YAHOO_RESPONSE = b"""
 """
 
 
-def test_yahoo_get_by_date(yahoo):
+def test_yahoo_get_by_date(yahoo, logger):
     sample = Response()
     sample.status_code = 200
     sample._content = YAHOO_RESPONSE
     yahoo._get = lambda *a, **kw: sample
 
-    assert yahoo.get_by_date(date.today(), "CZK") == Decimal("25.959")
+    assert yahoo.get_by_date(date.today(), "CZK", logger) == Decimal("25.959")
 
 
-def test_yahoo_get_by_date__unsupported_currency(yahoo):
+def test_yahoo_get_by_date__unsupported_currency(yahoo, logger):
     sample = Response()
     sample.status_code = 404
     sample._content = "404 Not Found"
     yahoo._get = lambda *a, **kw: sample
-    assert yahoo.get_by_date(date.today(), "XXX") is None  # unsupported currency
+    assert yahoo.get_by_date(date.today(), "XXX", logger) is None  # unsupported currency
 
 
-def test_yahoo_get_all_by_date(yahoo):
+def test_yahoo_get_all_by_date(yahoo, logger):
     sample = Response()
     sample.status_code = 200
     sample._content = YAHOO_RESPONSE
 
     yahoo._get = lambda url, **kw: sample
 
-    rates = yahoo.get_all_by_date(date.today(), {"EUR", "CZK", "AED"})
+    rates = yahoo.get_all_by_date(date.today(), {"EUR", "CZK", "AED"}, logger)
 
     assert rates == {
         "EUR": Decimal("0.8884"),
