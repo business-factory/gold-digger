@@ -3,7 +3,7 @@
 from sqlalchemy import and_, func
 from sqlalchemy.exc import IntegrityError
 
-from gold_digger.database.db_model import ExchangeRate
+from .db_model import ExchangeRate
 
 
 class DaoExchangeRate:

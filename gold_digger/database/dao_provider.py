@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from gold_digger.database.db_model import Provider
+from .db_model import Provider
 
 
 class DaoProvider:

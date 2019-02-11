@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 
-import graypy
 import logging
 from functools import lru_cache
 from os.path import dirname, normpath, abspath
+from uuid import uuid4
+
+import graypy
 from cached_property import cached_property as service
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
-from uuid import uuid4
 
 from . import settings
 from .data_providers import *

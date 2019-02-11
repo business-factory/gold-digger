@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import requests
-import requests.exceptions
-
 from abc import ABCMeta, abstractmethod
 from decimal import Decimal, InvalidOperation
+
+import requests
+import requests.exceptions
 
 
 class Provider(metaclass=ABCMeta):

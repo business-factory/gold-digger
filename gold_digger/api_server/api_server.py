@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import json
-import falcon
-from sqlalchemy.exc import DatabaseError
 from datetime import date
 from wsgiref import simple_server
+
+import falcon
+from sqlalchemy.exc import DatabaseError
 
 from .helpers import http_api_logger
 from .. import di_container

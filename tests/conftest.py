@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import pytest
 import logging
+
+import pytest
 
 
 def pytest_addoption(parser):

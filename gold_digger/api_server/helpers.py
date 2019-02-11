@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import falcon
 import json
 from functools import wraps
 from time import time
+
+import falcon
 
 from ..di import DiContainer
 

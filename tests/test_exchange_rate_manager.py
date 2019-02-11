@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import pytest
-
 from decimal import Decimal
 from datetime import date
 from unittest.mock import Mock
+
+import pytest
 
 from gold_digger.data_providers import CurrencyLayer, GrandTrunk
 from gold_digger.database.db_model import ExchangeRate, Provider
