@@ -22,7 +22,7 @@ class Yahoo(Provider):
     def get_supported_currencies(self, date_of_exchange=date.today(), *_):
         """
         :type date_of_exchange: datetime.date
-        :rtype: set
+        :rtype: set[str]
         """
         return self._supported_currencies
 
@@ -30,7 +30,7 @@ class Yahoo(Provider):
         """
         :type date_of_exchange: datetime.date
         :type currency: str
-        :type logger: gold_digger.utils.context_logger.ContextLogger
+        :type logger: gold_digger.utils.ContextLogger
         :rtype: decimal.Decimal | None
         """
         date_str = date_of_exchange.strftime("%Y-%m-%d")
@@ -42,8 +42,8 @@ class Yahoo(Provider):
     def get_all_by_date(self, date_of_exchange, currencies, logger):
         """
         :type date_of_exchange: datetime.date
-        :type currencies: [str]
-        :type logger: gold_digger.utils.context_logger.ContextLogger
+        :type currencies: set[str]
+        :type logger: gold_digger.utils.ContextLogger
         :rtype: {str: decimal.Decimal | None}
         """
         if date_of_exchange == date.today():
@@ -53,7 +53,7 @@ class Yahoo(Provider):
     def _get_latest(self, currency, logger):
         """
         :type currency: str
-        :type logger: gold_digger.utils.context_logger.ContextLogger
+        :type logger: gold_digger.utils.ContextLogger
         :rtype: decimal.Decimal | None
         """
         response = self._get(self.BASE_URL.format(self.SYMBOLS_PATTERN.format(self.base_currency, currency)), logger=logger)
@@ -62,7 +62,7 @@ class Yahoo(Provider):
 
     def _get_all_latest(self, logger):
         """
-        :type logger: gold_digger.utils.context_logger.ContextLogger
+        :type logger: gold_digger.utils.ContextLogger
         :rtype: dict[str, decimal.Decimal]
         """
         symbols = {self.SYMBOLS_PATTERN.format(self.base_currency, currency) for currency in self.get_supported_currencies()}
@@ -74,8 +74,8 @@ class Yahoo(Provider):
     def _parse_response(self, response, logger):
         """
         :type response: requests.Response | None
-        :type logger: gold_digger.utils.context_logger.ContextLogger
-        :rtype: dict[str, Decimal] | None
+        :type logger: gold_digger.utils.ContextLogger
+        :rtype: dict[str, decimal.Decimal | None]
         """
         rates = {}
         if response:

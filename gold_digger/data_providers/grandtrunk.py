@@ -19,7 +19,7 @@ class GrandTrunk(Provider):
     def get_supported_currencies(self, date_of_exchange, logger):
         """
         :type date_of_exchange: date
-        :type logger: gold_digger.utils.context_logger.ContextLogger
+        :type logger: gold_digger.utils.ContextLogger
         :rtype: set[str]
         """
         currencies = set()
@@ -36,7 +36,7 @@ class GrandTrunk(Provider):
         """
         :type date_of_exchange: date
         :type currency: str
-        :type logger: gold_digger.utils.context_logger.ContextLogger
+        :type logger: gold_digger.utils.ContextLogger
         :rtype: decimal.Decimal | None
         """
         date_str = date_of_exchange.strftime("%Y-%m-%d")
@@ -49,8 +49,8 @@ class GrandTrunk(Provider):
     def get_all_by_date(self, date_of_exchange, currencies, logger):
         """
         :type date_of_exchange: date
-        :type currencies: list[str]
-        :type logger: gold_digger.utils.context_logger.ContextLogger
+        :type currencies: set[str]
+        :type logger: gold_digger.utils.ContextLogger
         :rtype: dict[str, decimal.Decimal | None]
         """
         day_rates = {}
@@ -67,9 +67,9 @@ class GrandTrunk(Provider):
     def get_historical(self, origin_date, currencies, logger):
         """
         :type origin_date: date
-        :type currencies: list[str]
-        :type logger: gold_digger.utils.context_logger.ContextLogger
-        :rtype: dict[str, decimal.Decimal | None]
+        :type currencies: set[str]
+        :type logger: gold_digger.utils.ContextLogger
+        :rtype: dict[date, dict[str, decimal.Decimal]]
         """
         day_rates = defaultdict(dict)
         origin_date_string = origin_date.strftime("%Y-%m-%d")

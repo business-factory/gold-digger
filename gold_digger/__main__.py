@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from datetime import datetime, date
+from datetime import date, datetime
 
 import click
 from crontab import CronTab
@@ -27,8 +27,8 @@ def cli():
 
 @cli.command("cron", help="Run cron jobs")
 def cron(**_):
-    with di_container(__file__) as c:
-        logger = c.logger()
+    with di_container(__file__) as di:
+        logger = di.logger()
         cron_tab = CronTab(
             tab="""
                 # m h dom mon dow command
@@ -46,20 +46,20 @@ def cron(**_):
 
 @cli.command("initialize-db", help="Create empty table (drop if exists)")
 def command(**_):
-    with di_container(__file__) as c:
+    with di_container(__file__) as di:
         print("This will drop & create all tables in '%s'. To continue press 'c'" % DATABASE_NAME)
         if input() != "c":
             return
-        Base.metadata.drop_all(c.db_connection)
-        Base.metadata.create_all(c.db_connection)
+        Base.metadata.drop_all(di.db_connection)
+        Base.metadata.create_all(di.db_connection)
 
 
 @cli.command("update-all", help="Update rates since origin date (default 2015-01-01)")
 @click.option("--origin-date", default=date(2015, 1, 1), callback=_parse_date, help="Specify date in format 'yyyy-mm-dd'")
 def command(**kwargs):
-    with di_container(__file__) as c:
-        logger = c.logger()
-        c.exchange_rate_manager.update_all_historical_rates(kwargs["origin_date"], logger)
+    with di_container(__file__) as di:
+        logger = di.logger()
+        di.exchange_rate_manager.update_all_historical_rates(kwargs["origin_date"], logger)
 
 
 @cli.command("update", help="Update rates of specified day (default today)")
@@ -67,19 +67,19 @@ def command(**kwargs):
 @click.option("--providers", type=str, help="Specify data providers names separated by comma.")
 @click.option("--exclude-providers", type=str, help="Specify data providers names separated by comma.")
 def command(**kwargs):
-    with di_container(__file__) as c:
-        logger = c.logger()
+    with di_container(__file__) as di:
+        logger = di.logger()
         if kwargs["providers"]:
             providers = kwargs["providers"].split(",")
         else:
-            providers = list(c.data_providers)
+            providers = list(di.data_providers)
 
         if kwargs["exclude_providers"]:
             excluded_providers = kwargs["exclude_providers"].split(",")
             providers = [p for p in providers if p not in excluded_providers]
 
-        data_providers = [c.data_providers[provider_name] for provider_name in providers]
-        c.exchange_rate_manager.update_all_rates_by_date(kwargs["date"], data_providers, logger)
+        data_providers = [di.data_providers[provider_name] for provider_name in providers]
+        di.exchange_rate_manager.update_all_rates_by_date(kwargs["date"], data_providers, logger)
 
 
 @cli.command("api", help="Run API server (simple)")

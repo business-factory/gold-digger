@@ -13,7 +13,7 @@ class ExchangeRateManager:
         """
         :type dao_exchange_rate: gold_digger.database.DaoExchangeRate
         :type dao_provider: gold_digger.database.DaoProvider
-        :type data_providers: list[gold_digger.data_providers._provider.Provider]
+        :type data_providers: list[gold_digger.data_providers.Provider]
         :type base_currency: str
         :type supported_currencies: set[str]
         """
@@ -26,8 +26,8 @@ class ExchangeRateManager:
     def update_all_rates_by_date(self, date_of_exchange, data_providers, logger):
         """
         :type date_of_exchange: datetime.date
-        :type data_providers: list[gold_digger.data_providers._provider.Provider]
-        :type logger: gold_digger.utils.context_logger.ContextLogger
+        :type data_providers: list[gold_digger.data_providers.Provider]
+        :type logger: gold_digger.utils.ContextLogger
         """
         for data_provider in data_providers:
             try:
@@ -46,7 +46,7 @@ class ExchangeRateManager:
     def update_all_historical_rates(self, origin_date, logger):
         """
         :type origin_date: datetime.date
-        :type logger: gold_digger.utils.context_logger.ContextLogger
+        :type logger: gold_digger.utils.ContextLogger
         """
         for data_provider in self._data_providers:
             logger.info("Updating all historical rates from %s provider", data_provider)
@@ -63,7 +63,7 @@ class ExchangeRateManager:
 
         :type date_of_exchange: datetime.date
         :type currency: str
-        :type logger: gold_digger.utils.context_logger.ContextLogger
+        :type logger: gold_digger.utils.ContextLogger
         :rtype: list[gold_digger.database.db_model.ExchangeRate]
         """
         if currency == self._base_currency:
@@ -118,7 +118,7 @@ class ExchangeRateManager:
     def future_date_to_today(date_of_exchange, logger):
         """
         :type date_of_exchange: datetime.date
-        :type logger: gold_digger.utils.context_logger.ContextLogger
+        :type logger: gold_digger.utils.ContextLogger
         :rtype: datetime.date
         """
         today = date.today()
@@ -135,7 +135,7 @@ class ExchangeRateManager:
         :type date_of_exchange: datetime.date
         :type from_currency: str
         :type to_currency: str
-        :type logger: gold_digger.utils.context_logger.ContextLogger
+        :type logger: gold_digger.utils.ContextLogger
         :rtype: Decimal
         """
         date_of_exchange = self.future_date_to_today(date_of_exchange, logger)
@@ -157,7 +157,7 @@ class ExchangeRateManager:
         :type start_date: datetime.date
         :type end_date: datetime.date
         :type currency: str
-        :rtype: list[(str,int,Decimal)]
+        :rtype: list[tuple[int, int, Decimal]]
         """
         if currency == self._base_currency:
             return [("BASE", 1, ExchangeRate.base(self._base_currency).rate), ]
@@ -173,7 +173,7 @@ class ExchangeRateManager:
         :type end_date: datetime.date
         :type from_currency: str
         :type to_currency: str
-        :type logger: gold_digger.utils.context_logger.ContextLogger
+        :type logger: gold_digger.utils.ContextLogger
         :rtype: Decimal
         """
         today_or_past_date = self.future_date_to_today(start_date, logger)

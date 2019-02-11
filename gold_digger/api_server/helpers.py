@@ -25,7 +25,6 @@ def http_api_logger(func):
         :type object: object
         :type req: falcon.request.Request
         :type resp: falcon.request.Response
-        :rtype: object
         """
         start = time()
 
@@ -39,7 +38,7 @@ def http_api_logger(func):
         })
 
         try:
-            func(object, req, resp, *args, **kwargs)
+            func(object, req, resp, *args, logger=logger, **kwargs)
             logger.info("Completed API request %s.", func.__name__, extra={
                 "request_method": req.method,
                 "request_url": req.url,
@@ -48,7 +47,6 @@ def http_api_logger(func):
                 "request_referer": req.referer,
                 "duration_in_secs": time() - start,
             })
-            return func(object, req, resp, *args, **kwargs)
 
         except Exception:
             logger.exception("Exception raised on API request %s.", func.__name__, extra={
@@ -64,8 +62,7 @@ def http_api_logger(func):
             resp.body = json.dumps(
                 {
                     "error":
-                        "Unexpected error occurred in our GoldDigger service. "
-                        "If the problem persists contact our support with trace ID 'gold_digger." + logger.extra["flow_id"] + "' please."
+                        "Unexpected error. If the problem persists contact our support with trace ID 'golddigger." + logger.extra["flow_id"] + "' please."
                 }
             )
 

@@ -19,7 +19,7 @@ class CurrencyLayer(Provider):
     def __init__(self, access_key, logger, *args, **kwargs):
         """
         :type access_key: str
-        :type logger: gold_digger.utils.context_logger.ContextLogger
+        :type logger: gold_digger.utils.ContextLogger
         """
         super().__init__(*args, **kwargs)
         if access_key:
@@ -32,8 +32,8 @@ class CurrencyLayer(Provider):
     def get_supported_currencies(self, date_of_exchange, logger):
         """
         :type date_of_exchange: datetime.date
-        :type logger: gold_digger.utils.context_logger.ContextLogger
-        :rtype: set
+        :type logger: gold_digger.utils.ContextLogger
+        :rtype: set[str]
         """
         currencies = set()
         response = self._get("https://currencylayer.com/downloads/cl-currencies-table.txt", logger=logger)
@@ -49,7 +49,7 @@ class CurrencyLayer(Provider):
         """
         :type date_of_exchange: datetime.date
         :type currency: str
-        :type logger: gold_digger.utils.context_logger.ContextLogger
+        :type logger: gold_digger.utils.ContextLogger
         :rtype: decimal.Decimal | None
         """
         date_str = date_of_exchange.strftime("%Y-%m-%d")
@@ -74,8 +74,8 @@ class CurrencyLayer(Provider):
     def get_all_by_date(self, date_of_exchange, currencies, logger):
         """
         :type date_of_exchange: datetime.date
-        :type currencies: [str]
-        :type logger: gold_digger.utils.context_logger.ContextLogger
+        :type currencies: set[str]
+        :type logger: gold_digger.utils.ContextLogger
         :rtype: dict[str, decimal.Decimal | None]
         """
         response = self._get(f"{self._url}&date={date_of_exchange.strftime('%Y-%m-%d')}&currencies={','.join(currencies)}", logger=logger)
@@ -91,13 +91,14 @@ class CurrencyLayer(Provider):
     def get_historical(self, origin_date, currencies, logger):
         """
         :type origin_date: datetime.date
-        :type currencies: [str]
-        :type logger: gold_digger.utils.context_logger.ContextLogger
-        :rtype: dict[datetime.Datetime: dict[str, decimal.Decimal | None]]
+        :type currencies: set[str]
+        :type logger: gold_digger.utils.ContextLogger
+        :rtype: dict[date, dict[str, decimal.Decimal]]
         """
         day_rates = defaultdict(dict)
         date_of_exchange = origin_date
         date_of_today = date.today()
+
         while date_of_exchange != date_of_today:
             response = self._get(f"{self._url}&date={date_of_exchange.strftime('%Y-%m-%d')}&currencies={','.join(currencies)}", logger=logger)
             records = response.json().get("quotes", {}) if response else {}
@@ -107,6 +108,7 @@ class CurrencyLayer(Provider):
                 if currency and decimal_value:
                     day_rates[date_of_exchange][currency] = decimal_value
             date_of_exchange = date_of_exchange + timedelta(1)
+
         return day_rates
 
     def __str__(self):

@@ -29,8 +29,8 @@ class Provider(metaclass=ABCMeta):
     def get_supported_currencies(self, date_of_exchange, logger):
         """
         :type date_of_exchange: datetime.date
-        :type logger: gold_digger.utils.context_logger.ContextLogger
-        :rtype: set
+        :type logger: gold_digger.utils.ContextLogger
+        :rtype: set[str]
         """
         raise NotImplementedError
 
@@ -39,7 +39,7 @@ class Provider(metaclass=ABCMeta):
         """
         :type date_of_exchange: datetime.date
         :type currency: str
-        :type logger: gold_digger.utils.context_logger.ContextLogger
+        :type logger: gold_digger.utils.ContextLogger
         :rtype: decimal.Decimal | None
         """
         raise NotImplementedError
@@ -48,8 +48,8 @@ class Provider(metaclass=ABCMeta):
     def get_all_by_date(self, date_of_exchange, currencies, logger):
         """
         :type date_of_exchange: datetime.date
-        :type currencies: [str]
-        :type logger: gold_digger.utils.context_logger.ContextLogger
+        :type currencies: set[str]
+        :type logger: gold_digger.utils.ContextLogger
         :rtype: dict[str, decimal.Decimal | None]
         """
         raise NotImplementedError
@@ -58,9 +58,9 @@ class Provider(metaclass=ABCMeta):
     def get_historical(self, origin_date, currencies, logger):
         """
         :type origin_date: datetime.date
-        :type currencies: list[str]
-        :type logger: gold_digger.utils.context_logger.ContextLogger
-        :rtype: dict[str, decimal.Decimal | None]
+        :type currencies: set[str]
+        :type logger: gold_digger.utils.ContextLogger
+        :rtype: dict[date, dict[str, decimal.Decimal]]
         """
         raise NotImplementedError
 
@@ -68,7 +68,7 @@ class Provider(metaclass=ABCMeta):
         """
         :type url: str
         :type params: dict[str, str]
-        :type logger: gold_digger.utils.context_logger.ContextLogger
+        :type logger: gold_digger.utils.ContextLogger
         :rtype: requests.Response | None
         """
         try:

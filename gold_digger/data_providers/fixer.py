@@ -16,7 +16,7 @@ class Fixer(Provider):
     def __init__(self, access_key, logger, *args, **kwargs):
         """
         :type access_key: str
-        :type logger: gold_digger.utils.context_logger.ContextLogger
+        :type logger: gold_digger.utils.ContextLogger
         """
         super().__init__(*args, **kwargs)
         if access_key:
@@ -29,8 +29,8 @@ class Fixer(Provider):
     def get_supported_currencies(self, date_of_exchange, logger):
         """
         :type date_of_exchange: datetime.date
-        :type logger: gold_digger.utils.context_logger.ContextLogger
-        :rtype: set
+        :type logger: gold_digger.utils.ContextLogger
+        :rtype: set[str]
         """
         currencies = self._supported_currencies.get(date_of_exchange)
         if currencies:
@@ -63,7 +63,7 @@ class Fixer(Provider):
         """
         :type date_of_exchange: datetime.date
         :type currency: str
-        :type logger: gold_digger.utils.context_logger.ContextLogger
+        :type logger: gold_digger.utils.ContextLogger
         :rtype: decimal.Decimal | None
         """
         date_of_exchange_string = date_of_exchange.strftime("%Y-%m-%d")
@@ -72,8 +72,8 @@ class Fixer(Provider):
     def get_all_by_date(self, date_of_exchange, currencies, logger):
         """
         :type date_of_exchange: datetime.date
-        :type currencies: list[str]
-        :type logger: gold_digger.utils.context_logger.ContextLogger
+        :type currencies: set[str]
+        :type logger: gold_digger.utils.ContextLogger
         :rtype: dict[str, decimal.Decimal]
         """
         logger.debug("Fixer.io - get all for date %s", date_of_exchange)
@@ -112,8 +112,8 @@ class Fixer(Provider):
     def get_historical(self, origin_date, currencies, logger):
         """
         :type origin_date: date
-        :type currencies: list[str]
-        :type logger: gold_digger.utils.context_logger.ContextLogger
+        :type currencies: set[str]
+        :type logger: gold_digger.utils.ContextLogger
         :rtype: dict[date, dict[str, decimal.Decimal]]
         """
         date_of_exchange = origin_date
@@ -136,7 +136,7 @@ class Fixer(Provider):
         """
         :type date_of_exchange: str
         :type currency: str
-        :type logger: gold_digger.utils.context_logger.ContextLogger
+        :type logger: gold_digger.utils.ContextLogger
         :rtype: decimal.Decimal | None
         """
         logger.debug("Requesting Fixer for %s (%s)", currency, date_of_exchange, extra={"currency": currency, "date": date_of_exchange})

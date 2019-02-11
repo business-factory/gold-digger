@@ -59,7 +59,7 @@ class DiContainer:
     @service
     def db_session(self):
         """
-        :rtype: sqlalchemy.orm.scoping.scoped_session
+        :rtype: sqlalchemy.orm.session.Session
         """
         self._db_session = scoped_session(sessionmaker(self.db_connection))
         return self._db_session()
@@ -91,7 +91,7 @@ class DiContainer:
     @classmethod
     def logger(cls, **extra):
         """
-        :rtype: gold_digger.utils.context_logger.ContextLogger
+        :rtype: gold_digger.utils.ContextLogger
         """
         logger_ = cls.setup_logger("gold-digger")
 

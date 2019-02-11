@@ -9,7 +9,7 @@ from .db_model import ExchangeRate
 class DaoExchangeRate:
     def __init__(self, db_session):
         """
-        :rtype: sqlalchemy.orm.scoping.scoped_session
+        :type db_session: sqlalchemy.orm.session.Session
         """
         self.db_session = db_session
 
@@ -21,7 +21,7 @@ class DaoExchangeRate:
         can also come at random times while updating explicitly.
 
         :type records: list[dict[str, decimal.Decimal | None | datetime.datetime | int]]
-        :type logger: gold_digger.utils.context_logger.ContextLogger
+        :type logger: gold_digger.utils.ContextLogger
         """
         duplicates = set()
         for record in records:
@@ -55,25 +55,23 @@ class DaoExchangeRate:
         :type date_of_exchange: datetime.date
         :type currency: str
         :type provider_name: str
-        :rtype: list[ExchangeRate]
+        :rtype: ExchangeRate
         """
         return self.db_session.query(ExchangeRate).filter(
             and_(ExchangeRate.date == date_of_exchange, ExchangeRate.currency == currency, ExchangeRate.provider.has(name=provider_name))
         ).first()
 
     def insert_new_rate(self, date_of_exchange, db_provider, currency, rate):
-        # Start ignoring PycodestyleBear
         """
         Insert new exchange rate for the specified date by specified provider.
         Date, currency and provider must be unique, therefore if record is already in database return it (without any update or insert)
 
         :type date_of_exchange: datetime.date
-        :type db_provider: gold_digger.data_providers.currency_layer.CurrencyLayer | gold_digger.data_providers.fixer.Fixer | gold_digger.data_providers.grand_trunk.GrandTrunk | gold_digger.data_providers.yahoo.Yahoo
+        :type db_provider: gold_digger.database.db_model.Provider
         :type currency: str
-        :type rate: decimal.Decimal | None
+        :type rate: decimal.Decimal
+        :rtype: ExchangeRate
         """
-        # Stop ignoring
-
         db_record = ExchangeRate(date=date_of_exchange, provider_id=db_provider.id, currency=currency, rate=rate)
         try:
             self.db_session.add(db_record)
@@ -90,7 +88,7 @@ class DaoExchangeRate:
         :type start_date: datetime.date
         :type end_date: datetime.date
         :type currency: str
-        :rtype list[tuple[str, int]]
+        :rtype: list[tuple[int, int, decimal.Decimal]]
         """
         return self.db_session\
             .query(ExchangeRate.provider_id, func.count(), func.sum(ExchangeRate.rate))\
