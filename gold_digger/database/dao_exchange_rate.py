@@ -20,7 +20,7 @@ class DaoExchangeRate:
         so in the case of explicit update some rates could be already in database and they
         can also come at random times while updating explicitly.
 
-        :type records: [{str: decimal.Decimal | None | datetime.datetime | int}]
+        :type records: list[dict[str, decimal.Decimal | None | datetime.datetime | int]]
         :type logger: gold_digger.utils.context_logger.ContextLogger
         """
         duplicates = set()
@@ -44,7 +44,7 @@ class DaoExchangeRate:
         """
         :type date_of_exchange: datetime.date
         :type currency: str
-        :rtype: [ExchangeRate]
+        :rtype: list[ExchangeRate]
         """
         return self.db_session.query(ExchangeRate).filter(
             and_(ExchangeRate.date == date_of_exchange, ExchangeRate.currency == currency)
@@ -55,7 +55,7 @@ class DaoExchangeRate:
         :type date_of_exchange: datetime.date
         :type currency: str
         :type provider_name: str
-        :rtype: [ExchangeRate]
+        :rtype: list[ExchangeRate]
         """
         return self.db_session.query(ExchangeRate).filter(
             and_(ExchangeRate.date == date_of_exchange, ExchangeRate.currency == currency, ExchangeRate.provider.has(name=provider_name))

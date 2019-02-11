@@ -61,7 +61,7 @@ class Fixer(Provider):
 
     def get_by_date(self, date_of_exchange, currency, logger):
         """
-        :type date_of_exchange: date
+        :type date_of_exchange: datetime.date
         :type currency: str
         :type logger: gold_digger.utils.context_logger.ContextLogger
         :rtype: decimal.Decimal | None
@@ -71,7 +71,7 @@ class Fixer(Provider):
 
     def get_all_by_date(self, date_of_exchange, currencies, logger):
         """
-        :type date_of_exchange: date
+        :type date_of_exchange: datetime.date
         :type currencies: list[str]
         :type logger: gold_digger.utils.context_logger.ContextLogger
         :rtype: dict[str, decimal.Decimal]

@@ -20,7 +20,7 @@ class GrandTrunk(Provider):
         """
         :type date_of_exchange: date
         :type logger: gold_digger.utils.context_logger.ContextLogger
-        :rtype: set
+        :rtype: set[str]
         """
         currencies = set()
         response = self._get(f"{self.BASE_URL}/currencies/{date_of_exchange.strftime('%Y-%m-%d')}", logger=logger)
@@ -34,12 +34,12 @@ class GrandTrunk(Provider):
 
     def get_by_date(self, date_of_exchange, currency, logger):
         """
-        :type date_of_exchange: datetime.datetime
+        :type date_of_exchange: date
         :type currency: str
         :type logger: gold_digger.utils.context_logger.ContextLogger
         :rtype: decimal.Decimal | None
         """
-        date_str = date_of_exchange.strftime(format="%Y-%m-%d")
+        date_str = date_of_exchange.strftime("%Y-%m-%d")
         logger.debug("Requesting GrandTrunk for %s (%s)", currency, date_str, extra={"currency": currency, "date": date_str})
 
         response = self._get(f"{self.BASE_URL}/getrate/{date_str}/{self.base_currency}/{currency}", logger=logger)
@@ -48,10 +48,10 @@ class GrandTrunk(Provider):
 
     def get_all_by_date(self, date_of_exchange, currencies, logger):
         """
-        :type date_of_exchange: datetime.datetime
-        :type currencies: [str]
+        :type date_of_exchange: date
+        :type currencies: list[str]
         :type logger: gold_digger.utils.context_logger.ContextLogger
-        :rtype: {str: decimal.Decimal | None}
+        :rtype: dict[str, decimal.Decimal | None]
         """
         day_rates = {}
         supported_currencies = self.get_supported_currencies(date_of_exchange, logger)
@@ -66,10 +66,10 @@ class GrandTrunk(Provider):
 
     def get_historical(self, origin_date, currencies, logger):
         """
-        :type origin_date: datetime
-        :type currencies: [str]
+        :type origin_date: date
+        :type currencies: list[str]
         :type logger: gold_digger.utils.context_logger.ContextLogger
-        :rtype: {datetime.Datetime: {str: decimal.Decimal | None}}
+        :rtype: dict[str, decimal.Decimal | None]
         """
         day_rates = defaultdict(dict)
         origin_date_string = origin_date.strftime("%Y-%m-%d")
@@ -83,7 +83,7 @@ class GrandTrunk(Provider):
                         date_string, exchange_rate_string = record.split(" ")
                         day = datetime.strptime(date_string, "%Y-%m-%d")
                     except ValueError as e:
-                        logger.error("%s - Parsing of rate & date on record '%s' failed: %s" % (self, record, e))
+                        logger.error("%s - Parsing of rate & date on record '%s' failed: %s", self, record, e)
                         continue
                     decimal_value = self._to_decimal(exchange_rate_string)
                     if decimal_value:

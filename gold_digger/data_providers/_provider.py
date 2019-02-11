@@ -50,7 +50,7 @@ class Provider(metaclass=ABCMeta):
         :type date_of_exchange: datetime.date
         :type currencies: [str]
         :type logger: gold_digger.utils.context_logger.ContextLogger
-        :rtype: {str: decimal.Decimal | None}
+        :rtype: dict[str, decimal.Decimal | None]
         """
         raise NotImplementedError
 
@@ -58,16 +58,16 @@ class Provider(metaclass=ABCMeta):
     def get_historical(self, origin_date, currencies, logger):
         """
         :type origin_date: datetime.date
-        :type currencies: [str]
+        :type currencies: list[str]
         :type logger: gold_digger.utils.context_logger.ContextLogger
-        :rtype: {datetime.Datetime: {str: decimal.Decimal | None}}
+        :rtype: dict[str, decimal.Decimal | None]
         """
         raise NotImplementedError
 
     def _get(self, url, params=None, *, logger):
         """
         :type url: str
-        :type params: {str: str}
+        :type params: dict[str, str]
         :type logger: gold_digger.utils.context_logger.ContextLogger
         :rtype: requests.Response | None
         """

@@ -47,7 +47,7 @@ class CurrencyLayer(Provider):
 
     def get_by_date(self, date_of_exchange, currency, logger):
         """
-        :type date_of_exchange: datetime.datetime
+        :type date_of_exchange: datetime.date
         :type currency: str
         :type logger: gold_digger.utils.context_logger.ContextLogger
         :rtype: decimal.Decimal | None
@@ -73,10 +73,10 @@ class CurrencyLayer(Provider):
 
     def get_all_by_date(self, date_of_exchange, currencies, logger):
         """
-        :type date_of_exchange: datetime.datetime
+        :type date_of_exchange: datetime.date
         :type currencies: [str]
         :type logger: gold_digger.utils.context_logger.ContextLogger
-        :rtype: {str: decimal.Decimal | None}
+        :rtype: dict[str, decimal.Decimal | None]
         """
         response = self._get(f"{self._url}&date={date_of_exchange.strftime('%Y-%m-%d')}&currencies={','.join(currencies)}", logger=logger)
         records = response.json().get("quotes", {}) if response else {}
@@ -90,10 +90,10 @@ class CurrencyLayer(Provider):
 
     def get_historical(self, origin_date, currencies, logger):
         """
-        :type origin_date: datetime.datetime
+        :type origin_date: datetime.date
         :type currencies: [str]
         :type logger: gold_digger.utils.context_logger.ContextLogger
-        :rtype: {datetime.Datetime: {str: decimal.Decimal | None}}
+        :rtype: dict[datetime.Datetime: dict[str, decimal.Decimal | None]]
         """
         day_rates = defaultdict(dict)
         date_of_exchange = origin_date

@@ -21,14 +21,14 @@ class Yahoo(Provider):
 
     def get_supported_currencies(self, date_of_exchange=date.today(), *_):
         """
-        :type date_of_exchange: date
+        :type date_of_exchange: datetime.date
         :rtype: set
         """
         return self._supported_currencies
 
     def get_by_date(self, date_of_exchange, currency, logger):
         """
-        :type date_of_exchange: datetime.datetime
+        :type date_of_exchange: datetime.date
         :type currency: str
         :type logger: gold_digger.utils.context_logger.ContextLogger
         :rtype: decimal.Decimal | None
@@ -41,7 +41,7 @@ class Yahoo(Provider):
 
     def get_all_by_date(self, date_of_exchange, currencies, logger):
         """
-        :type date_of_exchange: datetime.datetime
+        :type date_of_exchange: datetime.date
         :type currencies: [str]
         :type logger: gold_digger.utils.context_logger.ContextLogger
         :rtype: {str: decimal.Decimal | None}
@@ -54,7 +54,7 @@ class Yahoo(Provider):
         """
         :type currency: str
         :type logger: gold_digger.utils.context_logger.ContextLogger
-        :rtype:
+        :rtype: decimal.Decimal | None
         """
         response = self._get(self.BASE_URL.format(self.SYMBOLS_PATTERN.format(self.base_currency, currency)), logger=logger)
         currencies_rates = self._parse_response(response, logger=logger)
@@ -63,7 +63,7 @@ class Yahoo(Provider):
     def _get_all_latest(self, logger):
         """
         :type logger: gold_digger.utils.context_logger.ContextLogger
-        :rtype: dict[str,decimal.Decimal]
+        :rtype: dict[str, decimal.Decimal]
         """
         symbols = {self.SYMBOLS_PATTERN.format(self.base_currency, currency) for currency in self.get_supported_currencies()}
         response = self._get(self.BASE_URL.format(",".join(symbols)), logger=logger)
@@ -97,7 +97,7 @@ class Yahoo(Provider):
 
     def get_historical(self, *_):
         """
-        :rtype: {}
+        :rtype: dict
         """
         return {}
 
