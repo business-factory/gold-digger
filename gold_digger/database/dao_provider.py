@@ -6,7 +6,7 @@ from .db_model import Provider
 class DaoProvider:
     def __init__(self, db_session):
         """
-        :type db_session: sqlalchemy.orm.session.Session
+        :type db_session: sqlalchemy.orm.Session
         """
         self.db_session = db_session
 

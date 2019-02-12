@@ -111,7 +111,7 @@ class Fixer(Provider):
 
     def get_historical(self, origin_date, currencies, logger):
         """
-        :type origin_date: date
+        :type origin_date: datetime.date
         :type currencies: set[str]
         :type logger: gold_digger.utils.ContextLogger
         :rtype: dict[date, dict[str, decimal.Decimal]]

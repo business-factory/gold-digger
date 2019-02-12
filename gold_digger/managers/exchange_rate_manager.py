@@ -5,7 +5,7 @@ from decimal import Decimal
 from itertools import combinations
 from collections import defaultdict, Counter
 
-from gold_digger.database.db_model import ExchangeRate
+from ..database.db_model import ExchangeRate
 
 
 class ExchangeRateManager:

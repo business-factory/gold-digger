@@ -59,7 +59,7 @@ class DiContainer:
     @service
     def db_session(self):
         """
-        :rtype: sqlalchemy.orm.session.Session
+        :rtype: sqlalchemy.orm.Session
         """
         self._db_session = scoped_session(sessionmaker(self.db_connection))
         return self._db_session()
@@ -108,7 +108,7 @@ class DiContainer:
         :rtype: logging.Logger
         """
         logger_ = logging.getLogger(name)
-        logger_.setLevel(logging.DEBUG if settings.DEVELOPMENT_MODE else logging.DEBUG)
+        logger_.setLevel(logging.DEBUG)
         logger_.propagate = False
 
         if not settings.DEVELOPMENT_MODE:

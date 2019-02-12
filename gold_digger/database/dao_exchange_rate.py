@@ -9,7 +9,7 @@ from .db_model import ExchangeRate
 class DaoExchangeRate:
     def __init__(self, db_session):
         """
-        :type db_session: sqlalchemy.orm.session.Session
+        :type db_session: sqlalchemy.orm.Session
         """
         self.db_session = db_session
 
@@ -44,7 +44,7 @@ class DaoExchangeRate:
         """
         :type date_of_exchange: datetime.date
         :type currency: str
-        :rtype: list[ExchangeRate]
+        :rtype: list[gold_digger.database.db_model.ExchangeRate]
         """
         return self.db_session.query(ExchangeRate).filter(
             and_(ExchangeRate.date == date_of_exchange, ExchangeRate.currency == currency)
@@ -55,7 +55,7 @@ class DaoExchangeRate:
         :type date_of_exchange: datetime.date
         :type currency: str
         :type provider_name: str
-        :rtype: ExchangeRate
+        :rtype: gold_digger.database.db_model.ExchangeRate
         """
         return self.db_session.query(ExchangeRate).filter(
             and_(ExchangeRate.date == date_of_exchange, ExchangeRate.currency == currency, ExchangeRate.provider.has(name=provider_name))
@@ -70,7 +70,7 @@ class DaoExchangeRate:
         :type db_provider: gold_digger.database.db_model.Provider
         :type currency: str
         :type rate: decimal.Decimal
-        :rtype: ExchangeRate
+        :rtype: gold_digger.database.db_model.ExchangeRate
         """
         db_record = ExchangeRate(date=date_of_exchange, provider_id=db_provider.id, currency=currency, rate=rate)
         try:
