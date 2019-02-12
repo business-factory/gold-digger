@@ -15,7 +15,7 @@ from .data_providers import *
 from .database.dao_exchange_rate import DaoExchangeRate
 from .database.dao_provider import DaoProvider
 from .managers.exchange_rate_manager import ExchangeRateManager
-from .utils.context_logger import ContextLogger
+from .utils import ContextLogger
 
 
 class DiContainer:

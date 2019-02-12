@@ -1,3 +1,3 @@
 # -*- coding: utf-8 -*-
 
-from .context_logger import ContextLogger
+from ._context_logger import ContextLogger

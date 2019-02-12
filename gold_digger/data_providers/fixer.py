@@ -167,7 +167,7 @@ class Fixer(Provider):
         """
         :type base_currency_rate: decimal.Decimal
         :type currency_rate: decimal.Decimal
-        :type logger: gold_digger.utils.context_logger.ContextLogger
+        :type logger: gold_digger.utils.ContextLogger
         :rtype: decimal.Decimal
         """
         conversion = 1 / base_currency_rate
