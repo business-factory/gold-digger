@@ -47,6 +47,7 @@ def http_api_logger(func):
                 "request_referer": req.referer,
                 "duration_in_secs": time() - start,
             })
+
         except falcon.HTTPInvalidParam:
             logger.warning("Wrong parameter was sent in API request %s.", func.__name__, extra={
                 "request_method": req.method,
