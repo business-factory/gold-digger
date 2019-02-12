@@ -31,6 +31,10 @@ class ExchangeRate(Base):
 
     @classmethod
     def base(cls, base_currency):
+        """
+        :type base_currency: str
+        :rtype: ExchangeRate
+        """
         return cls(
             currency=base_currency,
             rate=Decimal(1.0)

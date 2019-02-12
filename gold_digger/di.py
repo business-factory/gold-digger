@@ -1,17 +1,21 @@
 # -*- coding: utf-8 -*-
 
-import graypy
 import logging
+from functools import lru_cache
 from os.path import dirname, normpath, abspath
+from uuid import uuid4
+
+import graypy
 from cached_property import cached_property as service
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 
-import gold_digger.settings as settings
+from . import settings
 from .data_providers import *
 from .database.dao_exchange_rate import DaoExchangeRate
 from .database.dao_provider import DaoProvider
 from .managers.exchange_rate_manager import ExchangeRateManager
+from .utils import ContextLogger
 
 
 class DiContainer:
@@ -20,9 +24,6 @@ class DiContainer:
 
         self._db_connection = None
         self._db_session = None
-
-        self._logger = logging.getLogger("gold-digger")
-        self.setup_logger(self._logger)
 
     def __enter__(self):
         return self
@@ -34,6 +35,10 @@ class DiContainer:
         if self._db_connection is not None:
             self._db_connection.dispose()
             self._db_connection = None
+
+    @staticmethod
+    def flow_id():
+        return str(uuid4())
 
     @service
     def base_dir(self):
@@ -53,6 +58,9 @@ class DiContainer:
 
     @service
     def db_session(self):
+        """
+        :rtype: sqlalchemy.orm.Session
+        """
         self._db_session = scoped_session(sessionmaker(self.db_connection))
         return self._db_session()
 
@@ -63,52 +71,54 @@ class DiContainer:
     @service
     def data_providers(self):
         providers = (
-            GrandTrunk(self.base_currency, self.logger),
-            CurrencyLayer(settings.SECRETS_CURRENCY_LAYER_ACCESS_KEY, self.base_currency, self.logger),
-            Yahoo(self.base_currency, settings.SUPPORTED_CURRENCIES, self.logger),
-            Fixer(settings.SECRETS_FIXER_ACCESS_KEY, self.base_currency, self.logger),
+            GrandTrunk(self.base_currency),
+            CurrencyLayer(settings.SECRETS_CURRENCY_LAYER_ACCESS_KEY, self.logger(), self.base_currency),
+            Yahoo(self.base_currency, settings.SUPPORTED_CURRENCIES),
+            Fixer(settings.SECRETS_FIXER_ACCESS_KEY, self.logger(), self.base_currency),
         )
         return {provider.name: provider for provider in providers}
 
     @service
     def exchange_rate_manager(self):
         return ExchangeRateManager(
-            DaoExchangeRate(self.db_session, self.logger),
+            DaoExchangeRate(self.db_session),
             DaoProvider(self.db_session),
             list(self.data_providers.values()),
             self.base_currency,
             settings.SUPPORTED_CURRENCIES,
-            self.logger
         )
 
-    @service
-    def logger(self):
-        return self._logger
+    @classmethod
+    def logger(cls, **extra):
+        """
+        :rtype: gold_digger.utils.ContextLogger
+        """
+        logger_ = cls.setup_logger("gold-digger")
+
+        extra_ = {"flow_id": cls.flow_id()}
+        extra_.update(extra or {})
+
+        return ContextLogger(logger_, extra_)
 
     @staticmethod
-    def setup_logger(logger, level=None):
-        if isinstance(logger, str):
-            logger = logging.getLogger(logger)
+    @lru_cache(maxsize=None)
+    def setup_logger(name="gold-digger"):
+        """
+        :type name: str
+        :rtype: logging.Logger
+        """
+        logger_ = logging.getLogger(name)
+        logger_.setLevel(logging.DEBUG)
+        logger_.propagate = False
 
-        if level is None:
-            logger.setLevel(logging.DEBUG if settings.DEVELOPMENT_MODE else logging.DEBUG)
+        if not settings.DEVELOPMENT_MODE:
+            handler = graypy.GELFHandler(settings.GRAYLOG_ADDRESS, settings.GRAYLOG_PORT)
         else:
-            logger.setLevel(level)
-
-        for handler in logging.root.handlers:
-            handler.addFilter(logging.Filter("gold-digger"))
-
-        if settings.DEVELOPMENT_MODE:
             handler = logging.StreamHandler()
             handler.setFormatter(logging.Formatter(
                 "[%(levelname)s] %(asctime)s at %(filename)s:%(lineno)d (%(processName)s) -- %(message)s",
-                "%Y-%m-%d %H:%M:%S")
-            )
-            logger.addHandler(handler)
-        else:
-            handler = graypy.GELFHandler(settings.GRAYLOG_ADDRESS, settings.GRAYLOG_PORT)
-            logger.addHandler(handler)
+                "%Y-%m-%d %H:%M:%S"
+            ))
 
-        logger.propagate = False
-
-        return logger
+        logger_.addHandler(handler)
+        return logger_

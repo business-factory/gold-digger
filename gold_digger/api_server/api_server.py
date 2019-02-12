@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 
 import json
-import falcon
-from sqlalchemy.exc import DatabaseError
 from datetime import date
 from wsgiref import simple_server
+
+import falcon
+from sqlalchemy.exc import DatabaseError
+
+from .helpers import http_api_logger
 from .. import di_container
 from ..settings import SUPPORTED_CURRENCIES
 
@@ -15,8 +18,16 @@ class DatabaseResource:
 
 
 class DateRateResource(DatabaseResource):
-    def on_get(self, req, resp):
-        self.container.logger.info("Data rate request: %s", req.params)
+    @http_api_logger
+    def on_get(self, req, resp, logger):
+        """
+        :type req: falcon.request.Request
+        :type resp: falcon.request.Response
+        :type logger: gold_digger.utils.ContextLogger
+        """
+        exchange_rate_manager = self.container.exchange_rate_manager
+
+        logger.info("Data rate request: %s", req.params)
 
         from_currency = req.get_param("from", required=True)
         to_currency = req.get_param("to", required=True)
@@ -29,23 +40,23 @@ class DateRateResource(DatabaseResource):
 
         exchange_rate = None
         try:
-            exchange_rate = self.container.exchange_rate_manager.get_exchange_rate_by_date(date_of_exchange, from_currency, to_currency)
+            exchange_rate = exchange_rate_manager.get_exchange_rate_by_date(date_of_exchange, from_currency, to_currency, logger)
         except DatabaseError:
             self.container.db_session.rollback()
-            self.container.logger.exception("Database error occurred. Rollback session to allow reconnect to the DB on next request.")
+            logger.exception("Database error occurred. Rollback session to allow reconnect to the DB on next request.")
         except Exception:
-            self.container.logger.exception("Unexpected exception while rate request %s->%s (%s)", from_currency, to_currency, date_of_exchange)
+            logger.exception("Unexpected exception while rate request %s->%s (%s)", from_currency, to_currency, date_of_exchange)
 
         if not exchange_rate:
-            self.container.logger.error("Exchange rate not found: rate %s %s->%s", date_of_exchange, from_currency, to_currency)
+            logger.error("Exchange rate not found: rate %s %s->%s", date_of_exchange, from_currency, to_currency)
             raise falcon.HTTPInternalServerError("Exchange rate not found", "Exchange rate not found")
 
-        self.container.logger.info("GET rate %s %s->%s %s", date_of_exchange, from_currency, to_currency, exchange_rate)
+        logger.info("GET rate %s %s->%s %s", date_of_exchange, from_currency, to_currency, exchange_rate)
 
         resp.status = falcon.HTTP_200
         resp.body = json.dumps(
             {
-                "date": date_of_exchange.strftime(format="%Y-%m-%d"),
+                "date": date_of_exchange.strftime("%Y-%m-%d"),
                 "from_currency": from_currency,
                 "to_currency": to_currency,
                 "exchange_rate": str(exchange_rate)
@@ -54,8 +65,15 @@ class DateRateResource(DatabaseResource):
 
 
 class RangeRateResource(DatabaseResource):
-    def on_get(self, req, resp):
-        self.container.logger.info("Range rate request: %s", req.params)
+    @http_api_logger
+    def on_get(self, req, resp, logger):
+        """
+        :type req: falcon.request.Request
+        :type resp: falcon.request.Response
+        :type logger: gold_digger.utils.ContextLogger
+        """
+        logger.info("Range rate request: %s", req.params)
+        exchange_rate_manager = self.container.exchange_rate_manager
 
         from_currency = req.get_param("from", required=True)
         to_currency = req.get_param("to", required=True)
@@ -69,20 +87,20 @@ class RangeRateResource(DatabaseResource):
         exchange_rate = None
         try:
             if start_date == end_date:
-                exchange_rate = self.container.exchange_rate_manager.get_exchange_rate_by_date(start_date, from_currency, to_currency)
+                exchange_rate = exchange_rate_manager.get_exchange_rate_by_date(start_date, from_currency, to_currency, logger)
             else:
-                exchange_rate = self.container.exchange_rate_manager.get_average_exchange_rate_by_dates(start_date, end_date, from_currency, to_currency)
+                exchange_rate = exchange_rate_manager.get_average_exchange_rate_by_dates(start_date, end_date, from_currency, to_currency, logger)
         except DatabaseError:
             self.container.db_session.rollback()
-            self.container.logger.exception("Database error occurred. Rollback session to allow reconnect to the DB on next request.")
+            logger.exception("Database error occurred. Rollback session to allow reconnect to the DB on next request.")
         except Exception:
-            self.container.logger.exception("Unexpected exception while range request %s->%s (%s - %s)", from_currency, to_currency, start_date, end_date)
+            logger.exception("Unexpected exception while range request %s->%s (%s - %s)", from_currency, to_currency, start_date, end_date)
 
         if not exchange_rate:
-            self.container.logger.error("Exchange rate not found: range %s/%s %s->%s", start_date, end_date, from_currency, to_currency)
+            logger.error("Exchange rate not found: range %s/%s %s->%s", start_date, end_date, from_currency, to_currency)
             raise falcon.HTTPInternalServerError("Exchange rate not found", "Exchange rate not found")
 
-        self.container.logger.info("GET range %s/%s %s->%s %s", start_date, end_date, from_currency, to_currency, exchange_rate)
+        logger.info("GET range %s/%s %s->%s %s", start_date, end_date, from_currency, to_currency, exchange_rate)
 
         resp.status = falcon.HTTP_200
         resp.body = json.dumps(
@@ -98,12 +116,21 @@ class RangeRateResource(DatabaseResource):
 
 class HealthCheckResource:
     def on_get(self, req, resp):
+        """
+        :type req: falcon.request.Request
+        :type resp: falcon.request.Response
+        """
         resp.body = '{"status": "UP"}'
         resp.status = falcon.HTTP_200
 
 
 class HealthAliveResource(DatabaseResource):
     def on_get(self, req, resp):
+        """
+        :type req: falcon.request.Request
+        :type resp: falcon.request.Response
+        """
+        logger = self.container.logger()
         try:
             self.container.db_session.execute("SELECT 1")
             resp.body = '{"status": "UP"}'
@@ -111,10 +138,10 @@ class HealthAliveResource(DatabaseResource):
             self.container.db_session.rollback()
             info = "Database error. Service will reconnect to the DB automatically. Exception: %s" % e
             resp.body = '{"status": "DOWN", "info": "%s"}' % info
-            self.container.logger.exception(info)
+            logger.exception(info)
         except Exception as e:
             resp.body = '{"status": "DOWN", "info": "%s"}' % e
-            self.container.logger.exception("Unexpected exception.")
+            logger.exception("Unexpected exception.")
 
         resp.status = falcon.HTTP_200
 

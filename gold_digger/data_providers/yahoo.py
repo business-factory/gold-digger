@@ -10,8 +10,8 @@ class Yahoo(Provider):
     SYMBOLS_PATTERN = "{}{}%3DX"
     name = "yahoo"
 
-    def __init__(self, base_currency, supported_currencies, logger):
-        super().__init__(base_currency, logger)
+    def __init__(self, base_currency, supported_currencies):
+        super().__init__(base_currency)
         self._downloaded_rates = {}
         self._supported_currencies = supported_currencies - {
             "ATS", "BEF", "BYR", "CUC", "CYP", "DEM", "EEK", "ESP", "FIM", "FRF", "GGP", "GRD", "IEP",
@@ -19,53 +19,63 @@ class Yahoo(Provider):
             "SML", "VAL", "VEB", "VEF", "ZMK", "ZWL"
         }
 
-    def get_supported_currencies(self, date_of_exchange=date.today()):
+    def get_supported_currencies(self, date_of_exchange=date.today(), *_):
         """
-        :type date_of_exchange: date
-        :rtype: set
+        :type date_of_exchange: datetime.date
+        :rtype: set[str]
         """
         return self._supported_currencies
 
-    def get_by_date(self, date_of_exchange, currency):
+    def get_by_date(self, date_of_exchange, currency, logger):
         """
         :type date_of_exchange: datetime.date
         :type currency: str
+        :type logger: gold_digger.utils.ContextLogger
         :rtype: decimal.Decimal | None
         """
         date_str = date_of_exchange.strftime("%Y-%m-%d")
-        self.logger.debug("Requesting Yahoo for %s (%s)", currency, date_str, extra={"currency": currency, "date": date_str})
+        logger.debug("Requesting Yahoo for %s (%s)", currency, date_str, extra={"currency": currency, "date": date_str})
 
         if date_of_exchange == date.today():
-            return self._get_latest(currency)
+            return self._get_latest(currency, logger)
 
-    def get_all_by_date(self, date_of_exchange, currencies):
+    def get_all_by_date(self, date_of_exchange, currencies, logger):
         """
-        :type date_of_exchange: date
+        :type date_of_exchange: datetime.date
         :type currencies: set[str]
-        :rtype: dict[str,decimal.Decimal] | None
+        :type logger: gold_digger.utils.ContextLogger
+        :rtype: {str: decimal.Decimal | None}
         """
         if date_of_exchange == date.today():
-            rates = self._get_all_latest()
+            rates = self._get_all_latest(logger)
             return {currency: rate for currency, rate in rates.items() if currency in currencies}
 
-    def _get_latest(self, currency):
-        response = self._get(self.BASE_URL.format(self.SYMBOLS_PATTERN.format(self.base_currency, currency)))
-        currencies_rates = self._parse_response(response)
+    def _get_latest(self, currency, logger):
+        """
+        :type currency: str
+        :type logger: gold_digger.utils.ContextLogger
+        :rtype: decimal.Decimal | None
+        """
+        response = self._get(self.BASE_URL.format(self.SYMBOLS_PATTERN.format(self.base_currency, currency)), logger=logger)
+        currencies_rates = self._parse_response(response, logger=logger)
         return currencies_rates.get(currency)
 
-    def _get_all_latest(self):
+    def _get_all_latest(self, logger):
         """
-        :rtype: dict[str,decimal.Decimal]
+        :type logger: gold_digger.utils.ContextLogger
+        :rtype: dict[str, decimal.Decimal]
         """
         symbols = {self.SYMBOLS_PATTERN.format(self.base_currency, currency) for currency in self.get_supported_currencies()}
-        response = self._get(self.BASE_URL.format(",".join(symbols)))
-        currency_rates = self._parse_response(response)
+        response = self._get(self.BASE_URL.format(",".join(symbols)), logger=logger)
+        currency_rates = self._parse_response(response, logger)
 
         return currency_rates
 
-    def _parse_response(self, response):
+    def _parse_response(self, response, logger):
         """
-        :rtype: dict[str, Decimal] | None
+        :type response: requests.Response | None
+        :type logger: gold_digger.utils.ContextLogger
+        :rtype: dict[str, decimal.Decimal | None]
         """
         rates = {}
         if response:
@@ -75,17 +85,20 @@ class Yahoo(Provider):
                 try:
                     currency = i["response"][0]["meta"]["currency"]
                     rate = i["response"][0]["indicators"]["quote"][0]["close"][0]
-                    rate = self._to_decimal(str(rate), currency)
+                    rate = self._to_decimal(str(rate), currency, logger=logger)
 
                     if currency in self._supported_currencies:
                         rates[currency] = rate
 
                 except (KeyError, IndexError):
-                    self.logger.warning("Cannot get rate for {}.".format(currency))
+                    logger.warning("Cannot get rate for {}.".format(currency))
 
         return rates
 
-    def get_historical(self, origin_date, currencies):
+    def get_historical(self, *_):
+        """
+        :rtype: dict
+        """
         return {}
 
     def __str__(self):
