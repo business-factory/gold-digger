@@ -94,7 +94,7 @@ class Fixer(Provider):
 
                 for currency in currencies:
                     if currency in rates:
-                        decimal_value = self._to_decimal(rates[currency], logger=logger)
+                        decimal_value = self._to_decimal(rates[currency], currency, logger=logger)
                         if decimal_value is not None:
                             day_rates_in_eur[currency] = decimal_value
             except Exception:
@@ -153,8 +153,8 @@ class Fixer(Provider):
                 rates = response.get("rates", {})
                 if currency in rates and self.base_currency in rates:
                     return self._conversion_to_base_currency(
-                        self._to_decimal(rates[self.base_currency], logger=logger),
-                        self._to_decimal(rates[currency], logger=logger),
+                        self._to_decimal(rates[self.base_currency], self.base_currency, logger=logger),
+                        self._to_decimal(rates[currency], currency, logger=logger),
                         logger=logger,
                      )
 

@@ -59,6 +59,17 @@ def http_api_logger(func):
             })
             raise
 
+        except falcon.HTTPMissingParam:
+            logger.warning("Missing parameter in API request %s.", func.__name__, extra={
+                "request_method": req.method,
+                "request_url": req.url,
+                "request_func": func.__name__,
+                "request_user_agent": req.user_agent,
+                "request_referer": req.referer,
+                "duration_in_secs": time() - start,
+            })
+            raise
+
         except Exception:
             logger.exception("Exception raised on API request %s.", func.__name__, extra={
                 "request_method": req.method,
