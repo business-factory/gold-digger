@@ -97,6 +97,16 @@ class Provider(metaclass=ABCMeta):
         except requests.exceptions.RequestException as e:
             logger.error("%s - exception: %s, URL: %s, Headers: %s, Data: %s", self, e, url, headers, data)
 
+    def _conversion_to_base_currency(self, base_currency_rate, currency_rate, logger):
+        """
+        :type base_currency_rate: decimal.Decimal
+        :type currency_rate: decimal.Decimal
+        :type logger: gold_digger.utils.ContextLogger
+        :rtype: decimal.Decimal
+        """
+        conversion = 1 / base_currency_rate
+        return self._to_decimal(currency_rate * conversion, logger=logger)
+
     def _to_decimal(self, value, currency=None, *, logger):
         """
         :type value: str | float
