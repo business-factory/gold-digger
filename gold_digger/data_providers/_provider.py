@@ -99,7 +99,7 @@ class Provider(metaclass=ABCMeta):
 
     def _to_decimal(self, value, currency=None, *, logger):
         """
-        :type value: str
+        :type value: str | float
         :type currency: str | None
         :type logger: gold_digger.utils.ContextLogger
         :rtype: decimal.Decimal | None

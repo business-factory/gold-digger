@@ -75,6 +75,7 @@ class DiContainer:
             CurrencyLayer(settings.SECRETS_CURRENCY_LAYER_ACCESS_KEY, self.logger(), self.base_currency),
             Yahoo(self.base_currency, settings.SUPPORTED_CURRENCIES),
             Fixer(settings.SECRETS_FIXER_ACCESS_KEY, self.logger(), self.base_currency),
+            Unicredit(self.base_currency),
         )
         return {provider.name: provider for provider in providers}
 
