@@ -109,7 +109,8 @@ class Unicredit(Provider):
 
         return self._post(self.BASE_URL, headers=self.HEADERS, data=data, logger=logger)
 
-    def _get_currency_rate(self, all_rates, currency):
+    @staticmethod
+    def _get_currency_rate(all_rates, currency):
         """
         :type all_rates: list[dict[str, str | float]]
         :type currency: str
