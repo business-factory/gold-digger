@@ -8,7 +8,13 @@ from ._provider import Provider
 
 class Unicredit(Provider):
     BASE_URL = "https://www.unicreditbank.cz/cwa/GetExchangeRates"
-    HEADERS = {"Content-Type": "application/json", "EntityCode": "CZ", "Language": "CS", "SourceSystem": "PWS"}
+    HEADERS = {
+        "Content-Type": "application/json",
+        "EntityCode": "CZ",
+        "Language": "CS",
+        "SourceSystem": "PWS",
+        "User-Agent": "ROI Hunter /Currency Downloader; https://www.roihunter.com/"
+    }
     name = "unicredit"
 
     @lru_cache(maxsize=1)
@@ -21,7 +27,7 @@ class Unicredit(Provider):
         currencies = set()
         response = self._get_rates_from_unicredit(date_of_exchange, logger)
         if response:
-            currencies = set(item["CurrencyCode"] for item in response.json())
+            currencies = set(item["CurrencyCode"] for item in response)
         if currencies:
             logger.debug("Unicredit supported currencies: %s", currencies)
         else:
@@ -40,7 +46,6 @@ class Unicredit(Provider):
 
         rates = self._get_rates_from_unicredit(date_of_exchange, logger)
         if rates:
-            rates = rates.json()
             base_currency_rate = self._get_currency_rate(rates, self.base_currency)
             target_currency_rate = self._get_currency_rate(rates, currency)
             if base_currency_rate is not None and target_currency_rate is not None:
@@ -59,11 +64,10 @@ class Unicredit(Provider):
         """
         supported_currencies = self.get_supported_currencies(date_of_exchange, logger)
         rates = self._get_rates_from_unicredit(date_of_exchange, logger)
-        if not rates:
+        if rates is None:
             return {}
 
         day_rates = {}
-        rates = rates.json()
         for currency in currencies:
             if currency not in supported_currencies:
                 continue
@@ -102,12 +106,17 @@ class Unicredit(Provider):
         """
         :type date_of_exchange: datetime.date
         :param logger: gold_digger.utils.ContextLogger
-        :rtype: requests.Response | None
+        :rtype: list[dict[str, str | float]] | None
         """
         date_str = date_of_exchange.strftime("%Y%m%dT00:00:00.000+0000")
         data = {"Currency": "*ALL", "DateFrom": date_str, "DateTo": date_str}
 
-        return self._post(self.BASE_URL, headers=self.HEADERS, data=data, logger=logger)
+        rates = self._post(self.BASE_URL, headers=self.HEADERS, data=data, logger=logger)
+
+        if rates:
+            rates = [rate for rate in rates.json() if rate["CardsMiddleRate"] != 0]
+            rates.append({"CurrencyCode": "CZK", "CardsMiddleRate": 1.0})
+            return rates
 
     @staticmethod
     def _get_currency_rate(all_rates, currency):
@@ -118,6 +127,6 @@ class Unicredit(Provider):
         """
         for currency_rate in all_rates:
             if currency_rate["CurrencyCode"] == currency:
-                return currency_rate["MiddleRate"]
+                return currency_rate["CardsMiddleRate"]
 
         return None
