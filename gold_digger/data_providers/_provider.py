@@ -80,9 +80,36 @@ class Provider(metaclass=ABCMeta):
         except requests.exceptions.RequestException as e:
             logger.error("%s - exception: %s, URL: %s, Params: %s", self, e, url, params)
 
+    def _post(self, url, headers=None, data=None, *, logger):
+        """
+        :type url: str
+        :type headers: dict[str, str]
+        :type data: dict[str, str]
+        :type logger: gold_digger.utils.ContextLogger
+        :rtype: requests.Response | None
+        """
+        try:
+            response = requests.post(url, headers=headers, json=data, timeout=self.DEFAULT_REQUEST_TIMEOUT)
+            if response.status_code == 200:
+                return response
+            else:
+                logger.error("%s - status code: %s, URL: %s, Headers: %s, Data: %s", self, response.status_code, url, headers, data)
+        except requests.exceptions.RequestException as e:
+            logger.error("%s - exception: %s, URL: %s, Headers: %s, Data: %s", self, e, url, headers, data)
+
+    def _conversion_to_base_currency(self, base_currency_rate, currency_rate, logger):
+        """
+        :type base_currency_rate: decimal.Decimal
+        :type currency_rate: decimal.Decimal
+        :type logger: gold_digger.utils.ContextLogger
+        :rtype: decimal.Decimal
+        """
+        conversion = 1 / currency_rate
+        return self._to_decimal(base_currency_rate * conversion, logger=logger)
+
     def _to_decimal(self, value, currency=None, *, logger):
         """
-        :type value: str
+        :type value: str | float
         :type currency: str | None
         :type logger: gold_digger.utils.ContextLogger
         :rtype: decimal.Decimal | None
