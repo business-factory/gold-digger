@@ -105,7 +105,7 @@ class Unicredit(Provider):
     def _get_rates_from_unicredit(self, date_of_exchange, logger):
         """
         :type date_of_exchange: datetime.date
-        :param logger: gold_digger.utils.ContextLogger
+        :type logger: gold_digger.utils.ContextLogger
         :rtype: list[dict[str, str | float]] | None
         """
         date_str = date_of_exchange.strftime("%Y%m%dT00:00:00.000+0000")
