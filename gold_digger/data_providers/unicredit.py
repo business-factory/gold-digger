@@ -130,3 +130,14 @@ class Unicredit(Provider):
                 return currency_rate["CardsMiddleRate"]
 
         return None
+
+    def _conversion_to_base_currency(self, base_currency_rate, currency_rate, logger):
+        """
+        :type base_currency_rate: decimal.Decimal
+        :type currency_rate: decimal.Decimal
+        :type logger: gold_digger.utils.ContextLogger
+        :rtype: decimal.Decimal
+        """
+        conversion = 1 / currency_rate
+        return self._to_decimal(base_currency_rate / conversion, logger=logger)
+
