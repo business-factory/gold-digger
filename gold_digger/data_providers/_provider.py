@@ -104,8 +104,7 @@ class Provider(metaclass=ABCMeta):
         :type logger: gold_digger.utils.ContextLogger
         :rtype: decimal.Decimal
         """
-        conversion = 1 / base_currency_rate
-        return self._to_decimal(currency_rate * conversion, logger=logger)
+        return self._to_decimal(currency_rate / base_currency_rate, logger=logger)
 
     def _to_decimal(self, value, currency=None, *, logger):
         """
