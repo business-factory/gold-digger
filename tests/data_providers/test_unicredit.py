@@ -3,11 +3,11 @@
 from decimal import Decimal
 
 
-def test_fixer_conversion_to_base_currency(unicredit, logger):
+def test_unicredit_conversion_to_base_currency(unicredit, logger):
     """
     Unicredit has CZK as a base currency. It has to be converted firstly to USD.
 
-    Example Fixer response:
+    Example of Unicredit response:
         [
            {
               'CardsMiddleRate':8.08,

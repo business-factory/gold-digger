@@ -7,7 +7,7 @@ def test_fixer_conversion_to_base_currency(fixer, logger):
     """
     Fixer has EUR as a base currency. It has to be converted firstly to USD.
 
-    Example Fixer response:
+    Example of Fixer response:
     {
       "success": true,
       "timestamp": 1553731199,
