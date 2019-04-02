@@ -109,6 +109,15 @@ class Fixer(Provider):
 
         return day_rates
 
+    def _conversion_to_base_currency(self, base_currency_rate, currency_rate, logger):
+        """
+        :type base_currency_rate: decimal.Decimal
+        :type currency_rate: decimal.Decimal
+        :type logger: gold_digger.utils.ContextLogger
+        :rtype: decimal.Decimal
+        """
+        return self._to_decimal(currency_rate / base_currency_rate, logger=logger)
+
     def get_historical(self, origin_date, currencies, logger):
         """
         :type origin_date: datetime.date
