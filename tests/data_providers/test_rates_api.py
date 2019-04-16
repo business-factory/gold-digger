@@ -71,7 +71,7 @@ def test_get_by_date__available(rates_api, response, logger):
 
 def test_get_by_date__date_unavailable(rates_api, response, logger):
     """
-    Rates API returns rates from last available date when asked for an unavailable one. These rates are not returned from the provider.
+    Rates API returns rates from last available date when asked for an unavailable one.
 
     :type rates_api: gold_digger.data_providers.rates_api.RatesAPI
     :type response: requests.Response
@@ -83,7 +83,7 @@ def test_get_by_date__date_unavailable(rates_api, response, logger):
     rates_api._get = lambda url, **kw: response
 
     converted_rate = rates_api.get_by_date(date(2019, 4, 16), "CZK", logger)
-    assert converted_rate is None
+    assert converted_rate == Decimal(22.6509325555)
 
 
 def test_get_by_date__date_too_old(rates_api, response, logger):
@@ -105,8 +105,6 @@ def test_get_by_date__date_too_old(rates_api, response, logger):
 
 def test_get_by_date__currency_unavailable(rates_api, response, logger):
     """
-    Rates API returns last available date when asked for an unavailable one. This data are not returned from the provider.
-
     :type rates_api: gold_digger.data_providers.rates_api.RatesAPI
     :type response: requests.Response
     :type logger:  logging.Logger
@@ -122,7 +120,6 @@ def test_get_by_date__currency_unavailable(rates_api, response, logger):
 
 def test_get_all_by_date__available(rates_api, response, logger):
     """
-
     :type rates_api: gold_digger.data_providers.rates_api.RatesAPI
     :type response: requests.Response
     :type logger:  logging.Logger
@@ -141,7 +138,7 @@ def test_get_all_by_date__available(rates_api, response, logger):
 
 def test_get_all_by_date__date_unavailable(rates_api, response, logger):
     """
-    Rates API returns rates from last available date when asked for an unavailable one. These rates are not returned from the provider.
+    Rates API returns rates from last available date when asked for an unavailable one.
 
     :type rates_api: gold_digger.data_providers.rates_api.RatesAPI
     :type response: requests.Response
@@ -153,7 +150,10 @@ def test_get_all_by_date__date_unavailable(rates_api, response, logger):
     rates_api._get = lambda url, **kw: response
 
     converted_rates = rates_api.get_all_by_date(date(2019, 4, 16), {"CZK", "EUR"}, logger)
-    assert converted_rates == {}
+    assert converted_rates == {
+        "CZK": Decimal(22.6509325555),
+        "EUR": Decimal(0.8839388314)
+    }
 
 
 def test_get_all_by_date__date_too_old(rates_api, response, logger):
@@ -175,7 +175,6 @@ def test_get_all_by_date__date_too_old(rates_api, response, logger):
 
 def test_get_all_by_date__currency_unavailable(rates_api, response, logger):
     """
-
     :type rates_api: gold_digger.data_providers.rates_api.RatesAPI
     :type response: requests.Response
     :type logger:  logging.Logger

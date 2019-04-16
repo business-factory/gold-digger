@@ -55,7 +55,7 @@ class RatesAPI(Provider):
         :type logger: gold_digger.utils.ContextLogger
         :rtype: dict[str, decimal.Decimal]
         """
-        logger.debug("Requesting Rates API for all currencies (%s)", date_of_exchange, extra={"date": date_of_exchange})
+        logger.debug("Rates API - Requesting rates for all currencies (%s)", date_of_exchange, extra={"date": date_of_exchange})
         date_of_exchange_string = date_of_exchange.strftime("%Y-%m-%d")
         day_rates = {}
 
@@ -67,10 +67,6 @@ class RatesAPI(Provider):
                 response = response.json()
                 if response.get("error"):
                     logger.error("Rates API - Unsuccessful response. Error message: %s", response["error"])
-                    return {}
-
-                if response["date"] != date_of_exchange_string:
-                    logger.warning("Rates API - Currencies from %s are unavailable.", date_of_exchange_string)
                     return {}
 
                 rates = response.get("rates", {})
@@ -99,7 +95,7 @@ class RatesAPI(Provider):
                 :type logger: gold_digger.utils.ContextLogger
                 :rtype: decimal.Decimal | None
                 """
-        logger.debug("Requesting Rates API for %s (%s)", currency, date_of_exchange, extra={"currency": currency, "date": date_of_exchange})
+        logger.debug("Rates API - Requesting rates for %s (%s)", currency, date_of_exchange, extra={"currency": currency, "date": date_of_exchange})
 
         date_of_exchange_string = date_of_exchange.strftime("%Y-%m-%d")
 
@@ -110,10 +106,6 @@ class RatesAPI(Provider):
                 response = response.json()
                 if response.get("error"):
                     logger.error("Rates API - Unsuccessful response. Error message: %s", response["error"])
-                    return None
-
-                if response["date"] != date_of_exchange_string:
-                    logger.warning("Rates API - Currencies from %s are unavailable.", date_of_exchange_string)
                     return None
 
                 rates = response.get("rates", {})
