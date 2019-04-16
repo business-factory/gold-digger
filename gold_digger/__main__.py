@@ -32,8 +32,9 @@ def cron(**_):
         cron_tab = CronTab(
             tab="""
                 # m h dom mon dow command
-                5 0 * * * cd /app && python -m gold_digger update --exclude-providers fixer.io {redirect}
+                5 0 * * * cd /app && python -m gold_digger update --exclude-providers fixer.io,rates_api {redirect}
                 5 2 * * * cd /app && python -m gold_digger update --providers fixer.io {redirect}
+                5 18 * * 1-5 /app && python -m gold_digger update --providers rates_api {redirect}
                 * * * * * echo "cron health check (hourly)" {redirect}
             """.format(redirect="> /proc/1/fd/1 2>/proc/1/fd/2")  # redirect to stdout/stderr
         )
