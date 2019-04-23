@@ -100,6 +100,3 @@ class Yahoo(Provider):
         :rtype: dict
         """
         return {}
-
-    def __str__(self):
-        return self.name

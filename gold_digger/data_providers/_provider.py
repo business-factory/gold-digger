@@ -91,3 +91,6 @@ class Provider(metaclass=ABCMeta):
             return Decimal(value)
         except InvalidOperation:
             logger.error("%s - Invalid operation: value %s is not a number (currency %s)", self, value, currency)
+
+    def __str__(self):
+        return self.name
