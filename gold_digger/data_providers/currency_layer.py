@@ -110,6 +110,3 @@ class CurrencyLayer(Provider):
             date_of_exchange = date_of_exchange + timedelta(1)
 
         return day_rates
-
-    def __str__(self):
-        return self.name

@@ -6,7 +6,7 @@ from decimal import Decimal
 import pytest
 from requests import Response
 
-API_RESPONSE = b"""
+API_RESPONSE_USD = b"""
 {
   "base": "USD",
   "rates": {
@@ -48,6 +48,47 @@ API_RESPONSE = b"""
 }
 """
 
+API_RESPONSE_EUR = b"""
+{
+  "base": "EUR",
+  "rates": {
+    "BGN": 1.9558,
+    "NZD": 1.6729,
+    "ILS": 4.0295,
+    "RUB": 72.7011,
+    "CAD": 1.506,
+    "USD": 1.1313,
+    "PHP": 58.476,
+    "CHF": 1.1345,
+    "ZAR": 15.8192,
+    "AUD": 1.5761,
+    "JPY": 126.66,
+    "TRY": 6.5637,
+    "HKD": 8.8685,
+    "MYR": 4.6573,
+    "THB": 35.936,
+    "HRK": 7.436,
+    "NOK": 9.6018,
+    "IDR": 15906.08,
+    "DKK": 7.4639,
+    "CZK": 25.625,
+    "HUF": 320.25,
+    "GBP": 0.86305,
+    "MXN": 21.2497,
+    "KRW": 1281.37,
+    "ISK": 135.6,
+    "SGD": 1.5299,
+    "BRL": 4.3985,
+    "PLN": 4.2742,
+    "INR": 78.5405,
+    "RON": 4.7618,
+    "CNY": 7.5867,
+    "SEK": 10.4608
+  },
+  "date": "2019-04-15"
+}
+"""
+
 
 @pytest.fixture
 def response():
@@ -58,10 +99,10 @@ def test_get_by_date__available(rates_api, response, logger):
     """
     :type rates_api: gold_digger.data_providers.rates_api.RatesAPI
     :type response: requests.Response
-    :type logger:  logging.Logger
+    :type logger: logging.Logger
     """
     response.status_code = 200
-    response._content = API_RESPONSE
+    response._content = API_RESPONSE_USD
 
     rates_api._get = lambda url, **kw: response
 
@@ -75,10 +116,10 @@ def test_get_by_date__date_unavailable(rates_api, response, logger):
 
     :type rates_api: gold_digger.data_providers.rates_api.RatesAPI
     :type response: requests.Response
-    :type logger:  logging.Logger
+    :type logger: logging.Logger
     """
     response.status_code = 200
-    response._content = API_RESPONSE
+    response._content = API_RESPONSE_USD
 
     rates_api._get = lambda url, **kw: response
 
@@ -92,7 +133,7 @@ def test_get_by_date__date_too_old(rates_api, response, logger):
 
     :type rates_api: gold_digger.data_providers.rates_api.RatesAPI
     :type response: requests.Response
-    :type logger:  logging.Logger
+    :type logger: logging.Logger
     """
     response.status_code = 400
     response._content = b"{'error': 'Error message'}"
@@ -107,7 +148,7 @@ def test_get_by_date__currency_unavailable(rates_api, response, logger):
     """
     :type rates_api: gold_digger.data_providers.rates_api.RatesAPI
     :type response: requests.Response
-    :type logger:  logging.Logger
+    :type logger: logging.Logger
     """
     response.status_code = 400
     response._content = b"{'error': 'Error message'}"
@@ -122,10 +163,10 @@ def test_get_all_by_date__available(rates_api, response, logger):
     """
     :type rates_api: gold_digger.data_providers.rates_api.RatesAPI
     :type response: requests.Response
-    :type logger:  logging.Logger
+    :type logger: logging.Logger
     """
     response.status_code = 200
-    response._content = API_RESPONSE
+    response._content = API_RESPONSE_USD
 
     rates_api._get = lambda url, **kw: response
 
@@ -142,10 +183,10 @@ def test_get_all_by_date__date_unavailable(rates_api, response, logger):
 
     :type rates_api: gold_digger.data_providers.rates_api.RatesAPI
     :type response: requests.Response
-    :type logger:  logging.Logger
+    :type logger: logging.Logger
     """
     response.status_code = 200
-    response._content = API_RESPONSE
+    response._content = API_RESPONSE_USD
 
     rates_api._get = lambda url, **kw: response
 
@@ -162,7 +203,7 @@ def test_get_all_by_date__date_too_old(rates_api, response, logger):
 
     :type rates_api: gold_digger.data_providers.rates_api.RatesAPI
     :type response: requests.Response
-    :type logger:  logging.Logger
+    :type logger: logging.Logger
     """
     response.status_code = 400
     response._content = b"{'error': 'Error message'}"
@@ -177,7 +218,7 @@ def test_get_all_by_date__currency_unavailable(rates_api, response, logger):
     """
     :type rates_api: gold_digger.data_providers.rates_api.RatesAPI
     :type response: requests.Response
-    :type logger:  logging.Logger
+    :type logger: logging.Logger
     """
     response.status_code = 400
     response._content = b"{'error': 'Error message'}"
@@ -186,3 +227,38 @@ def test_get_all_by_date__currency_unavailable(rates_api, response, logger):
 
     converted_rates = rates_api.get_all_by_date(date(2019, 4, 16), {"XXX"}, logger)
     assert converted_rates == {}
+
+
+def test_get_by_date__eur_base_eur_target(rates_api, response, logger):
+    """
+    Rates API has a bug where it returns error when base currency is EUR and the target currency is also EUR. The data should be manually added to the result.
+
+    :type rates_api: gold_digger.data_providers.rates_api.RatesAPI
+    :type response: requests.Response
+    :type logger: logging.Logger
+    """
+    rates_api._base_currency = "EUR"
+
+    converted_rates = rates_api.get_by_date(date(2019, 4, 16), "EUR", logger)
+    assert converted_rates == Decimal('1')
+
+
+def test_get_all_by_date__eur_base_eur_target(rates_api, response, logger):
+    """
+    Rates API has a bug where it doesn't return EUR rates when it is base currency. The data should be manually added to the result.
+
+    :type rates_api: gold_digger.data_providers.rates_api.RatesAPI
+    :type response: requests.Response
+    :type logger: logging.Logger
+    """
+    response.status_code = 200
+    response._content = API_RESPONSE_EUR
+
+    rates_api._base_currency = "EUR"
+
+    converted_rates = rates_api.get_all_by_date(date(2019, 4, 16), {"EUR", "CZK"}, logger)
+    assert converted_rates == {
+        "CZK": Decimal(25.663000000000000255795384873636066913604736328125),
+        "EUR": Decimal(1)
+    }
+

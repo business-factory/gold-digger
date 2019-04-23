@@ -15,36 +15,25 @@ class RatesAPI(Provider):
     BASE_URL = "http://api.ratesapi.io/api/{date}"
     name = "rates_api"
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._url = self.BASE_URL
-        self._supported_currencies = {}
-
     def get_supported_currencies(self, date_of_exchange, logger):
         """
         :type date_of_exchange: datetime.date
         :type logger: gold_digger.utils.ContextLogger
         :rtype: set[str]
         """
-        currencies = self._supported_currencies.get(date_of_exchange)
-        if currencies:
-            return currencies
-
         currencies = set()
-        response = self._get(self._url.format(date=date_of_exchange.isoformat()), logger=logger)
-        if response:
+        url = self.BASE_URL.format(date=date_of_exchange.isoformat())
+        response = self._get(url, logger=logger)
+        if response is not None:
             response = response.json()
             if not response.get("error"):
                 currencies = set((response.get("rates") or {}).keys())
+                currencies.add(response["base"])
             else:
-                logger.error("Rates API supported currencies not found. Error: %s. Date: %s", response, date_of_exchange.isoformat())
-        else:
-            logger.error("Rates API unexpected response. Response: %s", response)
+                logger.error("Rates API - Supported currencies not found. Error: %s. Date: %s", response["error"], date_of_exchange.isoformat())
 
         if currencies:
-            logger.debug("Rates API supported currencies: %s", currencies)
-
-        self._supported_currencies = {date_of_exchange: currencies}
+            logger.debug("Rates API - Supported currencies: %s", currencies)
 
         return currencies
 
@@ -59,7 +48,7 @@ class RatesAPI(Provider):
         date_of_exchange_string = date_of_exchange.strftime("%Y-%m-%d")
         day_rates = {}
 
-        url = self._url.format(date=date_of_exchange_string)
+        url = self.BASE_URL.format(date=date_of_exchange_string)
         response = self._get(url, params={"base": self.base_currency}, logger=logger)
 
         if response is not None:
@@ -70,6 +59,8 @@ class RatesAPI(Provider):
                     return {}
 
                 rates = response.get("rates", {})
+                if self.base_currency == "EUR":  # Rates API doesn't return EUR in response if it is base currency
+                    rates["EUR"] = 1
 
                 for currency in currencies:
                     if currency in rates:
@@ -89,19 +80,16 @@ class RatesAPI(Provider):
         :type logger: gold_digger.utils.ContextLogger
         :rtype: decimal.Decimal | None
         """
-        """
-                :type date_of_exchange: str
-                :type currency: str
-                :type logger: gold_digger.utils.ContextLogger
-                :rtype: decimal.Decimal | None
-                """
         logger.debug("Rates API - Requesting rates for %s (%s)", currency, date_of_exchange, extra={"currency": currency, "date": date_of_exchange})
+
+        if currency == "EUR" and self.base_currency == "EUR":  # Rates API in this combination returns error
+            return self._to_decimal(1, "EUR", logger=logger)
 
         date_of_exchange_string = date_of_exchange.strftime("%Y-%m-%d")
 
-        url = self._url.format(date=date_of_exchange_string)
+        url = self.BASE_URL.format(date=date_of_exchange_string)
         response = self._get(url, params={"symbols": currency, "base": self.base_currency}, logger=logger)
-        if response:
+        if response is not None:
             try:
                 response = response.json()
                 if response.get("error"):
@@ -110,13 +98,10 @@ class RatesAPI(Provider):
 
                 rates = response.get("rates", {})
                 if currency in rates:
-                    print(self._to_decimal(rates[currency], currency, logger=logger))
                     return self._to_decimal(rates[currency], currency, logger=logger)
 
             except ValueError:
                 logger.exception("Rates API - Exception while parsing of the HTTP response.")
-
-        return None
 
     def get_historical(self, origin_date, currencies, logger):
         """
@@ -151,10 +136,7 @@ class RatesAPI(Provider):
         try:
             response = requests.get(url, params=params, timeout=self.DEFAULT_REQUEST_TIMEOUT)
             if response.status_code != 200:
-                logger.error("%s - status code: %s, URL: %s, Params: %s", self, response.status_code, url, params)
+                logger.error("RatesAPI - status code: %s, URL: %s, Params: %s", response.status_code, url, params)
             return response
         except requests.exceptions.RequestException as e:
-            logger.error("%s - exception: %s, URL: %s, Params: %s", self, e, url, params)
-
-    def __str__(self):
-        return self.name
+            logger.error("RatesAPI - exception: %s, URL: %s, Params: %s", e, url, params)
