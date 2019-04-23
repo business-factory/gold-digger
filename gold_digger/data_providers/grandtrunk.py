@@ -89,6 +89,3 @@ class GrandTrunk(Provider):
                     if decimal_value:
                         day_rates[day][currency] = decimal_value
         return day_rates
-
-    def __str__(self):
-        return self.name
