@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from datetime import date, timedelta
+from functools import lru_cache
 
 import requests
 
@@ -15,6 +16,7 @@ class RatesAPI(Provider):
     BASE_URL = "http://api.ratesapi.io/api/{date}"
     name = "rates_api"
 
+    @lru_cache(maxsize=1)
     def get_supported_currencies(self, date_of_exchange, logger):
         """
         :type date_of_exchange: datetime.date
