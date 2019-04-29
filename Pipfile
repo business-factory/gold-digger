@@ -4,18 +4,18 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-cached-property = "*" 
+cached-property = "~=1.5.1"
 click = "==6.2"
 croniter = "==0.3.20"
-falcon = "*" 
-graypy = "*" 
-gunicorn = "*" 
-psycopg2-binary = "*"
+falcon = "~=1.4.1"
+graypy = "~=0.3.1"
+gunicorn = "~=19.9.0"
+psycopg2-binary = "~=2.7.7"
 python-crontab = "==2.2.6"
-requests = "*"
-SQLAlchemy = "*"
+requests = "~=2.21.0"
+SQLAlchemy = "~=1.3.3"
 
 [dev-packages]
-pytest = "*"
-pytest-cov = "*"
-SQLAlchemy-Utils = "*"
+pytest = "~=4.1.1"
+pytest-cov = "~=2.6.1"
+SQLAlchemy-Utils = "~=0.33.11"
