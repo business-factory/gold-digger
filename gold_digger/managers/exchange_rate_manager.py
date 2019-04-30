@@ -60,6 +60,7 @@ class ExchangeRateManager:
         """
         Get records of exchange rates for the date from all data providers.
         If rates are missing for the date from some providers request data only from these providers to update database.
+        If the requested date is today and there are missing rates, try to fetch data from yesterday, if even those are missing, request for today's data.
 
         :type date_of_exchange: datetime.date
         :type currency: str
@@ -74,6 +75,15 @@ class ExchangeRateManager:
         exchange_rates_providers = set(r.provider.name for r in exchange_rates)
         missing_provider_rates = [provider for provider in self._data_providers if provider.name not in exchange_rates_providers]
         for data_provider in missing_provider_rates:
+            if date_of_exchange == today:
+                logger.info("Today's rates for provider %s aren't ready yet, Using yesterday's rates.", data_provider.name)
+                previous_day = date_of_exchange - timedelta(1)
+                rate = self._dao_exchange_rate.get_rate_by_date_currency_provider(previous_day, currency, data_provider.name)
+                if rate:
+                    exchange_rates.append(rate)
+                    continue
+                else:
+                    logger.info("Yesterday's rates for provider %s not found. Requesting API.", data_provider.name)
             try:
                 if currency not in data_provider.get_supported_currencies(today, logger):
                     continue
