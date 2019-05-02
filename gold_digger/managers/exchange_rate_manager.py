@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 from itertools import combinations
 from collections import defaultdict, Counter
@@ -151,6 +151,33 @@ class ExchangeRateManager:
 
         conversion = 1 / _from_currency.rate
         return Decimal(_to_currency.rate * conversion)
+
+    def get_exchange_rates_by_dates(self, start_date, end_date, from_currency, to_currency, logger):
+        """
+        :type start_date: datetime.date
+        :type end_date: datetime.date
+        :type from_currency: str
+        :type to_currency: str
+        :type logger: gold_digger.utils.ContextLogger
+        :rtype: dict[str, str]
+        """
+        if start_date > end_date:
+            start_date, end_date = end_date, start_date
+
+        exchange_rates_by_dates = {}
+        step_by_day = timedelta(days=1)
+
+        while start_date <= end_date:
+            try:
+                exchange_rate = self.get_exchange_rate_by_date(start_date, from_currency, to_currency, logger)
+            except ValueError:  # missing exchange rate for given date
+                pass
+            else:
+                exchange_rates_by_dates[start_date.strftime(format="%Y-%m-%d")] = str(exchange_rate)
+
+            start_date += step_by_day
+
+        return exchange_rates_by_dates
 
     def _get_sum_of_rates_in_period(self, start_date, end_date, currency):
         """

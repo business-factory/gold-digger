@@ -113,6 +113,43 @@ def test_get_exchange_rate_by_date(dao_exchange_rate, dao_provider, base_currenc
     assert exchange_rate == Decimal(24.20) * (1 / Decimal(0.89))
 
 
+def test_get_exchange_rates_by_date(dao_exchange_rate, dao_provider, base_currency, logger):
+    """
+    :param dao_exchange_rate: Mock of gold_digger.database.DaoExchangeRate
+    :param dao_provider: Mock of gold_digger.database.DaoProvider
+    :type base_currency: str
+    :type logger: logging.Logger
+    """
+    _start_date = date(2016, 2, 17)
+    _middle_date = date(2016, 2, 18)
+    _end_date = date(2016, 2, 19)
+
+    exchange_rate_manager = ExchangeRateManager(dao_exchange_rate, dao_provider, [], base_currency, set())
+
+    def _get_rates_by_date_currency(_date, currency):
+        if _date == _middle_date:
+            raise ValueError("Missing exchange rate.")
+
+        return {
+            _start_date: {
+                "EUR": [ExchangeRate(id=1, currency="EUR", rate=Decimal(0.88), provider=Provider(name="currency_layer"))],
+                "CZK": [ExchangeRate(id=2, currency="CZK", rate=Decimal(24.19), provider=Provider(name="currency_layer"))]
+            },
+            _end_date: {
+                "EUR": [ExchangeRate(id=1, currency="EUR", rate=Decimal(0.89), provider=Provider(name="currency_layer"))],
+                "CZK": [ExchangeRate(id=2, currency="CZK", rate=Decimal(24.20), provider=Provider(name="currency_layer"))]
+            },
+        }[_date][currency]
+
+    dao_exchange_rate.get_rates_by_date_currency.side_effect = _get_rates_by_date_currency
+    exchange_rates_by_dates = exchange_rate_manager.get_exchange_rates_by_dates(_start_date, _end_date, "EUR", "CZK", logger)
+
+    assert exchange_rates_by_dates == {
+        "2016-02-17": str(Decimal(24.19) * (1 / Decimal(0.88))),
+        "2016-02-19": str(Decimal(24.20) * (1 / Decimal(0.89))),
+    }
+
+
 def test_get_average_exchange_rate_by_dates(dao_exchange_rate, dao_provider, base_currency, logger):
     """
     Get average exchange rate within specified period.
