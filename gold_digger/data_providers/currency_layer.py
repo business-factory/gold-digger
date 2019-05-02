@@ -3,7 +3,9 @@
 import re
 from collections import defaultdict
 from datetime import date, timedelta
-from functools import lru_cache
+from operator import attrgetter
+
+from cachetools import cachedmethod, keys
 
 from ._provider import Provider
 
@@ -28,7 +30,7 @@ class CurrencyLayer(Provider):
             logger.critical("You need an access token to use CurrencyLayer provider!")
             self._url = self.BASE_URL % ""
 
-    @lru_cache(maxsize=1)
+    @cachedmethod(cache=attrgetter("_cache"), key=lambda date_of_exchange, _: keys.hashkey(date_of_exchange))
     def get_supported_currencies(self, date_of_exchange, logger):
         """
         :type date_of_exchange: datetime.date

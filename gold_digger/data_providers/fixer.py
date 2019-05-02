@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from datetime import date, timedelta
+from operator import attrgetter
+
+from cachetools import cachedmethod, keys
 
 from ._provider import Provider
 
@@ -24,18 +27,14 @@ class Fixer(Provider):
         else:
             logger.critical("You need an access token to use Fixer provider!")
             self._url = self.BASE_URL % ""
-        self._supported_currencies = {}
 
+    @cachedmethod(cache=attrgetter("_cache"), key=lambda date_of_exchange, _: keys.hashkey(date_of_exchange))
     def get_supported_currencies(self, date_of_exchange, logger):
         """
         :type date_of_exchange: datetime.date
         :type logger: gold_digger.utils.ContextLogger
         :rtype: set[str]
         """
-        currencies = self._supported_currencies.get(date_of_exchange)
-        if currencies:
-            return currencies
-
         currencies = set()
         response = self._get(self._url.format(date=date_of_exchange.isoformat()), logger=logger)
         if response:
@@ -54,8 +53,6 @@ class Fixer(Provider):
 
         if currencies:
             logger.debug("Fixer supported currencies: %s", currencies)
-
-        self._supported_currencies = {date_of_exchange: currencies}
 
         return currencies
 
