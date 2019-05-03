@@ -101,3 +101,26 @@ class DaoExchangeRate:
             .group_by(ExchangeRate.provider_id)\
             .order_by(ExchangeRate.provider_id)\
             .all()
+
+    def get_rates_by_dates_for_currency_in_period(self, currency, start_date, end_date):
+        """
+        :type currency: str
+        :type start_date: datetime.date
+        :type end_date: datetime.date
+        :rtype: dict[datetime.date, list[decimal.Decimal]]
+        """
+        result = self.db_session\
+            .query(ExchangeRate.date, func.array_agg(ExchangeRate.rate))\
+            .filter(
+                and_(
+                    ExchangeRate.date >= start_date,
+                    ExchangeRate.date <= end_date,
+                    ExchangeRate.currency == currency,
+                    ExchangeRate.rate.isnot(None)
+                )
+            )\
+            .group_by(ExchangeRate.date)\
+            .order_by(ExchangeRate.date)\
+            .all()
+
+        return {r[0]: list(r[1]) for r in result}

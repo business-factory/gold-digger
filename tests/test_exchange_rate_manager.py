@@ -2,7 +2,7 @@
 
 from decimal import Decimal
 from datetime import date
-from unittest.mock import Mock
+from unittest.mock import Mock, call
 
 import pytest
 
@@ -110,10 +110,29 @@ def test_get_exchange_rate_by_date(dao_exchange_rate, dao_provider, base_currenc
     dao_exchange_rate.get_rates_by_date_currency.side_effect = _get_rates_by_date_currency
     exchange_rate = exchange_rate_manager.get_exchange_rate_by_date(_date, "EUR", "CZK", logger)
 
-    assert exchange_rate == Decimal(24.20) * (1 / Decimal(0.89))
+    assert exchange_rate == Decimal(24.20) / Decimal(0.89)
 
 
-def test_get_exchange_rates_by_date(dao_exchange_rate, dao_provider, base_currency, logger):
+def test_get_exchange_rates_by_date__same_currencies_returns_immediately(dao_exchange_rate, dao_provider, base_currency, logger):
+    """
+    :param dao_exchange_rate: Mock of gold_digger.database.DaoExchangeRate
+    :param dao_provider: Mock of gold_digger.database.DaoProvider
+    :type base_currency: str
+    :type logger: logging.Logger
+    """
+    exchange_rate_manager = ExchangeRateManager(dao_exchange_rate, dao_provider, [], base_currency, set())
+
+    exchange_rates_by_dates = exchange_rate_manager.get_exchange_rates_by_dates(date(2016, 2, 17), date(2016, 2, 19), "EUR", "EUR", logger)
+
+    assert exchange_rates_by_dates == {
+        "2016-02-17": "1.0",
+        "2016-02-18": "1.0",
+        "2016-02-19": "1.0",
+    }
+    dao_exchange_rate.get_rates_by_dates_for_currency_in_period.assert_not_called()
+
+
+def test_get_exchange_rates_by_date__use_default_rate_for_base_from_currency(dao_exchange_rate, dao_provider, base_currency, logger):
     """
     :param dao_exchange_rate: Mock of gold_digger.database.DaoExchangeRate
     :param dao_provider: Mock of gold_digger.database.DaoProvider
@@ -121,33 +140,210 @@ def test_get_exchange_rates_by_date(dao_exchange_rate, dao_provider, base_curren
     :type logger: logging.Logger
     """
     _start_date = date(2016, 2, 17)
-    _middle_date = date(2016, 2, 18)
+    _end_date = date(2016, 2, 18)
+
+    exchange_rate_manager = ExchangeRateManager(dao_exchange_rate, dao_provider, [], base_currency, set())
+
+    def _get_rates_by_dates_for_currency_in_period(currency, start_date, end_date):
+        """
+        :type currency: str
+        :type start_date: datetime.date
+        :type end_date: datetime.date
+        :rtype: dict[datetime.date, list[decimal.Decimal]]
+        """
+        return {
+            "CZK": {
+                start_date: [Decimal(24.19), Decimal(24.19), Decimal(24.20)],
+                end_date: [Decimal(24.19), Decimal(24.20), Decimal(24.20)],
+            },
+        }[currency]
+
+    dao_exchange_rate.get_rates_by_dates_for_currency_in_period.side_effect = _get_rates_by_dates_for_currency_in_period
+
+    exchange_rates_by_dates = exchange_rate_manager.get_exchange_rates_by_dates(_start_date, _end_date, base_currency, "CZK", logger)
+
+    assert exchange_rates_by_dates == {
+        "2016-02-17": str(Decimal(24.19) / Decimal(1)),
+        "2016-02-18": str(Decimal(24.20) / Decimal(1)),
+    }
+    dao_exchange_rate.get_rates_by_dates_for_currency_in_period.assert_has_calls([
+        call("CZK", _start_date, _end_date),
+    ])
+
+
+def test_get_exchange_rates_by_date__use_default_rate_for_base_to_currency(dao_exchange_rate, dao_provider, base_currency, logger):
+    """
+    :param dao_exchange_rate: Mock of gold_digger.database.DaoExchangeRate
+    :param dao_provider: Mock of gold_digger.database.DaoProvider
+    :type base_currency: str
+    :type logger: logging.Logger
+    """
+    _start_date = date(2016, 2, 17)
+    _end_date = date(2016, 2, 18)
+
+    exchange_rate_manager = ExchangeRateManager(dao_exchange_rate, dao_provider, [], base_currency, set())
+
+    def _get_rates_by_dates_for_currency_in_period(currency, start_date, end_date):
+        """
+        :type currency: str
+        :type start_date: datetime.date
+        :type end_date: datetime.date
+        :rtype: dict[datetime.date, list[decimal.Decimal]]
+        """
+        return {
+            "EUR": {
+                start_date: [Decimal(0.88), Decimal(0.88), Decimal(0.89)],
+                end_date: [Decimal(0.88), Decimal(0.89), Decimal(0.89)],
+            },
+        }[currency]
+
+    dao_exchange_rate.get_rates_by_dates_for_currency_in_period.side_effect = _get_rates_by_dates_for_currency_in_period
+
+    exchange_rates_by_dates = exchange_rate_manager.get_exchange_rates_by_dates(_start_date, _end_date, "EUR", base_currency, logger)
+
+    assert exchange_rates_by_dates == {
+        "2016-02-17": str(Decimal(1) / Decimal(0.88)),
+        "2016-02-18": str(Decimal(1) / Decimal(0.89)),
+    }
+    dao_exchange_rate.get_rates_by_dates_for_currency_in_period.assert_has_calls([
+        call("EUR", _start_date, _end_date),
+    ])
+
+
+def test_get_exchange_rates_by_date__pick_best_rate_for_all_dates(dao_exchange_rate, dao_provider, base_currency, logger):
+    """
+    :param dao_exchange_rate: Mock of gold_digger.database.DaoExchangeRate
+    :param dao_provider: Mock of gold_digger.database.DaoProvider
+    :type base_currency: str
+    :type logger: logging.Logger
+    """
+    _start_date = date(2016, 2, 17)
+    _end_date = date(2016, 2, 18)
+
+    exchange_rate_manager = ExchangeRateManager(dao_exchange_rate, dao_provider, [], base_currency, set())
+
+    def _get_rates_by_dates_for_currency_in_period(currency, start_date, end_date):
+        """
+        :type currency: str
+        :type start_date: datetime.date
+        :type end_date: datetime.date
+        :rtype: dict[datetime.date, list[decimal.Decimal]]
+        """
+        return {
+            "EUR": {
+                start_date: [Decimal(0.88), Decimal(0.88), Decimal(0.89)],
+                end_date: [Decimal(0.88), Decimal(0.89), Decimal(0.89)],
+            },
+            "CZK": {
+                start_date: [Decimal(24.19), Decimal(24.19), Decimal(24.20)],
+                end_date: [Decimal(24.19), Decimal(24.20), Decimal(24.20)],
+            },
+        }[currency]
+
+    dao_exchange_rate.get_rates_by_dates_for_currency_in_period.side_effect = _get_rates_by_dates_for_currency_in_period
+
+    exchange_rates_by_dates = exchange_rate_manager.get_exchange_rates_by_dates(_start_date, _end_date, "EUR", "CZK", logger)
+
+    assert exchange_rates_by_dates == {
+        "2016-02-17": str(Decimal(24.19) / Decimal(0.88)),
+        "2016-02-18": str(Decimal(24.20) / Decimal(0.89)),
+    }
+    dao_exchange_rate.get_rates_by_dates_for_currency_in_period.assert_has_calls([
+        call("EUR", _start_date, _end_date),
+        call("CZK", _start_date, _end_date),
+    ])
+
+
+def test_get_exchange_rates_by_date__pick_average_rate_for_dates_missing_one_day(dao_exchange_rate, dao_provider, base_currency, logger):
+    """
+    :param dao_exchange_rate: Mock of gold_digger.database.DaoExchangeRate
+    :param dao_provider: Mock of gold_digger.database.DaoProvider
+    :type base_currency: str
+    :type logger: logging.Logger
+    """
+    _start_date = date(2016, 2, 17)
     _end_date = date(2016, 2, 19)
 
     exchange_rate_manager = ExchangeRateManager(dao_exchange_rate, dao_provider, [], base_currency, set())
 
-    def _get_rates_by_date_currency(_date, currency):
-        if _date == _middle_date:
-            raise ValueError("Missing exchange rate.")
-
+    def _get_rates_by_dates_for_currency_in_period(currency, start_date, end_date):
+        """
+        :type currency: str
+        :type start_date: datetime.date
+        :type end_date: datetime.date
+        :rtype: dict[datetime.date, list[decimal.Decimal]]
+        """
         return {
-            _start_date: {
-                "EUR": [ExchangeRate(id=1, currency="EUR", rate=Decimal(0.88), provider=Provider(name="currency_layer"))],
-                "CZK": [ExchangeRate(id=2, currency="CZK", rate=Decimal(24.19), provider=Provider(name="currency_layer"))]
+            "EUR": {
+                start_date: [Decimal(0.88), Decimal(0.88), Decimal(0.89)],
+                end_date: [Decimal(0.88), Decimal(0.89), Decimal(0.89)],
             },
-            _end_date: {
-                "EUR": [ExchangeRate(id=1, currency="EUR", rate=Decimal(0.89), provider=Provider(name="currency_layer"))],
-                "CZK": [ExchangeRate(id=2, currency="CZK", rate=Decimal(24.20), provider=Provider(name="currency_layer"))]
+            "CZK": {
+                start_date: [Decimal(24.19), Decimal(24.19), Decimal(24.20)],
+                end_date: [Decimal(24.19), Decimal(24.20), Decimal(24.20)],
             },
-        }[_date][currency]
+        }[currency]
 
-    dao_exchange_rate.get_rates_by_date_currency.side_effect = _get_rates_by_date_currency
+    dao_exchange_rate.get_rates_by_dates_for_currency_in_period.side_effect = _get_rates_by_dates_for_currency_in_period
+
+    exchange_rates_by_dates = exchange_rate_manager.get_exchange_rates_by_dates(_start_date, _end_date, "EUR", "CZK", logger)
+
+    # we use average from best yesterday and best tomorrow rates
+    best_to_currency_rate = (Decimal(24.19) + Decimal(24.20)) / 2
+    best_from_currency_rate = (Decimal(0.88) + Decimal(0.89)) / 2
+    assert exchange_rates_by_dates == {
+        "2016-02-17": str(Decimal(24.19) / Decimal(0.88)),
+        "2016-02-18": str(best_to_currency_rate / best_from_currency_rate),
+        "2016-02-19": str(Decimal(24.20) / Decimal(0.89)),
+    }
+    dao_exchange_rate.get_rates_by_dates_for_currency_in_period.assert_has_calls([
+        call("EUR", _start_date, _end_date),
+        call("CZK", _start_date, _end_date),
+    ])
+
+
+def test_get_exchange_rates_by_date__ignore_dates_missing_for_more_than_one_day(dao_exchange_rate, dao_provider, base_currency, logger):
+    """
+    :param dao_exchange_rate: Mock of gold_digger.database.DaoExchangeRate
+    :param dao_provider: Mock of gold_digger.database.DaoProvider
+    :type base_currency: str
+    :type logger: logging.Logger
+    """
+    _start_date = date(2016, 2, 17)
+    _end_date = date(2016, 2, 20)
+
+    exchange_rate_manager = ExchangeRateManager(dao_exchange_rate, dao_provider, [], base_currency, set())
+
+    def _get_rates_by_dates_for_currency_in_period(currency, start_date, end_date):
+        """
+        :type currency: str
+        :type start_date: datetime.date
+        :type end_date: datetime.date
+        :rtype: dict[datetime.date, list[decimal.Decimal]]
+        """
+        return {
+            "EUR": {
+                start_date: [Decimal(0.88), Decimal(0.88), Decimal(0.89)],
+                end_date: [Decimal(0.88), Decimal(0.89), Decimal(0.89)],
+            },
+            "CZK": {
+                start_date: [Decimal(24.19), Decimal(24.19), Decimal(24.20)],
+                end_date: [Decimal(24.19), Decimal(24.20), Decimal(24.20)],
+            },
+        }[currency]
+
+    dao_exchange_rate.get_rates_by_dates_for_currency_in_period.side_effect = _get_rates_by_dates_for_currency_in_period
+
     exchange_rates_by_dates = exchange_rate_manager.get_exchange_rates_by_dates(_start_date, _end_date, "EUR", "CZK", logger)
 
     assert exchange_rates_by_dates == {
-        "2016-02-17": str(Decimal(24.19) * (1 / Decimal(0.88))),
-        "2016-02-19": str(Decimal(24.20) * (1 / Decimal(0.89))),
+        "2016-02-17": str(Decimal(24.19) / Decimal(0.88)),
+        "2016-02-20": str(Decimal(24.20) / Decimal(0.89)),
     }
+    dao_exchange_rate.get_rates_by_dates_for_currency_in_period.assert_has_calls([
+        call("EUR", _start_date, _end_date),
+        call("CZK", _start_date, _end_date),
+    ])
 
 
 def test_get_average_exchange_rate_by_dates(dao_exchange_rate, dao_provider, base_currency, logger):
@@ -180,50 +376,30 @@ def test_get_average_exchange_rate_by_dates(dao_exchange_rate, dao_provider, bas
 
 
 def test_pick_rate_from_any_provider_if_rates_are_same():
-    best = ExchangeRateManager.pick_the_best([
-        ExchangeRate(id=1, provider_id=1, rate=Decimal(0.5)),
-        ExchangeRate(id=2, provider_id=2, rate=Decimal(0.5)),
-        ExchangeRate(id=3, provider_id=3, rate=Decimal(0.5))
-    ])
+    best = ExchangeRateManager.pick_the_best([Decimal(0.5), Decimal(0.5), Decimal(0.5)])
 
-    assert best.id in (1, 2, 3)
+    assert best == 0.5
 
 
 def test_pick_middle_rate_if_it_exists():
-    best = ExchangeRateManager.pick_the_best([
-        ExchangeRate(id=1, provider_id=1, rate=Decimal(0.0)),
-        ExchangeRate(id=2, provider_id=2, rate=Decimal(0.5)),
-        ExchangeRate(id=3, provider_id=3, rate=Decimal(1.0))
-    ])
+    best = ExchangeRateManager.pick_the_best([Decimal(0.0), Decimal(0.5), Decimal(1.0)])
 
-    assert best.id == 2
+    assert best == 0.5
 
 
 def test_pick_middle_rate_if_it_exists2():
-    best = ExchangeRateManager.pick_the_best([
-        ExchangeRate(id=1, provider_id=1, rate=Decimal(1.5)),
-        ExchangeRate(id=2, provider_id=2, rate=Decimal(0.5)),
-        ExchangeRate(id=3, provider_id=3, rate=Decimal(1.0))
-    ])
+    best = ExchangeRateManager.pick_the_best([Decimal(1.5), Decimal(0.5), Decimal(1.0)])
 
-    assert best.id == 3
+    assert best == 1.0
 
 
 def test_pick_rate_from_pair_of_same_rates_by_order_of_providers():
-    best = ExchangeRateManager.pick_the_best([
-        ExchangeRate(id=1, rate=Decimal(0.0)),
-        ExchangeRate(id=2, rate=Decimal(0.7)),
-        ExchangeRate(id=3, rate=Decimal(0.7))
-    ])
+    best = ExchangeRateManager.pick_the_best([Decimal(0.0), Decimal(0.7), Decimal(0.7)])
 
-    assert best.id == 2
+    assert best == 0.7
 
 
 def test_pick_rate_from_most_similar_pair_of_rates_by_order_of_providers():
-    best = ExchangeRateManager.pick_the_best([
-        ExchangeRate(id=1, rate=Decimal(0.02)),
-        ExchangeRate(id=2, rate=Decimal(0.72)),
-        ExchangeRate(id=3, rate=Decimal(0.74))
-    ])
+    best = ExchangeRateManager.pick_the_best([Decimal(0.02), Decimal(0.72), Decimal(0.74)])
 
-    assert best.id == 2
+    assert best == 0.72
