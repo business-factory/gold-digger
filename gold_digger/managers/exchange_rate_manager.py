@@ -189,8 +189,8 @@ class ExchangeRateManager:
 
         for date_ in dates:
             try:
-                best_from_currency_rate = self._calculate_best_exchange_rate(db_rates_by_dates_for_from_currency, date_)
-                best_to_currency_rate = self._calculate_best_exchange_rate(db_rates_by_dates_for_to_currency, date_)
+                best_from_currency_rate = self._calculate_best_exchange_rate(db_rates_by_dates_for_from_currency, date_, from_currency, logger)
+                best_to_currency_rate = self._calculate_best_exchange_rate(db_rates_by_dates_for_to_currency, date_, to_currency, logger)
             except ValueError:  # missing exchange rate for given date
                 logger.warning("Could not determine exchange rate. Date: %s. From currency: %s. To currency: %s", date_, from_currency, to_currency)
                 pass
@@ -199,10 +199,12 @@ class ExchangeRateManager:
 
         return exchange_rates_by_dates
 
-    def _calculate_best_exchange_rate(self, db_rates_by_dates_for_currency, date_):
+    def _calculate_best_exchange_rate(self, db_rates_by_dates_for_currency, date_, currency, logger):
         """
         :type db_rates_by_dates_for_currency: dict[datetime.date, list[decimal.Decimal]]
         :type date_: datetime.date
+        :type currency: str
+        :type logger: gold_digger.utils.ContextLogger
         :rtype: decimal.Decimal
         """
         db_rates = db_rates_by_dates_for_currency.get(date_)
@@ -215,6 +217,8 @@ class ExchangeRateManager:
         # raises ValueError if any rates are missing
         best_yesterday_rate = self.pick_the_best(yesterday_db_rates)
         best_tomorrow_rate = self.pick_the_best(tomorrow_db_rates)
+
+        logger.warning("Using average of yesterday's and tomorrow's rate. Date: %s. Currency: %s.", date_, currency)
 
         # return average from yesterday and tomorrow rate
         return (best_yesterday_rate + best_tomorrow_rate) / 2
