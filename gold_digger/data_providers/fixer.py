@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from datetime import date, timedelta
+from operator import attrgetter
+
+from cachetools import cachedmethod, keys
 
 from ._provider import Provider
 
@@ -9,8 +12,9 @@ class Fixer(Provider):
     """
     Base currency is in EUR and cannot be changed in free subscription.
     We have to convert exchange rates to base currency (USD) before returning the rates from the provider.
+    https://fixer.io/documentation
     """
-    BASE_URL = "http://data.fixer.io/api/{date}?access_key=%s"
+    BASE_URL = "http://data.fixer.io/api/{path}?access_key=%s"
     name = "fixer.io"
 
     def __init__(self, access_key, logger, *args, **kwargs):
@@ -24,29 +28,20 @@ class Fixer(Provider):
         else:
             logger.critical("You need an access token to use Fixer provider!")
             self._url = self.BASE_URL % ""
-        self._supported_currencies = {}
 
+    @cachedmethod(cache=attrgetter("_cache"), key=lambda date_of_exchange, _: keys.hashkey(date_of_exchange))
     def get_supported_currencies(self, date_of_exchange, logger):
         """
         :type date_of_exchange: datetime.date
         :type logger: gold_digger.utils.ContextLogger
         :rtype: set[str]
         """
-        currencies = self._supported_currencies.get(date_of_exchange)
-        if currencies:
-            return currencies
-
         currencies = set()
-        response = self._get(self._url.format(date=date_of_exchange.isoformat()), logger=logger)
+        response = self._get(self._url.format(path="symbols"), logger=logger)
         if response:
             response = response.json()
             if response.get("success"):
-                currencies = set((response.get("rates") or {}).keys())
-            elif response["error"]["type"] == "invalid_date":
-                # Fixer returns error `invalid_date` if the date is in future
-                # We refresh supported currencies at midnight and Fixer thinks that today date is future date
-                # We should not cache such wrong result and try again later
-                return currencies
+                currencies = set((response.get("symbols") or {}).keys())
             else:
                 logger.error("Fixer supported currencies not found. Error: %s. Date: %s", response, date_of_exchange.isoformat())
         else:
@@ -54,8 +49,6 @@ class Fixer(Provider):
 
         if currencies:
             logger.debug("Fixer supported currencies: %s", currencies)
-
-        self._supported_currencies = {date_of_exchange: currencies}
 
         return currencies
 
@@ -80,7 +73,7 @@ class Fixer(Provider):
         date_of_exchange_string = date_of_exchange.strftime("%Y-%m-%d")
         day_rates_in_eur = {}
 
-        url = self._url.format(date=date_of_exchange_string)
+        url = self._url.format(path=date_of_exchange_string)
         response = self._get(url, logger=logger)
 
         if response:
@@ -150,7 +143,7 @@ class Fixer(Provider):
         """
         logger.debug("Requesting Fixer for %s (%s)", currency, date_of_exchange, extra={"currency": currency, "date": date_of_exchange})
 
-        url = self._url.format(date=date_of_exchange)
+        url = self._url.format(path=date_of_exchange)
         response = self._get(url, params={"symbols": "%s,%s" % (self.base_currency, currency)}, logger=logger)
         if response:
             try:

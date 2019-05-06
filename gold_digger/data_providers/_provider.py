@@ -5,6 +5,7 @@ from decimal import Decimal, InvalidOperation
 
 import requests
 import requests.exceptions
+from cachetools import Cache
 
 
 class Provider(metaclass=ABCMeta):
@@ -15,6 +16,8 @@ class Provider(metaclass=ABCMeta):
         :type base_currency: str
         """
         self._base_currency = base_currency
+
+        self._cache = Cache(maxsize=1)
 
     @property
     def base_currency(self):

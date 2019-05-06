@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from datetime import date, timedelta
-from functools import lru_cache
+from operator import attrgetter
 
 import requests
+from cachetools import cachedmethod, keys
 
 from ._provider import Provider
 
@@ -16,7 +17,7 @@ class RatesAPI(Provider):
     BASE_URL = "http://api.ratesapi.io/api/{date}"
     name = "rates_api"
 
-    @lru_cache(maxsize=1)
+    @cachedmethod(cache=attrgetter("_cache"), key=lambda date_of_exchange, _: keys.hashkey(date_of_exchange))
     def get_supported_currencies(self, date_of_exchange, logger):
         """
         :type date_of_exchange: datetime.date
