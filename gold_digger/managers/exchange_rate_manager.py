@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 from itertools import combinations
 from collections import defaultdict, Counter
@@ -89,30 +89,30 @@ class ExchangeRateManager:
         return exchange_rates
 
     @staticmethod
-    def pick_the_best(rates_records):
+    def pick_the_best(rates):
         """
         Compare rates to each other and group then by absolute difference.
         If there is group with minimal difference of two rates, choose one of them according the order of providers.
         If there is group with minimal difference with more than two rates, choose rate in the middle / aka most common rate in the list.
 
-        :type rates_records: list[gold_digger.database.db_model.ExchangeRate]
-        :rtype: gold_digger.database.db_model.ExchangeRate
+        :type rates: None | list[float | decimal.Decimal]
+        :rtype: float | decimal.Decimal
         """
-        if not rates_records:
+        if not rates:
             raise ValueError("Missing exchange rate.")
 
-        if len(rates_records) in (1, 2):
-            return rates_records[0]
+        if len(rates) in (1, 2):
+            return rates[0]
 
         differences = defaultdict(list)
-        for a, b in combinations(rates_records, 2):
-            differences[abs(a.rate - b.rate)].extend((a, b))  # if (a,b)=1 and (b,c)=1 then differences[1]=[a,b,b,c]
+        for a, b in combinations(rates, 2):
+            differences[abs(a - b)].extend((a, b))  # if (a,b)=1 and (b,c)=1 then differences[1]=[a,b,b,c]
 
         minimal_difference, rates = min(differences.items())
         if len(rates) == 2:
             return rates[0]
         else:
-            return Counter(rates).most_common(1)[0][0]  # [(ExchangeRate, occurrences)]
+            return Counter(rates).most_common(1)[0][0]  # [(decimal.Decimal, occurrences)]
 
     @staticmethod
     def future_date_to_today(date_of_exchange, logger):
@@ -143,14 +143,85 @@ class ExchangeRateManager:
         _from_currency_all_available = self.get_or_update_rate_by_date(date_of_exchange, from_currency, logger)
         _to_currency_all_available = self.get_or_update_rate_by_date(date_of_exchange, to_currency, logger)
 
-        _from_currency = self.pick_the_best(_from_currency_all_available)
-        _to_currency = self.pick_the_best(_to_currency_all_available)
+        _from_currency_rates = [r.rate for r in _from_currency_all_available]
+        _to_currency_rates = [r.rate for r in _to_currency_all_available]
 
-        logger.debug("Pick best rate for %s: %s of [%s]", from_currency, _from_currency.rate, ", ".join(str(r.rate) for r in _from_currency_all_available))
-        logger.debug("Pick best rate for %s: %s of [%s]", to_currency, _to_currency.rate, ", ".join(str(r.rate) for r in _to_currency_all_available))
+        _from_currency = self.pick_the_best(_from_currency_rates)
+        _to_currency = self.pick_the_best(_to_currency_rates)
 
-        conversion = 1 / _from_currency.rate
-        return Decimal(_to_currency.rate * conversion)
+        logger.debug("Pick best rate for %s: %s of [%s]", from_currency, _from_currency, ", ".join(map(str, _from_currency_rates)))
+        logger.debug("Pick best rate for %s: %s of [%s]", to_currency, _to_currency, ", ".join(map(str, _to_currency_rates)))
+
+        return Decimal(_to_currency / _from_currency)
+
+    def get_exchange_rates_by_dates(self, start_date, end_date, from_currency, to_currency, logger):
+        """
+        Return exchange rate for each date in range.
+        If one day is missing exchange rate, use average from yesterday and tomorrow date.
+        If more days after each other are missing exchange rate, ignore them.
+
+        :type start_date: datetime.date
+        :type end_date: datetime.date
+        :type from_currency: str
+        :type to_currency: str
+        :type logger: gold_digger.utils.ContextLogger
+        :rtype: dict[str, str]
+        """
+        if start_date > end_date:
+            start_date, end_date = end_date, start_date
+
+        dates = [start_date + timedelta(days=i) for i in range((end_date - start_date).days + 1)]
+
+        if from_currency == to_currency:
+            return {d.strftime(format="%Y-%m-%d"): "1.0" for d in dates}
+
+        exchange_rates_by_dates = {}
+
+        if from_currency == self._base_currency:
+            db_rates_by_dates_for_from_currency = {d: [Decimal(1)] for d in dates}
+        else:
+            db_rates_by_dates_for_from_currency = self._dao_exchange_rate.get_rates_by_dates_for_currency_in_period(from_currency, start_date, end_date)
+
+        if to_currency == self._base_currency:
+            db_rates_by_dates_for_to_currency = {d: [Decimal(1)] for d in dates}
+        else:
+            db_rates_by_dates_for_to_currency = self._dao_exchange_rate.get_rates_by_dates_for_currency_in_period(to_currency, start_date, end_date)
+
+        for date_ in dates:
+            try:
+                best_from_currency_rate = self._calculate_best_exchange_rate(db_rates_by_dates_for_from_currency, date_, from_currency, logger)
+                best_to_currency_rate = self._calculate_best_exchange_rate(db_rates_by_dates_for_to_currency, date_, to_currency, logger)
+            except ValueError:  # missing exchange rate for given date
+                logger.warning("Could not determine exchange rate. Date: %s. From currency: %s. To currency: %s", date_, from_currency, to_currency)
+                pass
+            else:
+                exchange_rates_by_dates[date_.strftime(format="%Y-%m-%d")] = str(best_to_currency_rate / best_from_currency_rate)
+
+        return exchange_rates_by_dates
+
+    def _calculate_best_exchange_rate(self, db_rates_by_dates_for_currency, date_, currency, logger):
+        """
+        :type db_rates_by_dates_for_currency: dict[datetime.date, list[decimal.Decimal]]
+        :type date_: datetime.date
+        :type currency: str
+        :type logger: gold_digger.utils.ContextLogger
+        :rtype: decimal.Decimal
+        """
+        db_rates = db_rates_by_dates_for_currency.get(date_)
+        if db_rates:
+            return self.pick_the_best(db_rates)
+
+        yesterday_db_rates = db_rates_by_dates_for_currency.get(date_ - timedelta(days=1))
+        tomorrow_db_rates = db_rates_by_dates_for_currency.get(date_ + timedelta(days=1))
+
+        # raises ValueError if any rates are missing
+        best_yesterday_rate = self.pick_the_best(yesterday_db_rates)
+        best_tomorrow_rate = self.pick_the_best(tomorrow_db_rates)
+
+        logger.warning("Using average of yesterday's and tomorrow's rate. Date: %s. Currency: %s.", date_, currency)
+
+        # return average from yesterday and tomorrow rate
+        return (best_yesterday_rate + best_tomorrow_rate) / 2
 
     def _get_sum_of_rates_in_period(self, start_date, end_date, currency):
         """
