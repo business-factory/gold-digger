@@ -73,6 +73,7 @@ pipeline {
                                     roihunter.azurecr.io/golddigger/master \
                                     ${command}
 
+                                yes | docker image prune || exit 1
                                 exit
                                 EOF"""
                         }
