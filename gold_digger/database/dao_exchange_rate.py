@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from sqlalchemy import and_, func
+from sqlalchemy.dialects.postgresql import aggregate_order_by
 from sqlalchemy.exc import IntegrityError
 
 from .db_model import ExchangeRate
@@ -110,7 +111,10 @@ class DaoExchangeRate:
         :rtype: dict[datetime.date, list[decimal.Decimal]]
         """
         result = self.db_session\
-            .query(ExchangeRate.date, func.array_agg(ExchangeRate.rate))\
+            .query(
+                ExchangeRate.date,
+                func.array_agg(aggregate_order_by(ExchangeRate.rate, ExchangeRate.provider_id.asc()))
+            )\
             .filter(
                 and_(
                     ExchangeRate.date >= start_date,
