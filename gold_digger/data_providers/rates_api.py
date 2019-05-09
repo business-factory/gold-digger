@@ -47,8 +47,8 @@ class RatesAPI(Provider):
         :type logger: gold_digger.utils.ContextLogger
         :rtype: dict[str, decimal.Decimal]
         """
-        logger.debug("Rates API - Requesting rates for all currencies (%s)", date_of_exchange, extra={"date": date_of_exchange})
         date_of_exchange_string = date_of_exchange.strftime("%Y-%m-%d")
+        logger.debug("Rates API - Requesting rates for all currencies (%s)", date_of_exchange_string, extra={"date": date_of_exchange_string})
         day_rates = {}
 
         url = self.BASE_URL.format(date=date_of_exchange_string)
@@ -83,12 +83,14 @@ class RatesAPI(Provider):
         :type logger: gold_digger.utils.ContextLogger
         :rtype: decimal.Decimal | None
         """
-        logger.debug("Rates API - Requesting rates for %s (%s)", currency, date_of_exchange, extra={"currency": currency, "date": date_of_exchange})
+        date_of_exchange_string = date_of_exchange.strftime("%Y-%m-%d")
+        logger.debug(
+            "Rates API - Requesting rates for %s (%s)",
+            currency, date_of_exchange_string, extra={"currency": currency, "date": date_of_exchange_string},
+        )
 
         if currency == "EUR" and self.base_currency == "EUR":  # Rates API in this combination returns error
             return self._to_decimal(1, "EUR", logger=logger)
-
-        date_of_exchange_string = date_of_exchange.strftime("%Y-%m-%d")
 
         url = self.BASE_URL.format(date=date_of_exchange_string)
         response = self._get(url, params={"symbols": currency, "base": self.base_currency}, logger=logger)
