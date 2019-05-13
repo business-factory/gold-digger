@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 
-from decimal import Decimal
 from datetime import date, timedelta
+from decimal import Decimal
 from unittest.mock import Mock, call
 
 import pytest
 
 from gold_digger.data_providers import CurrencyLayer, GrandTrunk
-from gold_digger.database.db_model import ExchangeRate, Provider
 from gold_digger.database.dao_exchange_rate import DaoExchangeRate
 from gold_digger.database.dao_provider import DaoProvider
+from gold_digger.database.db_model import ExchangeRate, Provider
 from gold_digger.managers.exchange_rate_manager import ExchangeRateManager
 
 
@@ -96,58 +96,59 @@ def test_get_or_update_rate_by_date(dao_exchange_rate, dao_provider, currency_la
     assert len(exchange_rates) == 2
 
 
-def test_get_or_update_rate_by_date_today_after_cron_update(dao_exchange_rate, dao_provider, currency_layer, grandtrunk, base_currency, currencies, logger):
+def test_get_or_update_rate_by_date__today_after_cron_update(dao_exchange_rate, dao_provider, currency_layer, grandtrunk, base_currency, currencies, logger):
     """
     Get all rates by date.
 
     Case: 2 providers, both rates are in DB as well as yesterday's data. No requests for yesterday should be made.
 
     """
-    _today = date.today()
-    _yesterday = _today - timedelta(1)
+    today = date.today()
+    yesterday = today - timedelta(1)
 
     exchange_rate_manager = ExchangeRateManager(dao_exchange_rate, dao_provider, [currency_layer, grandtrunk], base_currency, currencies)
 
     grandtrunk.get_by_date.return_value = Decimal(0.75)
     dao_exchange_rate.get_rates_by_date_currency.return_value = [
-        ExchangeRate(provider=Provider(name="currency_layer"), date=_today, currency="EUR", rate=Decimal(0.77)),
-        ExchangeRate(provider=Provider(name="grandtrunk"), date=_today, currency="EUR", rate=Decimal(0.75)),
+        ExchangeRate(provider=Provider(name="currency_layer"), date=today, currency="EUR", rate=Decimal(0.77)),
+        ExchangeRate(provider=Provider(name="grandtrunk"), date=today, currency="EUR", rate=Decimal(0.75)),
     ]
     dao_exchange_rate.get_rate_by_date_currency_provider.return_value = []
 
-    exchange_rates = exchange_rate_manager.get_or_update_rate_by_date(_today, currency="EUR", logger=logger)
+    exchange_rates = exchange_rate_manager.get_or_update_rate_by_date(today, currency="EUR", logger=logger)
 
     assert dao_exchange_rate.get_rate_by_date_currency_provider.call_count == 0
     assert len(exchange_rates) == 2
 
 
-def test_get_or_update_rate_by_date_today_before_cron_update(dao_exchange_rate, dao_provider, currency_layer, grandtrunk, base_currency, currencies, logger):
+def test_get_or_update_rate_by_date__today_before_cron_update(dao_exchange_rate, dao_provider, currency_layer, grandtrunk, base_currency, currencies, logger):
     """
     Get all rates by date.
 
     Case: 2 providers, rate of provider 'currency_layer' is in DB, rate of provider 'grandtrunk' miss, the date is today, yesterday's rates are in DB.
           Get rate for missing provider from yesterday. Finally return list of all rates of the day (all provider rates).
     """
-    _today = date.today()
-    _yesterday = _today - timedelta(1)
+    today = date.today()
+    yesterday = today - timedelta(1)
 
     exchange_rate_manager = ExchangeRateManager(dao_exchange_rate, dao_provider, [currency_layer, grandtrunk], base_currency, currencies)
 
     grandtrunk.get_by_date.return_value = Decimal(0.75)
     dao_exchange_rate.get_rates_by_date_currency.return_value = [
-        ExchangeRate(provider=Provider(name="currency_layer"), date=_today, currency="EUR", rate=Decimal(0.77))
+        ExchangeRate(provider=Provider(name="currency_layer"), date=today, currency="EUR", rate=Decimal(0.77))
     ]
     dao_exchange_rate.get_rate_by_date_currency_provider.return_value = [
-        ExchangeRate(provider=Provider(name="grandtrunk"), date=_yesterday, currency="EUR", rate=Decimal(0.75))
+        ExchangeRate(provider=Provider(name="grandtrunk"), date=yesterday, currency="EUR", rate=Decimal(0.75))
     ]
 
-    exchange_rates = exchange_rate_manager.get_or_update_rate_by_date(_today, currency="EUR", logger=logger)
+    exchange_rates = exchange_rate_manager.get_or_update_rate_by_date(today, currency="EUR", logger=logger)
 
     assert dao_exchange_rate.get_rate_by_date_currency_provider.call_count == 1
+    assert dao_exchange_rate.get_rate_by_date_currency_provider.call_args[0] == (yesterday, "EUR", "grandtrunk")
     assert len(exchange_rates) == 2
 
 
-def test_get_or_update_rate_by_date_today_before_cron_update_no_yesterday_rates(dao_exchange_rate, dao_provider, currency_layer, grandtrunk, base_currency,
+def test_get_or_update_rate_by_date__today_before_cron_update_no_yesterday_rates(dao_exchange_rate, dao_provider, currency_layer, grandtrunk, base_currency,
                                                                                 currencies, logger):
     """
     Get all rates by date.
@@ -156,26 +157,27 @@ def test_get_or_update_rate_by_date_today_before_cron_update_no_yesterday_rates(
           Try to get rate for missing provider from yesterday, fail and request from API, store to DB.
           Finally return list of all rates of the day (all provider rates).
     """
-    _today = date.today()
-    _yesterday = _today - timedelta(1)
+    today = date.today()
+    yesterday = today - timedelta(1)
 
     exchange_rate_manager = ExchangeRateManager(dao_exchange_rate, dao_provider, [currency_layer, grandtrunk], base_currency, currencies)
 
     grandtrunk.get_by_date.return_value = Decimal(0.75)
     dao_exchange_rate.get_rates_by_date_currency.return_value = [
-        ExchangeRate(provider=Provider(name="currency_layer"), date=_today, currency="EUR", rate=Decimal(0.77))
+        ExchangeRate(provider=Provider(name="currency_layer"), date=today, currency="EUR", rate=Decimal(0.77))
     ]
     dao_exchange_rate.get_rate_by_date_currency_provider.return_value = []
     dao_exchange_rate.insert_new_rate.return_value = [
-        ExchangeRate(provider=Provider(name="grandtrunk"), date=_today, currency="EUR", rate=Decimal(0.75))
+        ExchangeRate(provider=Provider(name="grandtrunk"), date=today, currency="EUR", rate=Decimal(0.75))
     ]
 
-    exchange_rates = exchange_rate_manager.get_or_update_rate_by_date(_today, currency="EUR", logger=logger)
+    exchange_rates = exchange_rate_manager.get_or_update_rate_by_date(today, currency="EUR", logger=logger)
     insert_new_rate_args, _ = dao_exchange_rate.insert_new_rate.call_args
 
     assert dao_exchange_rate.insert_new_rate.call_count == 1
     assert insert_new_rate_args[1].name == "grandtrunk"
     assert dao_exchange_rate.get_rate_by_date_currency_provider.call_count == 1
+    assert dao_exchange_rate.get_rate_by_date_currency_provider.call_args[0] == (yesterday, "EUR", "grandtrunk")
     assert len(exchange_rates) == 2
 
 
