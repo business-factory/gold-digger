@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from abc import ABCMeta, abstractmethod
+from datetime import date
 from decimal import Decimal, InvalidOperation
+from functools import wraps
 
 import requests
 import requests.exceptions
@@ -16,6 +18,7 @@ class Provider(metaclass=ABCMeta):
         :type base_currency: str
         """
         self._base_currency = base_currency
+        self.request_limit_reached = False
 
         self._cache = Cache(maxsize=1)
 
@@ -97,3 +100,36 @@ class Provider(metaclass=ABCMeta):
 
     def __str__(self):
         return self.name
+
+    @staticmethod
+    def _get_today_day():
+        """
+        Return today's day as number. This method simplifies testing.
+        :rtype: int
+        """
+        return date.today().day
+
+    @staticmethod
+    def check_request_limit(return_value, name="", logger_index=0):
+        """
+        Check request limit and prevent API call if the limit was exceeded. Logger index is position of logger in *args (without self).
+        :type return_value: any 
+        :type name: str
+        :type logger_index: int
+        """
+        def decorator(func):
+            @wraps(func)
+            def wrapper(self, *args, **kwargs):
+                is_first_day_in_month = Provider._get_today_day() == 1
+                if is_first_day_in_month:
+                    self.request_limit_reached = False
+
+                if not self.request_limit_reached:
+                    return func(self, *args, **kwargs)
+                else:
+                    args[logger_index].warning("{} API limit was exceeded. Rate won't be requested.".format(name))
+                    return return_value
+
+            return wrapper
+
+        return decorator

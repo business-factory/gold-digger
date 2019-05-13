@@ -29,7 +29,6 @@ class CurrencyLayer(Provider):
         else:
             logger.critical("You need an access token to use CurrencyLayer provider!")
             self._url = self.BASE_URL % ""
-        self._requestLimitReached = False
 
     @cachedmethod(cache=attrgetter("_cache"), key=lambda date_of_exchange, _: keys.hashkey(date_of_exchange))
     def get_supported_currencies(self, date_of_exchange, logger):
@@ -48,6 +47,7 @@ class CurrencyLayer(Provider):
             logger.error("CurrencyLayer supported currencies not found.")
         return currencies
 
+    @Provider.check_request_limit(None, name="CurrencyLayer", logger_index=2)
     def get_by_date(self, date_of_exchange, currency, logger):
         """
         :type date_of_exchange: datetime.date
@@ -55,8 +55,6 @@ class CurrencyLayer(Provider):
         :type logger: gold_digger.utils.ContextLogger
         :rtype: decimal.Decimal | None
         """
-        if not self.check_request_limit(logger):
-            return None
 
         date_str = date_of_exchange.strftime("%Y-%m-%d")
         logger.debug("Requesting CurrencyLayer for %s (%s)", currency, date_str, extra={"currency": currency, "date": date_str})
@@ -68,7 +66,8 @@ class CurrencyLayer(Provider):
             if response["success"]:
                 records = response.get("quotes", {})
             elif response["error"]["code"] == 104:
-                self._requestLimitReached = True
+                logger.warning("CurrencyLayer - Requests limit exceeded.")
+                self.request_limit_reached = True
                 logger.warning(
                     "CurrencyLayer unsuccessful request. Error: %s", response.get("error", {}).get("info"), extra={"currency": currency, "date": date_str}
                 )
@@ -80,6 +79,7 @@ class CurrencyLayer(Provider):
         value = records.get("%s%s" % (self.base_currency, currency))
         return self._to_decimal(value, currency, logger=logger) if value is not None else None
 
+    @Provider.check_request_limit({}, name="CurrencyLayer", logger_index=2)
     def get_all_by_date(self, date_of_exchange, currencies, logger):
         """
         :type date_of_exchange: datetime.date
@@ -87,8 +87,6 @@ class CurrencyLayer(Provider):
         :type logger: gold_digger.utils.ContextLogger
         :rtype: dict[str, decimal.Decimal | None]
         """
-        if not self.check_request_limit(logger):
-            return {}
 
         response = self._get(f"{self._url}&date={date_of_exchange.strftime('%Y-%m-%d')}&currencies={','.join(currencies)}", logger=logger)
         records = {}
@@ -97,7 +95,8 @@ class CurrencyLayer(Provider):
             if response["success"]:
                 records = response.get("quotes", {})
             elif response["error"]["code"] == 104:
-                self._requestLimitReached = True
+                logger.warning("CurrencyLayer - Requests limit exceeded.")
+                self.request_limit_reached = True
                 return {}
         else:
             return {}
@@ -109,6 +108,7 @@ class CurrencyLayer(Provider):
                 day_rates[currency] = decimal_value
         return day_rates
 
+    @Provider.check_request_limit({}, name="CurrencyLayer", logger_index=2)
     def get_historical(self, origin_date, currencies, logger):
         """
         :type origin_date: datetime.date
@@ -116,8 +116,6 @@ class CurrencyLayer(Provider):
         :type logger: gold_digger.utils.ContextLogger
         :rtype: dict[date, dict[str, decimal.Decimal]]
         """
-        if not self.check_request_limit(logger):
-            return {}
 
         day_rates = defaultdict(dict)
         date_of_exchange = origin_date
@@ -131,7 +129,8 @@ class CurrencyLayer(Provider):
                 if response["success"]:
                     records = response.get("quotes", {})
                 elif response["error"]["code"] == 104:
-                    self._requestLimitReached = True
+                    logger.warning("CurrencyLayer - Requests limit exceeded.")
+                    self.request_limit_reached = True
                     return {}
             else:
                 return {}
@@ -143,17 +142,3 @@ class CurrencyLayer(Provider):
             date_of_exchange = date_of_exchange + timedelta(1)
 
         return day_rates
-
-    def check_request_limit(self, logger):
-        if self._requestLimitReached:
-            if self._get_today_day() == 1:
-                self._requestLimitReached = False
-                return True
-            else:
-                logger.debug("Currency Layer monthly requests limit was reached.")
-                return False
-        return True
-
-    @staticmethod
-    def _get_today_day():
-        return date.today().day

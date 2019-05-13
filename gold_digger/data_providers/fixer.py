@@ -28,8 +28,8 @@ class Fixer(Provider):
         else:
             logger.critical("You need an access token to use Fixer provider!")
             self._url = self.BASE_URL % ""
-        self._requestLimitReached = False
 
+    @Provider.check_request_limit(set(), name="Fixer.io", logger_index=1)
     @cachedmethod(cache=attrgetter("_cache"), key=lambda date_of_exchange, _: keys.hashkey(date_of_exchange))
     def get_supported_currencies(self, date_of_exchange, logger):
         """
@@ -37,9 +37,6 @@ class Fixer(Provider):
         :type logger: gold_digger.utils.ContextLogger
         :rtype: set[str]
         """
-        if not self.check_request_limit(logger):
-            return set()
-
         currencies = set()
         response = self._get(self._url.format(path="symbols"), logger=logger)
         if response:
@@ -52,7 +49,7 @@ class Fixer(Provider):
                 # We should not cache such wrong result and try again later
                 return currencies
             elif response["error"]["code"] == 104:
-                self._requestLimitReached = True
+                self.request_limit_reached = True
             else:
                 logger.error("Fixer supported currencies not found. Error: %s. Date: %s", response, date_of_exchange.isoformat())
         else:
@@ -73,6 +70,7 @@ class Fixer(Provider):
         date_of_exchange_string = date_of_exchange.strftime("%Y-%m-%d")
         return self._get_by_date(date_of_exchange_string, currency, logger)
 
+    @Provider.check_request_limit({}, name="Fixer.io", logger_index=2)
     def get_all_by_date(self, date_of_exchange, currencies, logger):
         """
         :type date_of_exchange: datetime.date
@@ -80,9 +78,6 @@ class Fixer(Provider):
         :type logger: gold_digger.utils.ContextLogger
         :rtype: dict[str, decimal.Decimal]
         """
-
-        if not self.check_request_limit(logger):
-            return {}
 
         logger.debug("Fixer.io - get all for date %s", date_of_exchange)
         date_of_exchange_string = date_of_exchange.strftime("%Y-%m-%d")
@@ -96,7 +91,7 @@ class Fixer(Provider):
                 response = response.json()
                 if not response.get("success"):
                     if response["error"]["code"] == 104:
-                        self._requestLimitReached = True
+                        self.request_limit_reached = True
                     logger.error("Fixer.io - Unsuccessful response. Response: %s", response)
                     return {}
 
@@ -151,6 +146,7 @@ class Fixer(Provider):
 
         return historical_rates
 
+    @Provider.check_request_limit(None, name="Fixer.io", logger_index=2)
     def _get_by_date(self, date_of_exchange, currency, logger):
         """
         :type date_of_exchange: str
@@ -159,19 +155,18 @@ class Fixer(Provider):
         :rtype: decimal.Decimal | None
         """
 
-        if not self.check_request_limit(logger):
-            return None
-
         logger.debug("Requesting Fixer for %s (%s)", currency, date_of_exchange, extra={"currency": currency, "date": date_of_exchange})
 
         url = self._url.format(path=date_of_exchange)
         response = self._get(url, params={"symbols": "%s,%s" % (self.base_currency, currency)}, logger=logger)
+
         if response:
             try:
                 response = response.json()
                 if not response.get("success"):
                     if response["error"]["code"] == 104:
-                        self._requestLimitReached = True
+                        logger.warning("Fixer.io - Requests limit exceeded.")
+                        self.request_limit_reached = True
                     logger.error("Fixer.io - Unsuccessful response. Response: %s", response)
                     return None
 
@@ -185,17 +180,3 @@ class Fixer(Provider):
 
             except Exception:
                 logger.exception("Fixer.io - Exception while parsing of the HTTP response.")
-
-    def check_request_limit(self, logger):
-        if self._requestLimitReached:
-            if self._get_today_day() == 1:
-                self._requestLimitReached = False
-                return True
-            else:
-                logger.debug("Fixer monthly requests limit was reached.")
-                return False
-        return True
-
-    @staticmethod
-    def _get_today_day():
-        return date.today().day

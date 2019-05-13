@@ -6,6 +6,8 @@ from unittest.mock import Mock
 import pytest
 from requests import Response
 
+from gold_digger.data_providers import Provider
+
 
 @pytest.fixture
 def response():
@@ -33,7 +35,7 @@ def test_fixer_reach_monthly_limit(currency_layer, response, logger):
 
     rate = currency_layer.get_by_date(date(2019, 4, 29), "USD", logger)
 
-    assert currency_layer._requestLimitReached
+    assert currency_layer.request_limit_reached is True
     assert currency_layer._get.call_count == 1
     assert rate is None
 
@@ -42,8 +44,8 @@ def test_fixer_reach_monthly_limit(currency_layer, response, logger):
     assert currency_layer._get.call_count == 1
     assert rate is None
 
-    currency_layer._get_today_day = Mock()
-    currency_layer._get_today_day.return_value = 1
+    Provider._get_today_day = Mock()
+    Provider._get_today_day.return_value = 1
 
     response._content = b"""
         {
@@ -56,7 +58,7 @@ def test_fixer_reach_monthly_limit(currency_layer, response, logger):
 
     rate = currency_layer.get_by_date(date(2019, 4, 29), "USD", logger)
 
-    assert not currency_layer._requestLimitReached
+    assert currency_layer.request_limit_reached is False
     assert currency_layer._get.call_count == 2
     assert rate == Decimal('1')
 
