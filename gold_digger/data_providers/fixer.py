@@ -29,7 +29,7 @@ class Fixer(Provider):
             logger.critical("You need an access token to use Fixer provider!")
             self._url = self.BASE_URL % ""
 
-    @Provider.check_request_limit(set(), name="Fixer.io", logger_index=1)
+    @Provider.check_request_limit(set())
     @cachedmethod(cache=attrgetter("_cache"), key=lambda date_of_exchange, _: keys.hashkey(date_of_exchange))
     def get_supported_currencies(self, date_of_exchange, logger):
         """
@@ -70,7 +70,7 @@ class Fixer(Provider):
         date_of_exchange_string = date_of_exchange.strftime("%Y-%m-%d")
         return self._get_by_date(date_of_exchange_string, currency, logger)
 
-    @Provider.check_request_limit({}, name="Fixer.io", logger_index=2)
+    @Provider.check_request_limit({})
     def get_all_by_date(self, date_of_exchange, currencies, logger):
         """
         :type date_of_exchange: datetime.date
@@ -146,7 +146,7 @@ class Fixer(Provider):
 
         return historical_rates
 
-    @Provider.check_request_limit(None, name="Fixer.io", logger_index=2)
+    @Provider.check_request_limit(None)
     def _get_by_date(self, date_of_exchange, currency, logger):
         """
         :type date_of_exchange: str

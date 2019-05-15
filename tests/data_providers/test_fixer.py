@@ -6,8 +6,6 @@ from unittest.mock import Mock
 import pytest
 from requests import Response
 
-from gold_digger.data_providers import Provider
-
 
 @pytest.fixture
 def response():
@@ -55,6 +53,9 @@ def test_fixer_reach_monthly_limit(fixer, response, logger):
     fixer._get = Mock()
     fixer._get.return_value = response
 
+    fixer.is_first_day_of_month = Mock()
+    fixer.is_first_day_of_month.return_value = False
+
     rate = fixer.get_by_date(date(2019, 4, 29), "USD", logger)
 
     assert fixer.request_limit_reached is True
@@ -80,8 +81,7 @@ def test_fixer_reach_monthly_limit(fixer, response, logger):
         }
         """
 
-    Provider._get_today_day = Mock()
-    Provider._get_today_day.return_value = 1
+    fixer.is_first_day_of_month.return_value = True
 
     rate = fixer.get_by_date(date(2019, 4, 29), "USD", logger)
 

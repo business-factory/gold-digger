@@ -4,6 +4,7 @@ from abc import ABCMeta, abstractmethod
 from datetime import date
 from decimal import Decimal, InvalidOperation
 from functools import wraps
+from inspect import getcallargs
 
 import requests
 import requests.exceptions
@@ -102,32 +103,29 @@ class Provider(metaclass=ABCMeta):
         return self.name
 
     @staticmethod
-    def _get_today_day():
+    def is_first_day_of_month():
         """
-        Return today's day as number. This method simplifies testing.
-        :rtype: int
+        :rtype: bool
         """
-        return date.today().day
+        return date.today().day == 1
 
     @staticmethod
-    def check_request_limit(return_value, name="", logger_index=0):
+    def check_request_limit(return_value):
         """
         Check request limit and prevent API call if the limit was exceeded. Logger index is position of logger in *args (without self).
-        :type return_value: any 
-        :type name: str
-        :type logger_index: int
+        :type return_value: {} | set | None
         """
         def decorator(func):
             @wraps(func)
-            def wrapper(self, *args, **kwargs):
-                is_first_day_in_month = Provider._get_today_day() == 1
-                if is_first_day_in_month:
-                    self.request_limit_reached = False
+            def wrapper(*args, **kwargs):
+                provider_instance = args[0]
+                if provider_instance.is_first_day_of_month():
+                    provider_instance.request_limit_reached = False
 
-                if not self.request_limit_reached:
-                    return func(self, *args, **kwargs)
+                if not provider_instance.request_limit_reached:
+                    return func(*args, **kwargs)
                 else:
-                    args[logger_index].warning("{} API limit was exceeded. Rate won't be requested.".format(name))
+                    getcallargs(func, *args)["logger"].warning("{} API limit was exceeded. Rate won't be requested.".format(provider_instance.name))
                     return return_value
 
             return wrapper

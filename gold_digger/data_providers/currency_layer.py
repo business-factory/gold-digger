@@ -47,7 +47,7 @@ class CurrencyLayer(Provider):
             logger.error("CurrencyLayer supported currencies not found.")
         return currencies
 
-    @Provider.check_request_limit(None, name="CurrencyLayer", logger_index=2)
+    @Provider.check_request_limit(None)
     def get_by_date(self, date_of_exchange, currency, logger):
         """
         :type date_of_exchange: datetime.date
@@ -79,7 +79,7 @@ class CurrencyLayer(Provider):
         value = records.get("%s%s" % (self.base_currency, currency))
         return self._to_decimal(value, currency, logger=logger) if value is not None else None
 
-    @Provider.check_request_limit({}, name="CurrencyLayer", logger_index=2)
+    @Provider.check_request_limit({})
     def get_all_by_date(self, date_of_exchange, currencies, logger):
         """
         :type date_of_exchange: datetime.date
@@ -108,7 +108,7 @@ class CurrencyLayer(Provider):
                 day_rates[currency] = decimal_value
         return day_rates
 
-    @Provider.check_request_limit({}, name="CurrencyLayer", logger_index=2)
+    @Provider.check_request_limit({})
     def get_historical(self, origin_date, currencies, logger):
         """
         :type origin_date: datetime.date
