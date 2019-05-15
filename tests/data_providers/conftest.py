@@ -2,7 +2,7 @@
 
 import pytest
 
-from gold_digger.data_providers import Fixer, RatesAPI, Yahoo, CurrencyLayer
+from gold_digger.data_providers import CurrencyLayer, Fixer, RatesAPI, Yahoo
 
 
 @pytest.fixture
