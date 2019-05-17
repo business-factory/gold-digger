@@ -148,8 +148,9 @@ def test_get_or_update_rate_by_date__today_before_cron_update(dao_exchange_rate,
     assert len(exchange_rates) == 2
 
 
-def test_get_or_update_rate_by_date__today_before_cron_update_no_yesterday_rates(dao_exchange_rate, dao_provider, currency_layer, grandtrunk, base_currency,
-                                                                                currencies, logger):
+def test_get_or_update_rate_by_date__today_before_cron_update_no_yesterday_rates(
+    dao_exchange_rate, dao_provider, currency_layer, grandtrunk, base_currency, currencies, logger
+):
     """
     Get all rates by date.
 

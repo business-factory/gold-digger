@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 from datetime import date
 from decimal import Decimal
 from unittest.mock import Mock
@@ -12,9 +13,9 @@ def response():
     return Response()
 
 
-def test_fixer_reach_monthly_limit(currency_layer, response, logger):
+def test_currency_layer__reach_monthly_limit(currency_layer, response, logger):
     """
-    Fixer free API has monthly requests limit. After the limit is reached, no calls to API should be made until the beginning of the next month.
+    Currency layer free API has monthly requests limit. After the limit is reached, no calls to API should be made until the beginning of the next month.
     Case: Firstly block upcoming requests by sending 104 error, then set today for the first day of a month and unblock requests.
     """
     response.status_code = 200
@@ -61,4 +62,3 @@ def test_fixer_reach_monthly_limit(currency_layer, response, logger):
     assert currency_layer.request_limit_reached is False
     assert currency_layer._get.call_count == 2
     assert rate == Decimal('1')
-

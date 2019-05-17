@@ -99,6 +99,10 @@ class Provider(metaclass=ABCMeta):
         except InvalidOperation:
             logger.error("%s - Invalid operation: value %s is not a number (currency %s)", self, value, currency)
 
+    def set_request_limit_reached(self, logger):
+        logger.warning("%s - Requests limit exceeded.", self.name)
+        self.request_limit_reached = True
+
     def __str__(self):
         return self.name
 
@@ -110,10 +114,11 @@ class Provider(metaclass=ABCMeta):
         return date.today().day == 1
 
     @staticmethod
-    def check_request_limit(return_value):
+    def check_request_limit(return_value=None):
         """
-        Check request limit and prevent API call if the limit was exceeded. Logger index is position of logger in *args (without self).
-        :type return_value: {} | set | None
+        Check request limit and prevent API call if the limit was exceeded.
+
+        :type return_value: dict | set | None
         """
         def decorator(func):
             @wraps(func)
@@ -125,7 +130,7 @@ class Provider(metaclass=ABCMeta):
                 if not provider_instance.request_limit_reached:
                     return func(*args, **kwargs)
                 else:
-                    getcallargs(func, *args)["logger"].warning("{} API limit was exceeded. Rate won't be requested.".format(provider_instance.name))
+                    getcallargs(func, *args)["logger"].warning("%s API limit was exceeded. Rate won't be requested.", provider_instance.name)
                     return return_value
 
             return wrapper
