@@ -47,6 +47,7 @@ class CurrencyLayer(Provider):
             logger.error("CurrencyLayer supported currencies not found.")
         return currencies
 
+    @Provider.check_request_limit(return_value=None)
     def get_by_date(self, date_of_exchange, currency, logger):
         """
         :type date_of_exchange: datetime.date
@@ -63,16 +64,21 @@ class CurrencyLayer(Provider):
             return None
 
         response = response.json()
-        if response and response.get("success") is False:
+        if response["success"]:
+            records = response.get("quotes", {})
+        elif response["error"]["code"] == 104:
+            self.set_request_limit_reached(logger)
+            return None
+        else:
             logger.warning(
                 "CurrencyLayer unsuccessful request. Error: %s", response.get("error", {}).get("info"), extra={"currency": currency, "date": date_str}
             )
             return None
 
-        records = response.get("quotes", {}) if response else {}
         value = records.get("%s%s" % (self.base_currency, currency))
         return self._to_decimal(value, currency, logger=logger) if value is not None else None
 
+    @Provider.check_request_limit(return_value={})
     def get_all_by_date(self, date_of_exchange, currencies, logger):
         """
         :type date_of_exchange: datetime.date
@@ -81,7 +87,17 @@ class CurrencyLayer(Provider):
         :rtype: dict[str, decimal.Decimal | None]
         """
         response = self._get(f"{self._url}&date={date_of_exchange.strftime('%Y-%m-%d')}&currencies={','.join(currencies)}", logger=logger)
-        records = response.json().get("quotes", {}) if response else {}
+        if not response:
+            return {}
+
+        response = response.json()
+        records = {}
+        if response["success"]:
+            records = response.get("quotes", {})
+        elif response["error"]["code"] == 104:
+            self.set_request_limit_reached(logger)
+            return {}
+
         day_rates = {}
         for currency_pair, value in records.items():
             currency = currency_pair[3:]
@@ -90,6 +106,7 @@ class CurrencyLayer(Provider):
                 day_rates[currency] = decimal_value
         return day_rates
 
+    @Provider.check_request_limit(return_value={})
     def get_historical(self, origin_date, currencies, logger):
         """
         :type origin_date: datetime.date
@@ -103,7 +120,15 @@ class CurrencyLayer(Provider):
 
         while date_of_exchange != date_of_today:
             response = self._get(f"{self._url}&date={date_of_exchange.strftime('%Y-%m-%d')}&currencies={','.join(currencies)}", logger=logger)
-            records = response.json().get("quotes", {}) if response else {}
+            records = {}
+            if response:
+                response = response.json()
+                if response["success"]:
+                    records = response.get("quotes", {})
+                elif response["error"]["code"] == 104:
+                    self.set_request_limit_reached(logger)
+                    break
+
             for currency_pair, value in records.items():
                 currency = currency_pair[3:]
                 decimal_value = self._to_decimal(value, currency, logger=logger) if value is not None else None

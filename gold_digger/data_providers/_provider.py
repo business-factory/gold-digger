@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from abc import ABCMeta, abstractmethod
+from datetime import date
 from decimal import Decimal, InvalidOperation
+from functools import wraps
+from inspect import getcallargs
 
 import requests
 import requests.exceptions
@@ -16,6 +19,7 @@ class Provider(metaclass=ABCMeta):
         :type base_currency: str
         """
         self._base_currency = base_currency
+        self.request_limit_reached = False
 
         self._cache = Cache(maxsize=1)
 
@@ -95,5 +99,40 @@ class Provider(metaclass=ABCMeta):
         except InvalidOperation:
             logger.error("%s - Invalid operation: value %s is not a number (currency %s)", self, value, currency)
 
+    def set_request_limit_reached(self, logger):
+        logger.warning("%s - Requests limit exceeded.", self.name)
+        self.request_limit_reached = True
+
     def __str__(self):
         return self.name
+
+    @staticmethod
+    def is_first_day_of_month():
+        """
+        :rtype: bool
+        """
+        return date.today().day == 1
+
+    @staticmethod
+    def check_request_limit(return_value=None):
+        """
+        Check request limit and prevent API call if the limit was exceeded.
+
+        :type return_value: dict | set | None
+        """
+        def decorator(func):
+            @wraps(func)
+            def wrapper(*args, **kwargs):
+                provider_instance = args[0]
+                if provider_instance.is_first_day_of_month():
+                    provider_instance.request_limit_reached = False
+
+                if not provider_instance.request_limit_reached:
+                    return func(*args, **kwargs)
+                else:
+                    getcallargs(func, *args)["logger"].warning("%s API limit was exceeded. Rate won't be requested.", provider_instance.name)
+                    return return_value
+
+            return wrapper
+
+        return decorator
