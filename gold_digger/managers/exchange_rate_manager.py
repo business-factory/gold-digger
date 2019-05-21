@@ -290,4 +290,4 @@ class ExchangeRateManager:
 
             logger.error("Date range 'count' and/or 'sum' are empty")
 
-        logger.error("Range request failed: from %s to %s", _from_currency, _to_currency)
+        logger.error("Range request failed: from %s to %s", from_currency, to_currency)
