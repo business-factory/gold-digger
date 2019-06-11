@@ -29,8 +29,8 @@ class Fixer(Provider):
             logger.critical("You need an access token to use Fixer provider!")
             self._url = self.BASE_URL % ""
 
-    @Provider.check_request_limit(return_value=set())
     @cachedmethod(cache=attrgetter("_cache"), key=lambda date_of_exchange, _: keys.hashkey(date_of_exchange))
+    @Provider.check_request_limit(return_value=set())
     def get_supported_currencies(self, date_of_exchange, logger):
         """
         :type date_of_exchange: datetime.date
