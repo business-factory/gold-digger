@@ -27,7 +27,7 @@ class CurrencyLayer(Provider):
         if access_key:
             self._url = self.BASE_URL % access_key
         else:
-            logger.critical("You need an access token to use CurrencyLayer provider!")
+            logger.critical("%s - You need an access token!", self)
             self._url = self.BASE_URL % ""
 
         self.has_request_limit = True
@@ -44,9 +44,9 @@ class CurrencyLayer(Provider):
         if response:
             currencies = set(re.findall("<td>([A-Z]{3})</td>", response.text))
         if currencies:
-            logger.debug("CurrencyLayer supported currencies: %s", currencies)
+            logger.debug("%s - Supported currencies: %s", self, currencies)
         else:
-            logger.error("CurrencyLayer supported currencies not found.")
+            logger.error("%s - Supported currencies not found.", self)
         return currencies
 
     @Provider.check_request_limit(return_value=None)
@@ -58,11 +58,11 @@ class CurrencyLayer(Provider):
         :rtype: decimal.Decimal | None
         """
         date_str = date_of_exchange.strftime("%Y-%m-%d")
-        logger.debug("Requesting CurrencyLayer for %s (%s)", currency, date_str, extra={"currency": currency, "date": date_str})
+        logger.debug("%s - Requesting for %s (%s)", self, currency, date_str, extra={"currency": currency, "date": date_str})
 
         response = self._get(f"{self._url}&date={date_str}&currencies={currency}", logger=logger)
         if not response:
-            logger.warning("CurrencyLayer error. Status: %s", response.status_code, extra={"currency": currency, "date": date_str})
+            logger.warning("%s - Error. Status: %s", self, response.status_code, extra={"currency": currency, "date": date_str})
             return None
 
         response = response.json()
@@ -73,7 +73,7 @@ class CurrencyLayer(Provider):
             return None
         else:
             logger.warning(
-                "CurrencyLayer unsuccessful request. Error: %s", response.get("error", {}).get("info"), extra={"currency": currency, "date": date_str}
+                "%s - Unsuccessful request. Error: %s", self, response.get("error", {}).get("info"), extra={"currency": currency, "date": date_str}
             )
             return None
 
@@ -88,6 +88,8 @@ class CurrencyLayer(Provider):
         :type logger: gold_digger.utils.ContextLogger
         :rtype: dict[str, decimal.Decimal | None]
         """
+        logger.debug("%s - Requesting for all rates for date %s", self, date_of_exchange)
+
         response = self._get(f"{self._url}&date={date_of_exchange.strftime('%Y-%m-%d')}&currencies={','.join(currencies)}", logger=logger)
         if not response:
             return {}

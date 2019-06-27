@@ -26,7 +26,7 @@ class Fixer(Provider):
         if access_key:
             self._url = self.BASE_URL % access_key
         else:
-            logger.critical("You need an access token to use Fixer provider!")
+            logger.critical("%s - You need an access token!", self)
             self._url = self.BASE_URL % ""
 
         self.has_request_limit = True
@@ -48,12 +48,12 @@ class Fixer(Provider):
             elif response["error"]["code"] == 104:
                 self.set_request_limit_reached(logger)
             else:
-                logger.error("Fixer supported currencies not found. Error: %s. Date: %s", response, date_of_exchange.isoformat())
+                logger.error("%s - Supported currencies not found. Error: %s. Date: %s", self, response, date_of_exchange.isoformat())
         else:
-            logger.error("Fixer unexpected response. Response: %s", response)
+            logger.error("%s - Unexpected response. Response: %s", self, response)
 
         if currencies:
-            logger.debug("Fixer supported currencies: %s", currencies)
+            logger.debug("%s - Supported currencies: %s", self, currencies)
 
         return currencies
 
@@ -75,7 +75,8 @@ class Fixer(Provider):
         :type logger: gold_digger.utils.ContextLogger
         :rtype: dict[str, decimal.Decimal]
         """
-        logger.debug("Fixer.io - get all for date %s", date_of_exchange)
+        logger.debug("%s - Requesting for all rates for date %s", self, date_of_exchange)
+
         date_of_exchange_string = date_of_exchange.strftime("%Y-%m-%d")
         day_rates_in_eur = {}
 
@@ -88,7 +89,7 @@ class Fixer(Provider):
                 if not response.get("success"):
                     if response["error"]["code"] == 104:
                         self.set_request_limit_reached(logger)
-                    logger.error("Fixer.io - Unsuccessful response. Response: %s", response)
+                    logger.error("%s - Unsuccessful response. Response: %s", self, response)
                     return {}
 
                 rates = response.get("rates", {})
@@ -99,7 +100,7 @@ class Fixer(Provider):
                         if decimal_value is not None:
                             day_rates_in_eur[currency] = decimal_value
             except Exception:
-                logger.exception("Fixer.io - Exception while parsing of the HTTP response.")
+                logger.exception("%s - Exception while parsing of the HTTP response.", self)
                 return {}
 
         day_rates = {}
@@ -150,7 +151,7 @@ class Fixer(Provider):
         :type logger: gold_digger.utils.ContextLogger
         :rtype: decimal.Decimal | None
         """
-        logger.debug("Requesting Fixer for %s (%s)", currency, date_of_exchange, extra={"currency": currency, "date": date_of_exchange})
+        logger.debug("%s - Requesting for %s (%s)", self, currency, date_of_exchange, extra={"currency": currency, "date": date_of_exchange})
 
         url = self._url.format(path=date_of_exchange)
         response = self._get(url, params={"symbols": "%s,%s" % (self.base_currency, currency)}, logger=logger)
@@ -161,7 +162,7 @@ class Fixer(Provider):
                 if not response.get("success"):
                     if response["error"]["code"] == 104:
                         self.set_request_limit_reached(logger)
-                    logger.error("Fixer.io - Unsuccessful response. Response: %s", response)
+                    logger.error("%s - Unsuccessful response. Response: %s", self, response)
                     return None
 
                 rates = response.get("rates", {})
@@ -173,4 +174,4 @@ class Fixer(Provider):
                      )
 
             except Exception:
-                logger.exception("Fixer.io - Exception while parsing of the HTTP response.")
+                logger.exception("%s - Exception while parsing of the HTTP response.", self)

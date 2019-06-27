@@ -29,9 +29,9 @@ class GrandTrunk(Provider):
         if response:
             currencies = set(response.text.split("\n"))
         if currencies:
-            logger.debug("Grandtrunk supported currencies: %s", currencies)
+            logger.debug("%s - Supported currencies: %s", self, currencies)
         else:
-            logger.error("Grandtrunk supported currencies not found.")
+            logger.error("%s - Supported currencies not found.", self)
         return currencies
 
     def get_by_date(self, date_of_exchange, currency, logger):
@@ -42,7 +42,7 @@ class GrandTrunk(Provider):
         :rtype: decimal.Decimal | None
         """
         date_str = date_of_exchange.strftime("%Y-%m-%d")
-        logger.debug("Requesting GrandTrunk for %s (%s)", currency, date_str, extra={"currency": currency, "date": date_str})
+        logger.debug("%s - Requesting for %s (%s)", self, currency, date_str, extra={"currency": currency, "date": date_str})
 
         response = self._get(f"{self.BASE_URL}/getrate/{date_str}/{self.base_currency}/{currency}", logger=logger)
         if response:
@@ -55,6 +55,8 @@ class GrandTrunk(Provider):
         :type logger: gold_digger.utils.ContextLogger
         :rtype: dict[str, decimal.Decimal | None]
         """
+        logger.debug("%s - Requesting for all rates for date %s", self, date_of_exchange)
+
         day_rates = {}
         supported_currencies = self.get_supported_currencies(date_of_exchange, logger)
         for currency in currencies:
