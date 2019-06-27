@@ -12,7 +12,7 @@ from ._provider import Provider
 
 class CurrencyLayer(Provider):
     """
-    Real-time service with free plan for 1000 requests per month.
+    Real-time service with free plan for 250 requests per month.
     Implicit base currency is USD.
     """
     BASE_URL = "http://www.apilayer.net/api/live?access_key=%s"
@@ -29,6 +29,8 @@ class CurrencyLayer(Provider):
         else:
             logger.critical("You need an access token to use CurrencyLayer provider!")
             self._url = self.BASE_URL % ""
+
+        self.has_request_limit = True
 
     @cachedmethod(cache=attrgetter("_cache"), key=lambda date_of_exchange, _: keys.hashkey(date_of_exchange))
     def get_supported_currencies(self, date_of_exchange, logger):

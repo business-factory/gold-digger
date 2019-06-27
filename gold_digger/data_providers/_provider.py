@@ -19,6 +19,7 @@ class Provider(metaclass=ABCMeta):
         :type base_currency: str
         """
         self._base_currency = base_currency
+        self.has_request_limit = False
         self.request_limit_reached = False
 
         self._cache = Cache(maxsize=1)
