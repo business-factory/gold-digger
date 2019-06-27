@@ -6,7 +6,7 @@ from unittest.mock import Mock, call
 
 import pytest
 
-from gold_digger.data_providers import CurrencyLayer, GrandTrunk
+from gold_digger.data_providers import CurrencyLayer, GrandTrunk, Fixer
 from gold_digger.database.dao_exchange_rate import DaoExchangeRate
 from gold_digger.database.dao_provider import DaoProvider
 from gold_digger.database.db_model import ExchangeRate, Provider
@@ -38,6 +38,16 @@ def currency_layer(currencies):
     provider.name = "currency_layer"
     provider.get_all_by_date.return_value = {"EUR": Decimal(0.77), "USD": Decimal(1)}
     provider.get_supported_currencies.return_value = currencies
+    provider.has_request_limit = True
+    return provider
+
+
+@pytest.fixture
+def fixer(currencies):
+    provider = Mock(Fixer)
+    provider.name = "fixer.io"
+    provider.get_supported_currencies.return_value = currencies
+    provider.has_request_limit = True
     return provider
 
 
@@ -47,6 +57,7 @@ def grandtrunk(currencies):
     provider.name = "grandtrunk"
     provider.get_all_by_date.return_value = {"EUR": Decimal(0.75), "USD": Decimal(1)}
     provider.get_supported_currencies.return_value = currencies
+    provider.has_request_limit = False
     return provider
 
 
@@ -180,6 +191,28 @@ def test_get_or_update_rate_by_date__today_before_cron_update_no_yesterday_rates
     assert dao_exchange_rate.get_rate_by_date_currency_provider.call_count == 1
     assert dao_exchange_rate.get_rate_by_date_currency_provider.call_args[0] == (yesterday, "EUR", "grandtrunk")
     assert len(exchange_rates) == 2
+
+
+def test_get_or_update_rate_by_date__no_api_requests_for_historical_data_on_limited_providers(
+    dao_exchange_rate, dao_provider, fixer, currency_layer, grandtrunk, base_currency, currencies, logger
+):
+    """
+    In case historical data are requested and they are not in database we don't want to request API if the provider has request limit
+    """
+    yesterday = date.today() - timedelta(1)  # yesterday's rates are treated as historical rates
+
+    exchange_rate_manager = ExchangeRateManager(dao_exchange_rate, dao_provider, [fixer, currency_layer, grandtrunk], base_currency, currencies)
+
+    dao_exchange_rate.get_rates_by_date_currency.return_value = []
+
+    exchange_rates = exchange_rate_manager.get_or_update_rate_by_date(yesterday, currency="EUR", logger=logger)
+
+    assert dao_exchange_rate.get_rates_by_date_currency.call_count == 1
+    assert dao_exchange_rate.get_rate_by_date_currency_provider.call_count == 0
+    assert grandtrunk.get_by_date.call_count == 1
+    assert currency_layer.get_by_date.call_count == 0
+    assert fixer.get_by_date.call_count == 0
+    assert len(exchange_rates) == 1
 
 
 def test_get_exchange_rate_by_date(dao_exchange_rate, dao_provider, base_currency, logger):
