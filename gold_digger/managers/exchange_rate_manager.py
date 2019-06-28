@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
+from collections import defaultdict, Counter
 from datetime import date, timedelta
 from decimal import Decimal
 from itertools import combinations
-from collections import defaultdict, Counter
 
 from ..database.db_model import ExchangeRate
 
@@ -84,6 +84,12 @@ class ExchangeRateManager:
                     continue
                 else:
                     logger.info("Yesterday's rates for provider %s not found. Requesting API.", data_provider.name)
+            elif data_provider.has_request_limit:
+                #  For providers with request limit we don't want to request rates from API for historical data, because it can easily generate hundreds
+                #  of requests at once and the limit is then soon exceeded.
+                logger.info("Rates for provider %s aren't in database and provider has disabled requests for historical data.", data_provider.name)
+                continue
+
             try:
                 if currency not in data_provider.get_supported_currencies(today, logger):
                     continue

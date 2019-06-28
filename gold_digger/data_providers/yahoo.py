@@ -33,10 +33,10 @@ class Yahoo(Provider):
         :type logger: gold_digger.utils.ContextLogger
         :rtype: decimal.Decimal | None
         """
-        date_str = date_of_exchange.strftime("%Y-%m-%d")
-        logger.debug("Requesting Yahoo for %s (%s)", currency, date_str, extra={"currency": currency, "date": date_str})
-
         if date_of_exchange == date.today():
+            date_str = date_of_exchange.strftime("%Y-%m-%d")
+            logger.debug("%s - Requesting for %s (%s)", self, currency, date_str, extra={"currency": currency, "date": date_str})
+
             return self._get_latest(currency, logger)
 
     def get_all_by_date(self, date_of_exchange, currencies, logger):
@@ -47,6 +47,9 @@ class Yahoo(Provider):
         :rtype: {str: decimal.Decimal | None}
         """
         if date_of_exchange == date.today():
+            date_str = date_of_exchange.strftime("%Y-%m-%d")
+            logger.debug("%s - Requesting rates for all currencies (%s)", self, date_str, extra={"date": date_str})
+
             rates = self._get_all_latest(logger)
             return {currency: rate for currency, rate in rates.items() if currency in currencies}
 
@@ -91,7 +94,7 @@ class Yahoo(Provider):
                         rates[currency] = rate
 
                 except (KeyError, IndexError):
-                    logger.warning("Cannot get rate for {}.".format(currency))
+                    logger.warning("%s - Cannot get rate for %s.", self, currency)
 
         return rates
 

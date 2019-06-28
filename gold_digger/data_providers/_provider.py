@@ -19,6 +19,7 @@ class Provider(metaclass=ABCMeta):
         :type base_currency: str
         """
         self._base_currency = base_currency
+        self.has_request_limit = False
         self.request_limit_reached = False
 
         self._cache = Cache(maxsize=1)
@@ -83,9 +84,9 @@ class Provider(metaclass=ABCMeta):
             if response.status_code == 200:
                 return response
             else:
-                logger.error("%s - status code: %s, URL: %s, Params: %s", self, response.status_code, url, params)
+                logger.error("%s - Status code: %s, URL: %s, Params: %s", self, response.status_code, url, params)
         except requests.exceptions.RequestException as e:
-            logger.error("%s - exception: %s, URL: %s, Params: %s", self, e, url, params)
+            logger.error("%s - Exception: %s, URL: %s, Params: %s", self, e, url, params)
 
     def _to_decimal(self, value, currency=None, *, logger):
         """
@@ -100,7 +101,7 @@ class Provider(metaclass=ABCMeta):
             logger.error("%s - Invalid operation: value %s is not a number (currency %s)", self, value, currency)
 
     def set_request_limit_reached(self, logger):
-        logger.warning("%s - Requests limit exceeded.", self.name)
+        logger.warning("%s - Requests limit exceeded.", self)
         self.request_limit_reached = True
 
     def __str__(self):
@@ -130,7 +131,7 @@ class Provider(metaclass=ABCMeta):
                 if not provider_instance.request_limit_reached:
                     return func(*args, **kwargs)
                 else:
-                    getcallargs(func, *args)["logger"].warning("%s API limit was exceeded. Rate won't be requested.", provider_instance.name)
+                    getcallargs(func, *args)["logger"].warning("%s - API limit was exceeded. Rate won't be requested.", provider_instance.name)
                     return return_value
 
             return wrapper

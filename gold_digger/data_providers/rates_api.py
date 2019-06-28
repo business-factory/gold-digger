@@ -33,10 +33,10 @@ class RatesAPI(Provider):
                 currencies = set((response.get("rates") or {}).keys())
                 currencies.add(response["base"])
             else:
-                logger.error("Rates API - Supported currencies not found. Error: %s. Date: %s", response["error"], date_of_exchange.isoformat())
+                logger.error("%s - Supported currencies not found. Error: %s. Date: %s", self, response["error"], date_of_exchange.isoformat())
 
         if currencies:
-            logger.debug("Rates API - Supported currencies: %s", currencies)
+            logger.debug("%s - Supported currencies: %s", self, currencies)
 
         return currencies
 
@@ -48,7 +48,7 @@ class RatesAPI(Provider):
         :rtype: dict[str, decimal.Decimal]
         """
         date_of_exchange_string = date_of_exchange.strftime("%Y-%m-%d")
-        logger.debug("Rates API - Requesting rates for all currencies (%s)", date_of_exchange_string, extra={"date": date_of_exchange_string})
+        logger.debug("%s - Requesting rates for all currencies (%s)", self, date_of_exchange_string, extra={"date": date_of_exchange_string})
         day_rates = {}
 
         url = self.BASE_URL.format(date=date_of_exchange_string)
@@ -58,7 +58,7 @@ class RatesAPI(Provider):
             try:
                 response = response.json()
                 if response.get("error"):
-                    logger.error("Rates API - Unsuccessful response. Error message: %s", response["error"])
+                    logger.error("%s - Unsuccessful response. Error message: %s", self, response["error"])
                     return {}
 
                 rates = response.get("rates", {})
@@ -71,7 +71,7 @@ class RatesAPI(Provider):
                         if decimal_value is not None:
                             day_rates[currency] = decimal_value
             except ValueError:
-                logger.exception("Rates API - Exception while parsing of the HTTP response.")
+                logger.exception("%s - Exception while parsing of the HTTP response.", self)
                 return {}
 
         return day_rates
@@ -84,10 +84,7 @@ class RatesAPI(Provider):
         :rtype: decimal.Decimal | None
         """
         date_of_exchange_string = date_of_exchange.strftime("%Y-%m-%d")
-        logger.debug(
-            "Rates API - Requesting rates for %s (%s)",
-            currency, date_of_exchange_string, extra={"currency": currency, "date": date_of_exchange_string},
-        )
+        logger.debug("%s - Requesting for %s (%s)", self, currency, date_of_exchange_string, extra={"currency": currency, "date": date_of_exchange_string})
 
         if currency == "EUR" and self.base_currency == "EUR":  # Rates API in this combination returns error
             return self._to_decimal(1, "EUR", logger=logger)
@@ -98,7 +95,7 @@ class RatesAPI(Provider):
             try:
                 response = response.json()
                 if response.get("error"):
-                    logger.error("Rates API - Unsuccessful response. Error message: %s", response["error"])
+                    logger.error("%s - Unsuccessful response. Error message: %s", self, response["error"])
                     return None
 
                 rates = response.get("rates", {})
@@ -106,7 +103,7 @@ class RatesAPI(Provider):
                     return self._to_decimal(rates[currency], currency, logger=logger)
 
             except ValueError:
-                logger.exception("Rates API - Exception while parsing of the HTTP response.")
+                logger.exception("%s - Exception while parsing of the HTTP response.", self)
 
     def get_historical(self, origin_date, currencies, logger):
         """
@@ -141,7 +138,7 @@ class RatesAPI(Provider):
         try:
             response = requests.get(url, params=params, timeout=self.DEFAULT_REQUEST_TIMEOUT)
             if response.status_code != 200:
-                logger.error("RatesAPI - status code: %s, URL: %s, Params: %s", response.status_code, url, params)
+                logger.error("%s - Status code: %s, URL: %s, Params: %s", self, response.status_code, url, params)
             return response
         except requests.exceptions.RequestException as e:
-            logger.error("RatesAPI - exception: %s, URL: %s, Params: %s", e, url, params)
+            logger.error("%s - Exception: %s, URL: %s, Params: %s", self, e, url, params)
