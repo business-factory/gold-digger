@@ -6,7 +6,7 @@ from unittest.mock import Mock, call
 
 import pytest
 
-from gold_digger.data_providers import CurrencyLayer, GrandTrunk, Fixer
+from gold_digger.data_providers import CurrencyLayer, Fixer, GrandTrunk
 from gold_digger.database.dao_exchange_rate import DaoExchangeRate
 from gold_digger.database.dao_provider import DaoProvider
 from gold_digger.database.db_model import ExchangeRate, Provider
