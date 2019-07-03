@@ -8,8 +8,6 @@ import pytest
 from gold_digger.database.dao_exchange_rate import DaoExchangeRate
 from gold_digger.database.dao_provider import DaoProvider
 
-from . import database_test
-
 
 @pytest.fixture
 def dao_exchange_rate(db_session):
@@ -21,7 +19,7 @@ def dao_provider(db_session):
     return DaoProvider(db_session)
 
 
-@database_test
+@pytest.mark.slow
 def test_insert_new_rate(dao_exchange_rate, dao_provider):
     assert dao_exchange_rate.get_rates_by_date_currency(date.today(), "USD") == []
 
@@ -35,7 +33,7 @@ def test_insert_new_rate(dao_exchange_rate, dao_provider):
     assert len(dao_exchange_rate.get_rates_by_date_currency(date.today(), "USD")) == 1
 
 
-@database_test
+@pytest.mark.slow
 def test_insert_exchange_rate_to_db(dao_exchange_rate, dao_provider, logger):
     assert dao_exchange_rate.get_rates_by_date_currency(date.today(), "USD") == []
 
@@ -52,7 +50,7 @@ def test_insert_exchange_rate_to_db(dao_exchange_rate, dao_provider, logger):
     assert len(dao_exchange_rate.get_rates_by_date_currency(date.today(), "USD")) == 2
 
 
-@database_test
+@pytest.mark.slow
 def test_get_sum_of_rates_in_period(dao_exchange_rate, dao_provider):
     start_date = date(2016, 1, 1)
     end_date = date(2016, 1, 10)
