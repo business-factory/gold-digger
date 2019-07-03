@@ -52,7 +52,7 @@ Available commands:
 
 For running the tests simply use:
 * `py.test` or `ptw` which starts watchdog which run the tests after every save of Python file
-* `py.test --database-tests --db-connection postgres://postgres:postgres@localhost/golddigger-test` (with custom db connection) which runs also tests marked as `@database_test`.
+* `py.test --database-tests --db-connection postgresql://postgres:postgres@localhost/golddigger-test` (with custom db connection) which runs also tests marked as `@database_test`.
  These tests are executed against real test database.
 
 

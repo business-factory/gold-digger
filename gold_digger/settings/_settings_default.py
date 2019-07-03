@@ -5,7 +5,7 @@ from ._utils import get_env
 
 DEVELOPMENT_MODE = True
 
-DATABASE_DIALECT = "postgres"
+DATABASE_DIALECT = "postgresql"
 DATABASE_HOST = get_env("database_host", default="127.0.0.1")
 DATABASE_PORT = get_env("database_port", default="5432")
 DATABASE_USER = get_env("database_user", default="postgres")
