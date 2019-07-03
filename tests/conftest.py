@@ -32,7 +32,7 @@ def pytest_collection_modifyitems(config, items):
 @pytest.fixture(scope="module")
 def db_connection_string(request):
     cmd = request.config.getoption("--db-connection")
-    return cmd if cmd else "postgres://postgres:postgres@localhost/gold-digger-test"
+    return cmd if cmd else "postgresql://postgres:postgres@localhost/gold-digger-test"
 
 
 @pytest.fixture
