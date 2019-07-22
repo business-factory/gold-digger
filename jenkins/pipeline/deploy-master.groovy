@@ -1,3 +1,5 @@
+def build, utils
+
 pipeline {
     agent {
         label 'docker01'
@@ -20,11 +22,19 @@ pipeline {
     }
 
     stages {
-        stage("Build Docker image") {
+        stage("Load libraries and global variables") {
             steps {
                 script {
                     def rootDir = pwd()
-                    def build = load "${rootDir}/jenkins/pipeline/_build.groovy"
+                    build = load "${rootDir}/jenkins/pipeline/_build.groovy"
+                    utils = load "${rootDir}/jenkins/pipeline/_utils.groovy"
+                }
+            }
+        }
+
+        stage("Build Docker image") {
+            steps {
+                script {
                     build.buildDockerImage(env.BRANCH_NAME)
                 }
             }
@@ -65,8 +75,6 @@ pipeline {
             }
             steps {
                 script {
-                    def rootDir = pwd()
-                    def utils = load "${rootDir}/jenkins/pipeline/_utils.groovy"
                     utils.sendSlackNotification(env.BRANCH_NAME, '#0E8A16')
                 }
             }
