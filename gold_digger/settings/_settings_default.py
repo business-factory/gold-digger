@@ -11,6 +11,8 @@ DATABASE_USER = get_env("database_user", default="postgres")
 DATABASE_PASSWORD = get_env("database_password", default="postgres")
 DATABASE_NAME = get_env("database_name", default="golddigger")
 
+LOGGING_FORMAT = "[%(levelname)s] %(asctime)s at %(filename)s:%(lineno)d (%(processName)s-%(process)s-%(threadName)s) -- %(message)s"
+
 GRAYLOG_ADDRESS = "logs.roihunter.com"
 GRAYLOG_PORT = 12211
 

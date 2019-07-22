@@ -116,10 +116,7 @@ class DiContainer:
             handler = graypy.GELFHandler(settings.GRAYLOG_ADDRESS, settings.GRAYLOG_PORT)
         else:
             handler = logging.StreamHandler()
-            handler.setFormatter(logging.Formatter(
-                "[%(levelname)s] %(asctime)s at %(filename)s:%(lineno)d (%(processName)s) -- %(message)s",
-                "%Y-%m-%d %H:%M:%S"
-            ))
+            handler.setFormatter(logging.Formatter(settings.LOGGING_FORMAT, "%Y-%m-%d %H:%M:%S"))
 
         logger_.addHandler(handler)
         return logger_
