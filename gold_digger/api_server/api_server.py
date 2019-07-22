@@ -206,6 +206,7 @@ class API(falcon.API):
         self.add_route("/health/alive", HealthAliveResource(self.container))
 
     def simple_server(self, host, port):
+        # Ignore PyPrintBear
         print("Starting HTTP server at {}:{}".format(host, port))
         server = simple_server.make_server(host, port, self)
         server.serve_forever()
