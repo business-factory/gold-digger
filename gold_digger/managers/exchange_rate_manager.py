@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from collections import defaultdict, Counter
+from collections import Counter, defaultdict
 from datetime import date, timedelta
 from decimal import Decimal
 from itertools import combinations

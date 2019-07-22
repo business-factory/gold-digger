@@ -2,13 +2,13 @@
 
 import logging
 from functools import lru_cache
-from os.path import dirname, normpath, abspath
+from os.path import abspath, dirname, normpath
 from uuid import uuid4
 
 import graypy
 from cached_property import cached_property as service
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy.orm import scoped_session, sessionmaker
 
 from . import settings
 from .data_providers import *

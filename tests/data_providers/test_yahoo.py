@@ -5,7 +5,6 @@ from decimal import Decimal
 
 from requests import Response
 
-
 YAHOO_RESPONSE = b"""
 {
   "spark": {

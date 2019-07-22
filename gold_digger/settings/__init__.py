@@ -5,7 +5,6 @@ from os import environ, path
 from ._settings_default import *
 from ..exceptions import ImproperlyConfigured
 
-
 profile = environ.get("GOLD_DIGGER_PROFILE", "local")
 
 if profile == "master":
