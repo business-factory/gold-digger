@@ -1,0 +1,7 @@
+apiVersion: "koudingspawn.de/v1"
+kind: Vault
+metadata:
+    name: gold-digger-master
+spec:
+    path: "teams/feed/gold-digger-api/master"
+    type: "KEYVALUE"
