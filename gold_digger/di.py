@@ -109,7 +109,7 @@ class DiContainer:
         :rtype: logging.Logger
         """
         logger_ = logging.getLogger(name)
-        logger_.setLevel(logging.DEBUG)
+        logger_.setLevel(settings.LOGGING_LEVEL)
         logger_.propagate = False
 
         if not settings.DEVELOPMENT_MODE:
