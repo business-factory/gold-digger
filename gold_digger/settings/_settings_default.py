@@ -2,7 +2,6 @@
 
 from ._utils import get_env
 
-
 DEVELOPMENT_MODE = True
 
 DATABASE_DIALECT = "postgresql"

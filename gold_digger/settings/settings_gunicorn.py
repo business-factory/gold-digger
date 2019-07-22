@@ -10,7 +10,6 @@ Parameters you might want to override:
 import os
 import sys
 
-
 sys.path.append(".")
 
 timeout = 300  # 5 minutes in seconds
