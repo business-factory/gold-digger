@@ -11,7 +11,7 @@ from ..di import DiContainer
 
 class ContextMiddleware:
     def process_resource(self, req, *_):
-        req.context["flow_id"] = DiContainer.flow_id()
+        req.context.flow_id = DiContainer.flow_id()
 
 
 def http_api_logger(func):
@@ -28,7 +28,7 @@ def http_api_logger(func):
         """
         start = time()
 
-        logger = DiContainer.logger(flow_id=req.context["flow_id"])
+        logger = DiContainer.logger(flow_id=req.context.flow_id)
         logger.info("Received API request %s.", func.__name__, extra={
             "request_method": req.method,
             "request_url": req.url,
