@@ -85,7 +85,7 @@ boolean getReleasePreview() {
             preview = httpRequest(
                 customHeaders: [[name: "Authorization", value: githubAuthorization]],
                 ignoreSslErrors: false,
-                url: """https://api.github.com/repos/roihunter/gold-digger/compare/$latestRelease...master}"""
+                url: """https://api.github.com/repos/roihunter/gold-digger/compare/$latestRelease...master"""
             )
         }
 
