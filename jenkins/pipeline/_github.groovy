@@ -1,7 +1,7 @@
 import groovy.json.JsonSlurper
 
 def rootDir = pwd()
-def utils = load "${rootDir}/jenkins/pipeline/_utils.groovy"
+utils = load "${rootDir}/jenkins/pipeline/_utils.groovy"
 
 /**
  * Get urls of all comments in GitHub PR
