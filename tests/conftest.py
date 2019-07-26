@@ -4,7 +4,6 @@ import logging
 
 import pytest
 
-
 rerun_started = False
 
 

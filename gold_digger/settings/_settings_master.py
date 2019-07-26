@@ -1,3 +1,7 @@
 # -*- coding: utf-8 -*-
 
-DEVELOPMENT_MODE = False
+import logging
+
+LOGGING_LEVEL = logging.INFO
+
+GRAYLOG_ENABLED = True

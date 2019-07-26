@@ -1,0 +1,32 @@
+[Python]
+files = bears/*.py, gold_digger/**.py, tests/**.py
+ignore = .*/, gold_digger/settings/_settings_local.py
+
+max_line_length = 160
+use_spaces = True
+preferred_quotation = "
+
+[Python.PEP8Control]
+bears = PEP8Bear
+
+[Python.UnusedCode]
+bears = PyUnusedCodeBear
+
+[Python.PycodeStyle]
+bears = PycodestyleBear
+
+[Python.PyCommentedCode]
+bears = PyCommentedCodeBear
+
+[Python.PyPrintBear]
+files = gold_digger/**.py, tests/**.py
+bears = PyPrintBear
+
+[Python.PySortImportsBear]
+bears = PySortImportsBear
+
+[Yaml]
+bears = YAMLLintBear
+files = **.yaml
+ignore = .**/
+yamllint_config = .yamllint

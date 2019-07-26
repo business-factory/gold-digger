@@ -2,13 +2,13 @@
 
 import logging
 from functools import lru_cache
-from os.path import dirname, normpath, abspath
+from os.path import abspath, dirname, normpath
 from uuid import uuid4
 
 import graypy
 from cached_property import cached_property as service
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy.orm import scoped_session, sessionmaker
 
 from . import settings
 from .data_providers import *
@@ -109,17 +109,14 @@ class DiContainer:
         :rtype: logging.Logger
         """
         logger_ = logging.getLogger(name)
-        logger_.setLevel(logging.DEBUG)
+        logger_.setLevel(settings.LOGGING_LEVEL)
         logger_.propagate = False
 
-        if not settings.DEVELOPMENT_MODE:
+        if settings.GRAYLOG_ENABLED:
             handler = graypy.GELFHandler(settings.GRAYLOG_ADDRESS, settings.GRAYLOG_PORT)
         else:
             handler = logging.StreamHandler()
-            handler.setFormatter(logging.Formatter(
-                "[%(levelname)s] %(asctime)s at %(filename)s:%(lineno)d (%(processName)s) -- %(message)s",
-                "%Y-%m-%d %H:%M:%S"
-            ))
+            handler.setFormatter(logging.Formatter(settings.LOGGING_FORMAT, "%Y-%m-%d %H:%M:%S"))
 
         logger_.addHandler(handler)
         return logger_

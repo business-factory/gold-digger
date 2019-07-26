@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from collections import defaultdict
-from datetime import datetime, date
+from datetime import date, datetime
 from operator import attrgetter
 
 from cachetools import cachedmethod, keys

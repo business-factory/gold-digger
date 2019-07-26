@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from collections import defaultdict, Counter
+from collections import Counter, defaultdict
 from datetime import date, timedelta
 from decimal import Decimal
 from itertools import combinations
@@ -209,7 +209,6 @@ class ExchangeRateManager:
                 best_to_currency_rate = self._calculate_best_exchange_rate(db_rates_by_dates_for_to_currency, date_, to_currency, logger)
             except ValueError:  # missing exchange rate for given date
                 logger.warning("Could not determine exchange rate. Date: %s. From currency: %s. To currency: %s", date_, from_currency, to_currency)
-                pass
             else:
                 exchange_rates_by_dates[date_.strftime(format="%Y-%m-%d")] = str(best_to_currency_rate / best_from_currency_rate)
 

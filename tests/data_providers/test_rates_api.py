@@ -261,4 +261,3 @@ def test_get_all_by_date__eur_base_eur_target(rates_api, response, logger):
         "CZK": Decimal(25.663000000000000255795384873636066913604736328125),
         "EUR": Decimal(1)
     }
-
