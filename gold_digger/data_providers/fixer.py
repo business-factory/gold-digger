@@ -171,7 +171,7 @@ class Fixer(Provider):
                         self._to_decimal(rates[self.base_currency], self.base_currency, logger=logger),
                         self._to_decimal(rates[currency], currency, logger=logger),
                         logger=logger,
-                     )
+                    )
 
             except Exception:
                 logger.exception("%s - Exception while parsing of the HTTP response.", self)

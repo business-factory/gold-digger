@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 
+import logging
+
 from ._utils import get_env
-
-
-DEVELOPMENT_MODE = True
 
 DATABASE_DIALECT = "postgresql"
 DATABASE_HOST = get_env("database_host", default="127.0.0.1")
@@ -12,7 +11,11 @@ DATABASE_USER = get_env("database_user", default="postgres")
 DATABASE_PASSWORD = get_env("database_password", default="postgres")
 DATABASE_NAME = get_env("database_name", default="golddigger")
 
+LOGGING_FORMAT = "[%(levelname)s] %(asctime)s at %(filename)s:%(lineno)d (%(processName)s-%(process)s-%(threadName)s) -- %(message)s"
+LOGGING_LEVEL = logging.DEBUG
+
 GRAYLOG_ADDRESS = "logs.roihunter.com"
+GRAYLOG_ENABLED = False
 GRAYLOG_PORT = 12211
 
 SUPPORTED_CURRENCIES = {

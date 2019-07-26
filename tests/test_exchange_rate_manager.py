@@ -115,7 +115,6 @@ def test_get_or_update_rate_by_date__today_after_cron_update(dao_exchange_rate, 
 
     """
     today = date.today()
-    yesterday = today - timedelta(1)
 
     exchange_rate_manager = ExchangeRateManager(dao_exchange_rate, dao_provider, [currency_layer, grandtrunk], base_currency, currencies)
 

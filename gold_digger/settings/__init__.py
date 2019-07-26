@@ -5,19 +5,16 @@ from os import environ, path
 from ._settings_default import *
 from ..exceptions import ImproperlyConfigured
 
+PROFILE = environ.get("GOLD_DIGGER_PROFILE", "local")
 
-profile = environ.get("GOLD_DIGGER_PROFILE", "local")
-
-if profile == "master":
+if PROFILE == "master":
     from ._settings_master import *
-elif profile == "local":
+elif PROFILE == "local":
     try:
         from ._settings_local import *
     except ImportError:
         raise ImproperlyConfigured(
-            "Local configuration not found. Create file _settings_local.py in {} directory according to README.".format(
-                path.abspath(path.join(__file__, path.pardir))
-            )
+            f"Local configuration not found. Create file _settings_local.py in {path.abspath(path.join(__file__, path.pardir))} directory according to README."
         )
 else:
-    raise ValueError("Unsupported settings profile. Got: {}. Use one of: master, staging, local.".format(profile))
+    raise ValueError(f"Unsupported settings profile. Got: {PROFILE}. Use one of: master, local.")
