@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "66bd4d4017035a1ce7d853a1217eebc5f6044b8d80484230d4df5a768dded281"
+            "sha256": "56a00ec07cac668a6beafafa1cfffedaf997ca286f0dc39d5aeb72f066ba288b"
         },
         "pipfile-spec": 6,
         "requires": {},
@@ -219,9 +219,9 @@
         },
         "autopep8": {
             "hashes": [
-                "sha256:2284d4ae2052fedb9f466c09728e30d2e231cfded5ffd7b1a20c34123fdc4ba4"
+                "sha256:4d8eec30cc81bc5617dbf1218201d770dc35629363547f17577c61683ccfb3ee"
             ],
-            "version": "==1.3.5"
+            "version": "==1.4.4"
         },
         "babel": {
             "hashes": [
@@ -292,7 +292,6 @@
                 "sha256:463f8483208e921368c9f306094eb6f725c6ca42b0f97e313cb5d5512459feda",
                 "sha256:48eb22f4f8461b1df5734a074b57042430fb06e1d61bd1e11b078c0fe6d7a1f1"
             ],
-            "markers": "sys_platform == 'win32'",
             "version": "==0.3.9"
         },
         "colorlog": {
@@ -387,10 +386,9 @@
         },
         "docutils": {
             "hashes": [
-                "sha256:54a349c622ff31c91cbec43b0b512f113b5b24daf00e2ea530bb1bd9aac14849",
-                "sha256:d2ddba74835cb090a1b627d3de4e7835c628d07ee461f7b4480f51af2fe4d448"
+                "sha256:f33ddb723332c6d6b6d99731ee1fc0c35eb4044a2df5cca1c64c8aa78eaf22cb"
             ],
-            "version": "==0.15"
+            "version": "==0.15.1.post1"
         },
         "eradicate": {
             "hashes": [
@@ -422,6 +420,7 @@
                 "sha256:7428f1cc5e72d53e65c3259d5cebc22fb2b07f973c49d95b3c3d26c64890a3c3",
                 "sha256:a0f744a4941eac5d99033eb0adcbec83bf443ee173fda4292d92a906aedce952"
             ],
+            "index": "pypi",
             "version": "==2.1.12"
         },
         "guess-language-spirit": {
@@ -680,10 +679,10 @@
         },
         "pyparsing": {
             "hashes": [
-                "sha256:530d8bf8cc93a34019d08142593cf4d78a05c890da8cf87ffa3120af53772238",
-                "sha256:f78e99616b6f1a4745c0580e170251ef1bbafc0d0513e270c4bd281bf29d2800"
+                "sha256:43c5486cefefa536c9aab528881c992328f020eefe4f6d06332449c365218580",
+                "sha256:d6c5ffe9d0305b9b977f7a642d36b9370954d1da7ada4c62393382cbadad4265"
             ],
-            "version": "==2.4.1"
+            "version": "==2.4.1.1"
         },
         "pyprint": {
             "hashes": [
@@ -691,13 +690,6 @@
                 "sha256:fa0e1c140b392b76f2028543fa70bae47900120282b119859cdde664d167b0e2"
             ],
             "version": "==0.2.6"
-        },
-        "pyreadline": {
-            "hashes": [
-                "sha256:4530592fc2e85b25b1a9f79664433da09237c1a270e4d78ea5aa3a2c7229e2d1"
-            ],
-            "markers": "platform_system == 'Windows'",
-            "version": "==2.1"
         },
         "pyroma": {
             "hashes": [
