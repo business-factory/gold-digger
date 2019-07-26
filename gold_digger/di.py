@@ -112,7 +112,7 @@ class DiContainer:
         logger_.setLevel(settings.LOGGING_LEVEL)
         logger_.propagate = False
 
-        if not settings.DEVELOPMENT_MODE:
+        if settings.GRAYLOG_ENABLED:
             handler = graypy.GELFHandler(settings.GRAYLOG_ADDRESS, settings.GRAYLOG_PORT)
         else:
             handler = logging.StreamHandler()

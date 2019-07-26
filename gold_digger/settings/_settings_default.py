@@ -4,8 +4,6 @@ import logging
 
 from ._utils import get_env
 
-DEVELOPMENT_MODE = True
-
 DATABASE_DIALECT = "postgresql"
 DATABASE_HOST = get_env("database_host", default="127.0.0.1")
 DATABASE_PORT = get_env("database_port", default="5432")
@@ -17,6 +15,7 @@ LOGGING_FORMAT = "[%(levelname)s] %(asctime)s at %(filename)s:%(lineno)d (%(proc
 LOGGING_LEVEL = logging.DEBUG
 
 GRAYLOG_ADDRESS = "logs.roihunter.com"
+GRAYLOG_ENABLED = False
 GRAYLOG_PORT = 12211
 
 SUPPORTED_CURRENCIES = {
