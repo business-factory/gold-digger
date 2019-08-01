@@ -42,8 +42,6 @@ spec:
                             value: "5432"
                         -   name: GOLD_DIGGER_PROFILE
                             value: "master"
-                        -   name: LOGGING_GUNICORN
-                            value: "gunicorn_logging_master"
                     envFrom:
                         -   secretRef:
                                 name: gold-digger-master
