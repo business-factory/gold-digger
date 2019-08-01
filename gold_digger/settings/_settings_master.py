@@ -4,4 +4,4 @@ import logging
 
 LOGGING_LEVEL = logging.INFO
 
-GRAYLOG_ENABLED = True
+LOGGING_GRAYLOG_ENABLED = True

@@ -3,6 +3,7 @@
 import logging
 from functools import lru_cache
 from os.path import abspath, dirname, normpath
+from urllib.parse import quote
 from uuid import uuid4
 
 import graypy
@@ -16,6 +17,7 @@ from .database.dao_exchange_rate import DaoExchangeRate
 from .database.dao_provider import DaoProvider
 from .managers.exchange_rate_manager import ExchangeRateManager
 from .utils import ContextLogger
+from .utils.custom_logging import IncludeFilter
 
 
 class DiContainer:
@@ -92,9 +94,11 @@ class DiContainer:
     @classmethod
     def logger(cls, **extra):
         """
+        :type extra: None | dict
         :rtype: gold_digger.utils.ContextLogger
         """
-        logger_ = cls.setup_logger("gold-digger")
+        logger_ = cls.set_up_logger("gold-digger")
+        logger_.setLevel(settings.LOGGING_LEVEL)
 
         extra_ = {"flow_id": cls.flow_id()}
         extra_.update(extra or {})
@@ -103,20 +107,46 @@ class DiContainer:
 
     @staticmethod
     @lru_cache(maxsize=None)
-    def setup_logger(name="gold-digger"):
+    def add_logger_to_root_filter(name):
+        """
+        :type name: str
+        """
+        IncludeFilter(name)
+
+    @classmethod
+    @lru_cache(maxsize=None)
+    def set_up_logger(cls, name):
         """
         :type name: str
         :rtype: logging.Logger
         """
         logger_ = logging.getLogger(name)
-        logger_.setLevel(settings.LOGGING_LEVEL)
-        logger_.propagate = False
+        cls.add_logger_to_root_filter(name)
 
-        if settings.GRAYLOG_ENABLED:
-            handler = graypy.GELFHandler(settings.GRAYLOG_ADDRESS, settings.GRAYLOG_PORT)
-        else:
-            handler = logging.StreamHandler()
-            handler.setFormatter(logging.Formatter(settings.LOGGING_FORMAT, "%Y-%m-%d %H:%M:%S"))
-
-        logger_.addHandler(handler)
         return logger_
+
+    @staticmethod
+    @lru_cache(maxsize=1)
+    def set_up_root_logger():
+        """
+        Function for setting root logger. Should be called only once.
+        """
+        logger_ = logging.getLogger()
+        if settings.LOGGING_GRAYLOG_ENABLED:
+            handler = graypy.GELFRabbitHandler(
+                url=f"amqp://beaver:{quote(settings.LOGGING_AMQP_PASSWORD, safe='')}@{settings.LOGGING_AMQP_HOST}:{settings.LOGGING_AMQP_PORT}",
+                exchange="golddigger-logs-exchange",
+                exchange_type="direct",
+                routing_key="golddigger-logs",
+            )
+            handler.setLevel(settings.LOGGING_LEVEL)
+            handler.addFilter(IncludeFilter())
+            logger_.addHandler(handler)
+
+        stream_handler = logging.StreamHandler()
+        stream_handler.setFormatter(logging.Formatter(settings.LOGGING_FORMAT, "%Y-%m-%d %H:%M:%S"))
+
+        stream_handler.setLevel(settings.LOGGING_LEVEL)
+        stream_handler.addFilter(IncludeFilter())
+
+        logger_.addHandler(stream_handler)

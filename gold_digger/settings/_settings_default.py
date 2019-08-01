@@ -13,10 +13,11 @@ DATABASE_NAME = get_env("database_name", default="golddigger")
 
 LOGGING_FORMAT = "[%(levelname)s] %(asctime)s at %(filename)s:%(lineno)d (%(processName)s-%(process)s-%(threadName)s) -- %(message)s"
 LOGGING_LEVEL = logging.DEBUG
+LOGGING_GRAYLOG_ENABLED = False
+LOGGING_AMQP_HOST = "app01.bfcloud.cz"
+LOGGING_AMQP_PORT = 32769
+LOGGING_AMQP_PASSWORD = get_env("graylog_amqp_password")
 
-GRAYLOG_ADDRESS = "logs.roihunter.com"
-GRAYLOG_ENABLED = False
-GRAYLOG_PORT = 12211
 
 SUPPORTED_CURRENCIES = {
     "AED", "AFN", "ALL", "AMD", "ANG", "AOA", "ARS", "ATS", "AUD", "AWG", "AZN", "BAM", "BBD",
