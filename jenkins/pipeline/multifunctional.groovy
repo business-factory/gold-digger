@@ -47,6 +47,10 @@ pipeline {
                         credentialsId: 'gold_digger_master_database',
                         usernameVariable: 'gold_digger_master_db_user',
                         passwordVariable: 'gold_digger_master_db_password'
+                    ),
+                    string(
+                        credentialsId: "graylog_amqp_password",
+                         variable: "gold_digger_graylog_amqp_password"
                     )
                 ]) {
                     script {
@@ -68,6 +72,7 @@ pipeline {
                                     -e GOLD_DIGGER_DATABASE_PASSWORD='''$gold_digger_master_db_password''' \
                                     -e GOLD_DIGGER_SECRETS_CURRENCY_LAYER_ACCESS_KEY='''$gold_digger_master_secrets_currency_layer_access_key''' \
                                     -e GOLD_DIGGER_SECRETS_FIXER_ACCESS_KEY='''$gold_digger_master_secrets_fixer_access_key''' \
+                                    -e GOLD_DIGGER_GRAYLOG_AMQP_PASSWORD='''$gold_digger_graylog_amqp_password''' \
                                     --hostname="golddigger-one-time-${command_name}-${env.BUILD_ID}" \
                                     --name="golddigger-one-time-${command_name}-${env.BUILD_ID}" \
                                     roihunter.azurecr.io/golddigger/master \
