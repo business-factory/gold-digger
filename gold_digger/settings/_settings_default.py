@@ -18,7 +18,6 @@ LOGGING_AMQP_HOST = "app01.bfcloud.cz"
 LOGGING_AMQP_PORT = 32769
 LOGGING_AMQP_PASSWORD = get_env("graylog_amqp_password")
 
-
 SUPPORTED_CURRENCIES = {
     "AED", "AFN", "ALL", "AMD", "ANG", "AOA", "ARS", "ATS", "AUD", "AWG", "AZN", "BAM", "BBD",
     "BDT", "BEF", "BGN", "BHD", "BIF", "BMD", "BND", "BOB", "BRL", "BSD", "BTC", "BTN", "BWP",

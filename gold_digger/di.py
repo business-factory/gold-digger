@@ -94,7 +94,7 @@ class DiContainer:
     @classmethod
     def logger(cls, **extra):
         """
-        :type extra: None | dict
+        :type extra: dict
         :rtype: gold_digger.utils.ContextLogger
         """
         logger_ = cls.set_up_logger("gold-digger")
@@ -139,14 +139,12 @@ class DiContainer:
                 exchange_type="direct",
                 routing_key="golddigger-logs",
             )
-            handler.setLevel(settings.LOGGING_LEVEL)
-            handler.addFilter(IncludeFilter())
-            logger_.addHandler(handler)
 
-        stream_handler = logging.StreamHandler()
-        stream_handler.setFormatter(logging.Formatter(settings.LOGGING_FORMAT, "%Y-%m-%d %H:%M:%S"))
+        else:
+            handler = logging.StreamHandler()
+            handler.setFormatter(logging.Formatter(settings.LOGGING_FORMAT, "%Y-%m-%d %H:%M:%S"))
 
-        stream_handler.setLevel(settings.LOGGING_LEVEL)
-        stream_handler.addFilter(IncludeFilter())
+        handler.setLevel(settings.LOGGING_LEVEL)
+        handler.addFilter(IncludeFilter())
 
-        logger_.addHandler(stream_handler)
+        logger_.addHandler(handler)
