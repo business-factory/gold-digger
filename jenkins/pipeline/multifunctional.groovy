@@ -33,54 +33,63 @@ pipeline {
     stages {
         stage('Run container') {
             steps {
-                withCredentials([
-                    string(credentialsId: 'docker-registry-azure', variable: 'DRpass'),
-                    string(
-                        credentialsId: 'gold_digger_master_secrets_currency_layer_access_key',
-                        variable: 'gold_digger_master_secrets_currency_layer_access_key'
-                    ),
-                    string(
-                        credentialsId: 'gold_digger_master_secrets_fixer_access_key',
-                        variable: 'gold_digger_master_secrets_fixer_access_key'
-                    ),
-                    usernamePassword(
-                        credentialsId: 'gold_digger_master_database',
-                        usernameVariable: 'gold_digger_master_db_user',
-                        passwordVariable: 'gold_digger_master_db_password'
-                    ),
-                    string(
-                        credentialsId: "graylog_amqp_password",
-                         variable: "gold_digger_graylog_amqp_password"
-                    )
-                ]) {
-                    script {
-                        def server = params['APP_SERVER']
-                        def database_host = params['DATABASE_HOST']
-                        def database_port = params['DATABASE_PORT']
-                        def command_name = getContainerName("${params.COMMAND}")
-                        def command = "${params.COMMAND}"
+                script {
+                    def docker_registry = 'roihunter-master'
+                    def docker_image_name = "eu.gcr.io/${docker_registry}/roihunter/golddigger:latest"
 
-                        sshagent(['5de2256c-107d-4e4a-a31e-2f33077619fe']) {
-                            sh """ssh -oStrictHostKeyChecking=no -t -t jenkins@${server} <<EOF
-                                docker login roihunter.azurecr.io -u roihunter -p "$DRpass"
-                                docker pull roihunter.azurecr.io/golddigger/master
-                                docker run --rm -d \
-                                    -e "GOLD_DIGGER_PROFILE=master" \
-                                    -e GOLD_DIGGER_DATABASE_HOST='''$database_host''' \
-                                    -e GOLD_DIGGER_DATABASE_PORT='''$database_port''' \
-                                    -e GOLD_DIGGER_DATABASE_USER='''$gold_digger_master_db_user''' \
-                                    -e GOLD_DIGGER_DATABASE_PASSWORD='''$gold_digger_master_db_password''' \
-                                    -e GOLD_DIGGER_SECRETS_CURRENCY_LAYER_ACCESS_KEY='''$gold_digger_master_secrets_currency_layer_access_key''' \
-                                    -e GOLD_DIGGER_SECRETS_FIXER_ACCESS_KEY='''$gold_digger_master_secrets_fixer_access_key''' \
-                                    -e GOLD_DIGGER_GRAYLOG_AMQP_PASSWORD='''$gold_digger_graylog_amqp_password''' \
-                                    --hostname="golddigger-one-time-${command_name}-${env.BUILD_ID}" \
-                                    --name="golddigger-one-time-${command_name}-${env.BUILD_ID}" \
-                                    roihunter.azurecr.io/golddigger/master \
-                                    ${command}
+                    withDockerRegistry(credentialsId: "gcr:${docker_registry}", url: 'https://eu.gcr.io') {
+                        withCredentials([
+                            usernamePassword(
+                                credentialsId: "gcr:${docker_registry}",
+                                usernameVariable: 'gcr_user',
+                                passwordVariable: 'gcr_password'
+                            ),
+                            string(
+                                credentialsId: 'gold_digger_master_secrets_currency_layer_access_key',
+                                variable: 'gold_digger_master_secrets_currency_layer_access_key'
+                            ),
+                            string(
+                                credentialsId: 'gold_digger_master_secrets_fixer_access_key',
+                                variable: 'gold_digger_master_secrets_fixer_access_key'
+                            ),
+                            usernamePassword(
+                                credentialsId: 'gold_digger_master_database',
+                                usernameVariable: 'gold_digger_master_db_user',
+                                passwordVariable: 'gold_digger_master_db_password'
+                            ),
+                            string(
+                                credentialsId: "graylog_amqp_password",
+                                variable: "gold_digger_graylog_amqp_password"
+                            )
+                        ]) {
+                            def server = params['APP_SERVER']
+                            def database_host = params['DATABASE_HOST']
+                            def database_port = params['DATABASE_PORT']
+                            def command_name = getContainerName("${params.COMMAND}")
+                            def command = "${params.COMMAND}"
 
-                                yes | docker image prune || exit 1
-                                exit
-                                EOF"""
+                            sshagent(['5de2256c-107d-4e4a-a31e-2f33077619fe']) {
+                                sh """ssh -oStrictHostKeyChecking=no -t -t jenkins@${server} <<EOF
+                                    docker login eu.gcr.io -u $gcr_user -p "$gcr_password"
+                                    docker pull ${docker_image_name} || exit 1
+                                    docker run --rm -d \
+                                        -e "GOLD_DIGGER_PROFILE=master" \
+                                        -e GOLD_DIGGER_DATABASE_HOST='''$database_host''' \
+                                        -e GOLD_DIGGER_DATABASE_PORT='''$database_port''' \
+                                        -e GOLD_DIGGER_DATABASE_USER='''$gold_digger_master_db_user''' \
+                                        -e GOLD_DIGGER_DATABASE_PASSWORD='''$gold_digger_master_db_password''' \
+                                        -e GOLD_DIGGER_SECRETS_CURRENCY_LAYER_ACCESS_KEY='''$gold_digger_master_secrets_currency_layer_access_key''' \
+                                        -e GOLD_DIGGER_SECRETS_FIXER_ACCESS_KEY='''$gold_digger_master_secrets_fixer_access_key''' \
+                                        -e GOLD_DIGGER_GRAYLOG_AMQP_PASSWORD='''$gold_digger_graylog_amqp_password''' \
+                                        --hostname="golddigger-one-time-${command_name}-${env.BUILD_ID}" \
+                                        --name="golddigger-one-time-${command_name}-${env.BUILD_ID}" \
+                                        ${docker_image_name} \
+                                        ${command}
+
+                                    yes | docker image prune || exit 1
+                                    exit
+                                    EOF"""
+                            }
                         }
                     }
                 }
