@@ -19,7 +19,7 @@ spec:
         spec:
             containers:
                 -   name: golddigger-master
-                    image: roihunter.azurecr.io/golddigger/master:$BUILD_NUMBER
+                    image: eu.gcr.io/roihunter-master/roihunter/golddigger:$BUILD_NUMBER
                     imagePullPolicy: Always
                     readinessProbe:
                         httpGet:
@@ -54,5 +54,3 @@ spec:
                         requests:
                             memory: "64Mi"
                             cpu: "100m"
-            imagePullSecrets:
-                -   name: regsecret

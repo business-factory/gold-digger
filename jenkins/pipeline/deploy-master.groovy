@@ -1,8 +1,12 @@
-def build, github, utils
+def github, utils
 
 pipeline {
     agent {
         label 'docker01'
+    }
+
+    libraries {
+        lib("jenkins-pipes@master")
     }
 
     options {
@@ -31,7 +35,6 @@ pipeline {
             steps {
                 script {
                     def rootDir = pwd()
-                    build = load "${rootDir}/jenkins/pipeline/_build.groovy"
                     github = load "${rootDir}/jenkins/pipeline/_github.groovy"
                     utils = load "${rootDir}/jenkins/pipeline/_utils.groovy"
                 }
@@ -41,7 +44,7 @@ pipeline {
         stage("Build Docker image") {
             steps {
                 script {
-                    build.buildDockerImage(env.BRANCH_NAME)
+                    dockerBuild env.BRANCH_NAME, "golddigger"
                 }
             }
         }
@@ -51,13 +54,10 @@ pipeline {
                 withCredentials([file(credentialsId: 'jenkins-roihunter-master-kubeconfig', variable: 'kube_config')]) {
                     kubernetesDeploy(
                         configs: '**/kubernetes/gold-digger-deployment.yaml,**/kubernetes/gold-digger-service.yaml,**/kubernetes/gold-digger-cron-deployment.yaml',
-                        dockerCredentials: [
-                             [credentialsId: 'docker-azure-credentials', url: 'http://roihunter.azurecr.io']
-                        ],
                         kubeConfig: [
                             path: "$kube_config"
                         ],
-                        secretName: 'regsecret',
+                        secretName: "",
                         ssh: [
                             sshCredentialsId: '*',
                             sshServer: ''
