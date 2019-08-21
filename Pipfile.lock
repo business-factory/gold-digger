@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "b822beca6832d4fde3b814d6c7c22b69be363c572e0f49c1aab57583a7396494"
+            "sha256": "322b81cfe013b4c1a39f526c0345f9d779ac15b7af4ad2878a3719f34a19bfcb"
         },
         "pipfile-spec": 6,
         "requires": {},
@@ -609,9 +609,9 @@
         },
         "nltk": {
             "hashes": [
-                "sha256:764c20a5f8532a681c261af3c7d1a54768a35df6f3603df75e615cbd34e47cb5"
+                "sha256:bed45551259aa2101381bbdd5df37d44ca2669c5c3dad72439fa459b29137d94"
             ],
-            "version": "==3.4.4"
+            "version": "==3.4.5"
         },
         "packaging": {
             "hashes": [
@@ -837,10 +837,10 @@
         },
         "sqlalchemy-utils": {
             "hashes": [
-                "sha256:c037bec2fe2a73b2dfda7b079b02644f20c477fdf6fc4ff0c2141a65ddbee0ee"
+                "sha256:6689b29d7951c5c7c4d79fa6b8c95f9ff9ec708b07aa53f82060599bd14dcc88"
             ],
             "index": "pypi",
-            "version": "==0.34.1"
+            "version": "==0.34.2"
         },
         "stevedore": {
             "hashes": [
