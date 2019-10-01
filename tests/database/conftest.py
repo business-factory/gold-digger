@@ -24,7 +24,7 @@ def db_connection(db_connection_string):
     drop_database(engine.url)
 
 
-@pytest.fixture()
+@pytest.fixture
 def db_session(db_connection):
     """
     Drop and create all tables for every test, ie. every test starts with empty tables and new session.
