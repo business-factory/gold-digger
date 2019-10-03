@@ -96,7 +96,7 @@ boolean getReleasePreview() {
     } catch (err) {
         utils.sendSlackNotification(
             "#FF0000",
-            "GitHub release preview fetch failed for Gold Digger ${env.BRANCH_NAME}. Please release changes manually at https://py.b.cz/helpers/releaser/gold-digger/"
+            "GitHub release preview fetch failed for Gold Digger ${env.BRANCH_NAME}. Please release changes manually at https://helpers.roihunter.com/helpers/releaser/gold-digger/"
         )
         println("GitHub release preview failed. Error: " + err)
     }
@@ -126,7 +126,7 @@ def getLatestRelease() {
     } catch (err) {
         utils.sendSlackNotification(
             "#FF0000",
-            "GitHub release version fetch failed for Gold Digger ${env.BRANCH_NAME}. Please release changes manually at https://py.b.cz/helpers/releaser/gold-digger/"
+            "GitHub release version fetch failed for Gold Digger ${env.BRANCH_NAME}. Please release changes manually at https://helpers.roihunter.com/helpers/releaser/gold-digger/"
         )
         println("GitHub release version fetch failed. Error: " + err)
     }
