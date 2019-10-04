@@ -123,7 +123,7 @@ pipeline {
                                     ignoreSslErrors: true,
                                     httpMode: "POST",
                                     requestBody: body,
-                                    url: """https://py.b.cz/helpers/releaser/gold-digger/release/master/$currentMaster...master"""
+                                    url: """https://helpers.roihunter.com/helpers/releaser/gold-digger/release/master/$currentMaster...master"""
                                 )
                             }
 
@@ -133,7 +133,7 @@ pipeline {
                     } catch (err) {
                         utils.sendSlackNotification(
                             "#FF0000",
-                            "Gold Digger ${env.BRANCH_NAME} release failed. Please release changes manually at https://py.b.cz/helpers/releaser/gold-digger/"
+                            "Gold Digger ${env.BRANCH_NAME} release failed. Please release changes manually at https://helpers.roihunter.com/helpers/releaser/gold-digger/"
                         )
                         println("GitHub release failed. Error: " + err)
                     }
