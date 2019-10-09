@@ -136,7 +136,7 @@ def test_get_by_date__date_too_old(rates_api, response, logger):
     :type logger: logging.Logger
     """
     response.status_code = 400
-    response._content = b"{'error': 'Error message'}"
+    response._content = b'{"error": "Error message"}'
 
     rates_api._get = lambda url, **kw: response
 
@@ -151,7 +151,7 @@ def test_get_by_date__currency_unavailable(rates_api, response, logger):
     :type logger: logging.Logger
     """
     response.status_code = 400
-    response._content = b"{'error': 'Error message'}"
+    response._content = b'{"error": "Error message"}'
 
     rates_api._get = lambda url, **kw: response
 
@@ -206,7 +206,7 @@ def test_get_all_by_date__date_too_old(rates_api, response, logger):
     :type logger: logging.Logger
     """
     response.status_code = 400
-    response._content = b"{'error': 'Error message'}"
+    response._content = b'{"error": "Error message"}'
 
     rates_api._get = lambda url, **kw: response
 
@@ -221,7 +221,7 @@ def test_get_all_by_date__currency_unavailable(rates_api, response, logger):
     :type logger: logging.Logger
     """
     response.status_code = 400
-    response._content = b"{'error': 'Error message'}"
+    response._content = b'{"error": "Error message"}'
 
     rates_api._get = lambda url, **kw: response
 
