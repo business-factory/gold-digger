@@ -11,7 +11,7 @@ croniter = "==0.3.30"
 falcon = "~=2.0.0"
 graypy = {version = "~=2.1.0", extras = ["amqp"]}
 gunicorn = "~=19.9.0"
-psycopg2-binary = "~=2.8.3"
+psycopg2-binary = "~=2.8.4"
 python-crontab = "==2.3.9"
 requests = "~=2.22.0"
 SQLAlchemy = "~=1.3.10"
