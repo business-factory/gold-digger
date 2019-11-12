@@ -9,7 +9,7 @@ cachetools = "~=3.1.0"
 click = "==6.6"
 croniter = "==0.3.30"
 falcon = "~=2.0.0"
-graypy = {version = "~=2.1.0", extras = ["amqp"]}
+graypy = {editable = true, extras = ["amqp"], git = "git://github.com/martinvy/graypy.git", ref = "master"}
 gunicorn = "~=19.9.0"
 psycopg2-binary = "~=2.8.4"
 python-crontab = "==2.4.0"
