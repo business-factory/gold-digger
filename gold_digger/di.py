@@ -138,6 +138,9 @@ class DiContainer:
                 exchange="golddigger-logs-exchange",
                 exchange_type="direct",
                 routing_key="golddigger-logs",
+                connect_timeout=10,
+                read_timeout=60,
+                write_timeout=60,
             )
 
         else:

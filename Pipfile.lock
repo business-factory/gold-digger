@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "40e25b4203948c60ab2876c842c30e7993af7d66ea1ca6d4f82e2870d664c1af"
+            "sha256": "9bbb04c55bad531434c1eb34b4714b07caa28e59c54f416ddb91f54319f99c01"
         },
         "pipfile-spec": 6,
         "requires": {},
@@ -14,11 +14,12 @@
         ]
     },
     "default": {
-        "amqplib": {
+        "amqp": {
             "hashes": [
-                "sha256:843d69b681a60afd21fbf50f310404ec67fcdf9d13dfcf6e9d41f3b456217e5b"
+                "sha256:6e649ca13a7df3faacdc8bbb280aa9a6602d22fd9d545336077e573a1f4ff3b8",
+                "sha256:77f1aef9410698d20eaeac5b73a87817365f457a507d82edf292e12cbb83b08d"
             ],
-            "version": "==1.0.2"
+            "version": "==2.5.2"
         },
         "cached-property": {
             "hashes": [
@@ -87,15 +88,12 @@
             "version": "==2.0.0"
         },
         "graypy": {
+            "editable": true,
             "extras": [
                 "amqp"
             ],
-            "hashes": [
-                "sha256:5df0102ed52fdaa24dd579bc1e4904480c2c9bbb98917a0b3241ecf510c94207",
-                "sha256:fd8dc4a721de1278576d92db10ac015e99b4e480cf1b18892e79429fd9236e16"
-            ],
-            "index": "pypi",
-            "version": "==2.1.0"
+            "git": "git://github.com/martinvy/graypy.git",
+            "ref": "c576b401a13b88ebcc3665b05b678d0be6d26426"
         },
         "gunicorn": {
             "hashes": [
@@ -192,6 +190,13 @@
                 "sha256:f3c5fd51747d450d4dcf6f923c81f78f811aab8205fda64b0aba34a4e48b0745"
             ],
             "version": "==1.25.7"
+        },
+        "vine": {
+            "hashes": [
+                "sha256:133ee6d7a9016f177ddeaf191c1f58421a1dcc6ee9a42c58b34bed40e1d2cd87",
+                "sha256:ea4947cc56d1fd6f2095c8d543ee25dad966f78692528e68b4fada11ba3f98af"
+            ],
+            "version": "==1.3.0"
         }
     },
     "develop": {
