@@ -10,7 +10,7 @@ click = "==6.6"
 croniter = "==0.3.30"
 falcon = "~=2.0.0"
 graypy = {editable = true, extras = ["amqp"], git = "git://github.com/martinvy/graypy.git", ref = "master"}
-gunicorn = "~=19.9.0"
+gunicorn = "~=20.0.0"
 psycopg2-binary = "~=2.8.4"
 python-crontab = "==2.4.0"
 requests = "~=2.22.0"
