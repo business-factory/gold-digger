@@ -11,11 +11,8 @@
 Setup python environment:
 
 ```sh
-pip install pipenv
-pipenv install
+pip install -U pip wheel && pip install -r requirements-dev.txt
 ```
-
-To install `dev` packages too, run `pipenv install --dev`.
 
 Create PostgreSQL database `golddigger` and grant permissions to user `postgres`.
 
