@@ -35,6 +35,10 @@ spec:
                         initialDelaySeconds: 5
                         periodSeconds: 30
                         timeoutSeconds: 10
+                    lifecycle:
+                        preStop:
+                            exec:
+                                command: ["/bin/bash", "-c", "sleep 10"]
                     env:
                         -   name: GOLD_DIGGER_DATABASE_HOST
                             value: "35.205.178.65"
