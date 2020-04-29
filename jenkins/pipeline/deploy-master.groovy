@@ -49,40 +49,21 @@ pipeline {
             }
         }
 
-        stage('Deploy service to Kubernetes') {
+        stage('Deploy API') {
             steps {
-                withCredentials([file(credentialsId: 'jenkins-roihunter-master-kubeconfig', variable: 'kube_config')]) {
-                    kubernetesDeploy(
-                        configs: '**/kubernetes/gold-digger-deployment.yaml,**/kubernetes/gold-digger-service.yaml,**/kubernetes/gold-digger-cron-deployment.yaml',
-                        kubeConfig: [
-                            path: "$kube_config"
-                        ],
-                        secretName: "",
-                        ssh: [
-                            sshCredentialsId: '*',
-                            sshServer: ''
-                        ],
-                        textCredentials: [
-                            certificateAuthorityData: '',
-                            clientCertificateData: '',
-                            clientKeyData: '',
-                            serverUrl: 'https://'
-                        ]
-                    )
+                script {
+                    withCredentials([file(credentialsId: 'jenkins-roihunter-master-kubeconfig', variable: 'kube_config')]) {
+                        sh '''
+                        cat kubernetes/gold-digger-api-deployment.yaml | sed -e "s/\\$BUILD_NUMBER/$BUILD_NUMBER/g" | tee kubernetes/gold-digger-api-deployment.yaml
+                        cat kubernetes/gold-digger-cron-deployment.yaml | sed -e "s/\\$BUILD_NUMBER/$BUILD_NUMBER/g" | tee kubernetes/gold-digger-cron-deployment.yaml
+                        kubectl --kubeconfig="$kube_config" apply -Rf kubernetes/
+                        kubectl --kubeconfig="$kube_config" rollout status deployment/gold-digger-deployment --timeout 2m
+                        kubectl --kubeconfig="$kube_config" rollout status deployment/gold-digger-cron-deployment --timeout 2m
+                        '''
+                    }
                 }
             }
         }
-
-       stage('Check API deploy status') {
-            steps {
-                   withCredentials([file(credentialsId: 'jenkins-roihunter-master-kubeconfig', variable: 'kube_config')]) {
-                        sh '''
-                        kubectl --kubeconfig="$kube_config" rollout status deployment/gold-digger-deployment --timeout 2m
-                        '''
-                    }
-            }
-        }
-
 
         stage("Do GitHub release") {
             steps {
