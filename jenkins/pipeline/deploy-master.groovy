@@ -54,8 +54,8 @@ pipeline {
                 script {
                     withCredentials([file(credentialsId: 'jenkins-roihunter-master-kubeconfig', variable: 'kube_config')]) {
                         sh '''
-                        cat kubernetes/gold-digger-api-deployment.yaml | sed -e "s/\\$BUILD_NUMBER/$BUILD_NUMBER/g" | tee kubernetes/gold-digger-api-deployment.yaml
-                        cat kubernetes/gold-digger-cron-deployment.yaml | sed -e "s/\\$BUILD_NUMBER/$BUILD_NUMBER/g" | tee kubernetes/gold-digger-cron-deployment.yaml
+                        sed -i -e "s/\\$BUILD_NUMBER/$BUILD_NUMBER/g" kubernetes/gold-digger-api-deployment.yaml
+                        sed -i -e "s/\\$BUILD_NUMBER/$BUILD_NUMBER/g" kubernetes/gold-digger-cron-deployment.yaml
                         kubectl --kubeconfig="$kube_config" apply -Rf kubernetes/
                         kubectl --kubeconfig="$kube_config" rollout status deployment/gold-digger-deployment --timeout 2m
                         kubectl --kubeconfig="$kube_config" rollout status deployment/gold-digger-cron-deployment --timeout 2m
