@@ -134,10 +134,11 @@ class DiContainer:
         logger_ = logging.getLogger()
         if settings.LOGGING_GRAYLOG_ENABLED:
             handler = graypy.GELFRabbitHandler(
-                url=f"amqp://beaver:{quote(settings.LOGGING_AMQP_PASSWORD, safe='')}@{settings.LOGGING_AMQP_HOST}:{settings.LOGGING_AMQP_PORT}",
-                exchange="golddigger-logs-exchange",
+                url=f"amqp://{settings.LOGGING_AMQP_USERNAME}:{quote(settings.LOGGING_AMQP_PASSWORD, safe='')}@"
+                    f"{settings.LOGGING_AMQP_HOST}:{settings.LOGGING_AMQP_PORT}",
+                exchange="gold-digger",
                 exchange_type="direct",
-                routing_key="golddigger-logs",
+                routing_key="gold-digger",
                 connect_timeout=10,
                 read_timeout=60,
                 write_timeout=60,
