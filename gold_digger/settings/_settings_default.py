@@ -14,8 +14,9 @@ DATABASE_NAME = get_env("database_name", default="golddigger")
 LOGGING_FORMAT = "[%(levelname)s] %(asctime)s at %(filename)s:%(lineno)d (%(processName)s-%(process)s-%(threadName)s) -- %(message)s"
 LOGGING_LEVEL = logging.DEBUG
 LOGGING_GRAYLOG_ENABLED = False
-LOGGING_AMQP_HOST = "138.201.138.201"
+LOGGING_AMQP_HOST = "136.243.154.182"
 LOGGING_AMQP_PORT = 5672
+LOGGING_AMQP_USERNAME = "service"
 LOGGING_AMQP_PASSWORD = get_env("graylog_amqp_password")
 
 SUPPORTED_CURRENCIES = {

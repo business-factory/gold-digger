@@ -57,9 +57,10 @@ pipeline {
                                 usernameVariable: 'gold_digger_master_db_user',
                                 passwordVariable: 'gold_digger_master_db_password'
                             ),
-                            string(
-                                credentialsId: "graylog_amqp_password",
-                                variable: "gold_digger_graylog_amqp_password"
+                            usernamePassword(
+                                credentialsId: "graylog-amqp-service-password",
+                                usernameVariable: "gold_digger_graylog_amqp_username",
+                                passwordVariable: "gold_digger_graylog_amqp_password"
                             )
                         ]) {
                             def server = params['APP_SERVER']
