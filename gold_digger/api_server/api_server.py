@@ -19,7 +19,7 @@ class DatabaseResource:
 
 class DateRateResource(DatabaseResource):
     @http_api_logger
-    def on_get(self, req, resp, logger):
+    def on_get_date_rate(self, req, resp, logger):
         """
         :type req: falcon.request.Request
         :type resp: falcon.request.Response
@@ -66,7 +66,7 @@ class DateRateResource(DatabaseResource):
 
 class DateRatesResource(DatabaseResource):
     @http_api_logger
-    def on_get(self, req, resp, logger):
+    def on_get_date_rates(self, req, resp, logger):
         """
         :type req: falcon.request.Request
         :type resp: falcon.request.Response
@@ -115,7 +115,7 @@ class DateRatesResource(DatabaseResource):
 
 class RangeRateResource(DatabaseResource):
     @http_api_logger
-    def on_get(self, req, resp, logger):
+    def on_get_range_rate(self, req, resp, logger):
         """
         :type req: falcon.request.Request
         :type resp: falcon.request.Response
@@ -164,7 +164,7 @@ class RangeRateResource(DatabaseResource):
 
 
 class HealthCheckResource:
-    def on_get(self, req, resp):
+    def on_get_check_readiness(self, req, resp):
         """
         :type req: falcon.request.Request
         :type resp: falcon.request.Response
@@ -174,7 +174,7 @@ class HealthCheckResource:
 
 
 class HealthAliveResource(DatabaseResource):
-    def on_get(self, req, resp):
+    def on_get_check_liveness(self, req, resp):
         """
         :type req: falcon.request.Request
         :type resp: falcon.request.Response
@@ -199,11 +199,11 @@ class API(falcon.API):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.container = di_container(__file__)
-        self.add_route("/rate", DateRateResource(self.container))
-        self.add_route("/rates", DateRatesResource(self.container))
-        self.add_route("/range", RangeRateResource(self.container))
-        self.add_route("/health", HealthCheckResource())
-        self.add_route("/health/alive", HealthAliveResource(self.container))
+        self.add_route("/rate", DateRateResource(self.container), suffix="date_rate")
+        self.add_route("/rates", DateRatesResource(self.container), suffix="date_rates")
+        self.add_route("/range", RangeRateResource(self.container), suffix="range_rate")
+        self.add_route("/health", HealthCheckResource(), suffix="check_readiness")
+        self.add_route("/health/alive", HealthAliveResource(self.container), suffix="check_liveness")
 
     def simple_server(self, host, port):
         # Ignore PyPrintBear
