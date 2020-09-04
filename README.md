@@ -2,7 +2,7 @@
 
 
 ## Used technologies
- - [Python 3.7](https://www.python.org/)
+ - [Python 3.8](https://www.python.org/)
  - [PostgreSQL](http://www.postgresql.org/)
 
 
