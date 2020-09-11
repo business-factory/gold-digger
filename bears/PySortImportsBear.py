@@ -31,7 +31,7 @@ class PySortImportsBear(LocalBear):
 
         import_groups = self._get_imports_from_file(file)
         group_diff = self._check_imports_group_order(import_groups, file)
-        line_diff = self._check_imports_line_order([i for l in import_groups for i in l], file)
+        line_diff = self._check_imports_line_order([i for imports in import_groups for i in imports], file)
 
         for diff in [group_diff, line_diff]:
             additions, deletions = diff.stats()
