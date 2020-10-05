@@ -3,11 +3,13 @@
 from datetime import date
 
 from ._provider import Provider
+from ..utils.helpers import batches
 
 
 class Yahoo(Provider):
     BASE_URL = "https://query1.finance.yahoo.com/v7/finance/spark?symbols={}&range=1d&interval=1d"
     SYMBOLS_PATTERN = "{}{}%3DX"
+    SYMBOLS_BATCH_SIZE = 20  # Yahoo has recently started returning error for more
     name = "yahoo"
 
     def __init__(self, base_currency, supported_currencies):
@@ -68,9 +70,12 @@ class Yahoo(Provider):
         :type logger: gold_digger.utils.ContextLogger
         :rtype: dict[str, decimal.Decimal]
         """
+        currency_rates = {}
         symbols = {self.SYMBOLS_PATTERN.format(self.base_currency, currency) for currency in self.get_supported_currencies()}
-        response = self._get(self.BASE_URL.format(",".join(symbols)), logger=logger)
-        currency_rates = self._parse_response(response, logger)
+
+        for symbols_batch in batches(symbols, self.SYMBOLS_BATCH_SIZE):
+            response = self._get(self.BASE_URL.format(",".join(symbols_batch)), logger=logger)
+            currency_rates.update(self._parse_response(response, logger))
 
         return currency_rates
 
