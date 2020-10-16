@@ -6,4 +6,4 @@ git+git://github.com/martinvy/graypy.git@master#egg=graypy[amqp]
 gunicorn==20.0.4
 python-crontab[cron-schedule]==2.5.1
 requests==2.24.0
-SQLAlchemy[postgresql]==1.3.19
+SQLAlchemy[postgresql]==1.3.20
