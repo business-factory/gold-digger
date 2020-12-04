@@ -17,6 +17,53 @@ class DatabaseResource:
         self.container = container
 
 
+class IntervalsRateResource(DatabaseResource):
+    @http_api_logger
+    def on_get_intervals_rate(self, req, resp, logger):
+        """
+        :type req: falcon.request.Request
+        :type resp: falcon.request.Response
+        :type logger: gold_digger.utils.ContextLogger
+        """
+        exchange_rate_manager = self.container.exchange_rate_manager
+
+        logger.info("Intervals rate request: %s", req.params)
+
+        from_currency = req.get_param("from", required=True)
+        to_currency = req.get_param("to", required=True)
+        date_of_exchange = req.get_param_as_date("date")
+        date_of_exchange = date_of_exchange if date_of_exchange else date.today()
+
+        invalid_currencies = [currency for currency in (from_currency, to_currency) if currency not in SUPPORTED_CURRENCIES]
+        if invalid_currencies:
+            raise falcon.HTTPInvalidParam("Invalid currency", " and ".join(invalid_currencies))
+
+        exchange_rate_in_intervals = []
+        try:
+            exchange_rate_in_intervals = exchange_rate_manager.get_exchange_rate_in_intervals_by_date(date_of_exchange, from_currency, to_currency, logger)
+        except DatabaseError:
+            self.container.db_session.rollback()
+            logger.exception("Database error occurred. Rollback session to allow reconnect to the DB on next request.")
+        except Exception:
+            logger.exception("Unexpected exception during intervals rate request %s->%s (%s)", from_currency, to_currency, date_of_exchange)
+
+        if not exchange_rate_in_intervals:
+            logger.error("Exchange rate not found: rate %s %s->%s", date_of_exchange, from_currency, to_currency)
+            raise falcon.HTTPInternalServerError("Exchange rate not found", "Exchange rate not found")
+
+        logger.info("GET intervals rate %s %s->%s %s", date_of_exchange, from_currency, to_currency, exchange_rate_in_intervals)
+
+        resp.status = falcon.HTTP_200
+        resp.body = json.dumps(
+            {
+                "date": date_of_exchange.strftime("%Y-%m-%d"),
+                "from_currency": from_currency,
+                "to_currency": to_currency,
+                "exchange_rate": exchange_rate_in_intervals,
+            }
+        )
+
+
 class DateRateResource(DatabaseResource):
     @http_api_logger
     def on_get_date_rate(self, req, resp, logger):
@@ -199,6 +246,7 @@ class API(falcon.API):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.container = di_container(__file__)
+        self.add_route("/intervals", IntervalsRateResource(self.container), suffix="intervals_rate")
         self.add_route("/rate", DateRateResource(self.container), suffix="date_rate")
         self.add_route("/rates", DateRatesResource(self.container), suffix="date_rates")
         self.add_route("/range", RangeRateResource(self.container), suffix="range_rate")
