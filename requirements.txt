@@ -1,5 +1,5 @@
 cached-property==1.5.2
-cachetools==4.1.1
+cachetools==4.2.0
 click==6.6
 falcon==2.0.0
 git+git://github.com/martinvy/graypy.git@master#egg=graypy[amqp]
