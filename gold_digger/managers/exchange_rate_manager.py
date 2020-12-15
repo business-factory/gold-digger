@@ -295,4 +295,41 @@ class ExchangeRateManager:
 
             logger.error("Date range 'count' and/or 'sum' are empty")
 
-        logger.error("Range request failed: from %s to %s", from_currency, to_currency)
+        return None
+
+    def get_exchange_rate_in_intervals_by_date(self, date_of_exchange, from_currency, to_currency, logger):
+        """
+        :type date_of_exchange: datetime.date
+        :type from_currency: str
+        :type to_currency: str
+        :type logger: gold_digger.utils.ContextLogger
+        :rtype: list[dict[str, str]]
+        """
+        daily = self.get_exchange_rate_by_date(date_of_exchange, from_currency, to_currency, logger)
+        if daily is None:
+            return []
+
+        start_date, end_date = date_of_exchange - timedelta(days=6), date_of_exchange
+        weekly = self.get_average_exchange_rate_by_dates(start_date, end_date, from_currency, to_currency, logger)
+        if weekly is None:
+            return []
+
+        start_date, end_date = date_of_exchange - timedelta(days=30), date_of_exchange
+        monthly = self.get_average_exchange_rate_by_dates(start_date, end_date, from_currency, to_currency, logger)
+        if monthly is None:
+            return []
+
+        return [
+            {
+                "interval": "daily",
+                "exchange_rate": str(daily),
+            },
+            {
+                "interval": "weekly",
+                "exchange_rate": str(weekly),
+            },
+            {
+                "interval": "monthly",
+                "exchange_rate": str(monthly),
+            },
+        ]

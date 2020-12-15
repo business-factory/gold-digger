@@ -55,6 +55,12 @@ For running the tests simply use:
 
 ## API endpoints
 
+* `/intervals?from=X&to=Y&date=YYYY-MM-DD`
+    * from currency - required
+    * to currency - required
+    * date of exchange - optional; returns last exchange rates if omitted
+    * example: [http://localhost:8080/intervals?from=EUR&to=USD&date=2005-12-22](http://localhost:8080/intervals?from=EUR&to=USD&date=2005-12-22)
+
 * `/rate?from=X&to=Y&date=YYYY-MM-DD`
     * from currency - required
     * to currency - required

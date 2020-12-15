@@ -521,3 +521,53 @@ def test_pick_rate_from_most_similar_pair_of_rates_by_order_of_providers():
     best = ExchangeRateManager.pick_the_best([Decimal(0.02), Decimal(0.72), Decimal(0.74)])
 
     assert best == 0.72
+
+
+def test_get_exchange_rate_in_intervals_by_date(dao_exchange_rate, dao_provider, base_currency, currencies, logger):
+    """
+    :param dao_exchange_rate: Mock of gold_digger.database.dao_exchange_rate.DaoExchangeRate
+    :param dao_provider: Mock of gold_digger.database.dao_provider.DaoProvider
+    :type base_currency: str
+    :type currencies: set[str]
+    :type logger: logging.Logger
+    """
+    date_of_exchange_ = date(2020, 11, 30)
+    start_date_6_days_ago = date_of_exchange_ - timedelta(days=6)
+    start_date_30_days_ago = date_of_exchange_ - timedelta(days=30)
+    provider = Provider(name="currency_layer")
+    rates = {
+        "EUR": [ExchangeRate(provider=provider, date=date_of_exchange_, currency="EUR", rate=Decimal(10.0))],
+        "CZK": [ExchangeRate(provider=provider, date=date_of_exchange_, currency="CZK", rate=Decimal(15.0))],
+    }
+    sum_of_rates = {
+        "EUR": {
+            date_of_exchange_: [(provider, 1, Decimal(10.0))],
+            start_date_6_days_ago: [(provider, 7, Decimal(70.0))],
+            start_date_30_days_ago: [(provider, 31, Decimal(310.0))],
+        },
+        "CZK": {
+            date_of_exchange_: [(provider, 1, Decimal(15.0))],
+            start_date_6_days_ago: [(provider, 7, Decimal(140.0))],
+            start_date_30_days_ago: [(provider, 31, Decimal(775.0))],
+        },
+    }
+    dao_exchange_rate.get_sum_of_rates_in_period.side_effect = lambda start_date, _, currency: sum_of_rates[currency][start_date]
+    dao_exchange_rate.get_rates_by_date_currency.side_effect = lambda _, currency: rates[currency]
+    exchange_rate_manager = ExchangeRateManager(dao_exchange_rate, dao_provider, [provider], base_currency, currencies)
+
+    exchange_rate_in_intervals = exchange_rate_manager.get_exchange_rate_in_intervals_by_date(date_of_exchange_, "EUR", "CZK", logger)
+
+    assert exchange_rate_in_intervals == [
+        {
+            "interval": "daily",
+            "exchange_rate": "1.5",
+        },
+        {
+            "interval": "weekly",
+            "exchange_rate": "2.0",
+        },
+        {
+            "interval": "monthly",
+            "exchange_rate": "2.5",
+        },
+    ]
