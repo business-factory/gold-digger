@@ -59,7 +59,7 @@ class IntervalsRateResource(DatabaseResource):
                 "date": date_of_exchange.strftime("%Y-%m-%d"),
                 "from_currency": from_currency,
                 "to_currency": to_currency,
-                "exchange_rate": exchange_rate_in_intervals,
+                "exchange_rates": exchange_rate_in_intervals,
             }
         )
 
