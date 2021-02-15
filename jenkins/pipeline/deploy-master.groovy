@@ -106,6 +106,8 @@ pipeline {
                         sh '''
                         sed -i "s/\\$BUILD_NUMBER/$BUILD_NUMBER/g" kubernetes/gold-digger-api-deployment.yaml
                         sed -i "s/\\$BUILD_NUMBER/$BUILD_NUMBER/g" kubernetes/gold-digger-cron-deployment.yaml
+                        sed -i "s/\\$APP_VERSION/$APP_VERSION/g" kubernetes/gold-digger-api-deployment.yaml
+                        sed -i "s/\\$APP_VERSION/$APP_VERSION/g" kubernetes/gold-digger-cron-deployment.yaml
                         kubectl --kubeconfig="$kube_config" apply -Rf kubernetes/
                         kubectl --kubeconfig="$kube_config" rollout status deployment/gold-digger-deployment --timeout 2m
                         kubectl --kubeconfig="$kube_config" rollout status deployment/gold-digger-cron-deployment --timeout 2m

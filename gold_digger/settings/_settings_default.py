@@ -4,6 +4,8 @@ import logging
 
 from ._utils import get_env
 
+APP_VERSION = get_env("app_version")
+
 DATABASE_DIALECT = "postgresql"
 DATABASE_HOST = get_env("database_host", default="127.0.0.1")
 DATABASE_PORT = get_env("database_port", default="5432")
