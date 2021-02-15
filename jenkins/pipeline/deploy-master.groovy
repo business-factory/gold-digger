@@ -41,31 +41,7 @@ pipeline {
             }
         }
 
-        stage("Build Docker image") {
-            steps {
-                script {
-                    dockerBuild env.BRANCH_NAME, "golddigger"
-                }
-            }
-        }
-
-        stage("Deploy API") {
-            steps {
-                script {
-                    withCredentials([file(credentialsId: "jenkins-roihunter-master-kubeconfig", variable: "kube_config")]) {
-                        sh '''
-                        sed -i "s/\\$BUILD_NUMBER/$BUILD_NUMBER/g" kubernetes/gold-digger-api-deployment.yaml
-                        sed -i "s/\\$BUILD_NUMBER/$BUILD_NUMBER/g" kubernetes/gold-digger-cron-deployment.yaml
-                        kubectl --kubeconfig="$kube_config" apply -Rf kubernetes/
-                        kubectl --kubeconfig="$kube_config" rollout status deployment/gold-digger-deployment --timeout 2m
-                        kubectl --kubeconfig="$kube_config" rollout status deployment/gold-digger-cron-deployment --timeout 2m
-                        '''
-                    }
-                }
-            }
-        }
-
-        stage("Do GitHub release") {
+        stage("Determine next app version") {
             steps {
                 script {
                     doRelease = github.getReleasePreview()
@@ -102,8 +78,48 @@ pipeline {
                                 env.APP_VERSION = currentMasterMajorAndMinorReleaseString + newMasterBuildNumber.toString()
                             }
 
-                            println(env.APP_VERSION)
+                        } else {
+                            env.APP_VERSION = currentMaster
+                        }
 
+                        println(env.APP_VERSION)
+
+                    } catch (err) {
+                        println("Failed to determine next app version. Error: " + err)
+                    }
+                }
+            }
+        }
+
+        stage("Build Docker image") {
+            steps {
+                script {
+                    dockerBuild env.BRANCH_NAME, "golddigger"
+                }
+            }
+        }
+
+        stage("Deploy API") {
+            steps {
+                script {
+                    withCredentials([file(credentialsId: "jenkins-roihunter-master-kubeconfig", variable: "kube_config")]) {
+                        sh '''
+                        sed -i "s/\\$BUILD_NUMBER/$BUILD_NUMBER/g" kubernetes/gold-digger-api-deployment.yaml
+                        sed -i "s/\\$BUILD_NUMBER/$BUILD_NUMBER/g" kubernetes/gold-digger-cron-deployment.yaml
+                        kubectl --kubeconfig="$kube_config" apply -Rf kubernetes/
+                        kubectl --kubeconfig="$kube_config" rollout status deployment/gold-digger-deployment --timeout 2m
+                        kubectl --kubeconfig="$kube_config" rollout status deployment/gold-digger-cron-deployment --timeout 2m
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage("Do GitHub release") {
+            steps {
+                script {
+                    try {
+                        if (doRelease) {
                             def body = "version=${env.APP_VERSION}"
                             withCredentials([string(credentialsId: "releaser-authorization", variable: "releaserAuthorization")]) {
                                 httpRequest(
