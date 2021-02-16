@@ -101,6 +101,9 @@ class DiContainer:
         logger_.setLevel(settings.LOGGING_LEVEL)
 
         extra_ = {"flow_id": cls.flow_id()}
+        if settings.APP_VERSION:
+            extra_["version"] = settings.APP_VERSION
+
         extra_.update(extra or {})
 
         return ContextLogger(logger_, extra_)

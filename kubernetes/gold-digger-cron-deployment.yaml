@@ -28,6 +28,8 @@ spec:
                     command: ["python"]
                     args: ["-m", "gold_digger", "cron"]
                     env:
+                        -   name: GOLD_DIGGER_APP_VERSION
+                            value: "$APP_VERSION"
                         -   name: GOLD_DIGGER_DATABASE_HOST
                             value: "35.205.178.65"
                         -   name: GOLD_DIGGER_DATABASE_PORT
