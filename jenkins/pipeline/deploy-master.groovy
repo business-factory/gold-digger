@@ -6,7 +6,7 @@ pipeline {
     }
 
     libraries {
-        lib("jenkins-pipes@feature-RH-35306-support-single-branch-projects")
+        lib("jenkins-pipes@master")
     }
 
     options {
