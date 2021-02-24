@@ -1,8 +1,5 @@
 import groovy.json.JsonSlurper
 
-def rootDir = pwd()
-utils = load "${rootDir}/jenkins/pipeline/_utils.groovy"
-
 /**
  * Get urls of all comments in GitHub PR
  * Only comments starting with specific prefix will be returned
@@ -68,67 +65,6 @@ void sendCommentToGit(String message) {
         }
     } catch (e) {
         echo "Script (send comment to git) returned exception: " + e
-    }
-}
-
-/***
- * Check if release is needed, e.g. some commits were made after last release.
- */
-boolean getReleasePreview() {
-    def parsed, previewRootSlurper, preview
-    int totalCommits = 0
-
-    def latestRelease = getLatestRelease()
-
-    try {
-        withCredentials([string(credentialsId: "github-authorization", variable: "githubAuthorization")]) {
-            preview = httpRequest(
-                customHeaders: [[name: "Authorization", value: githubAuthorization]],
-                ignoreSslErrors: false,
-                url: """https://api.github.com/repos/roihunter/gold-digger/compare/$latestRelease...master"""
-            )
-        }
-
-        previewRootSlurper = new JsonSlurper()
-        parsed = previewRootSlurper.parseText(preview.getContent())
-        totalCommits = parsed.total_commits
-        println("Total commits for the release: ${totalCommits}")
-    } catch (err) {
-        utils.sendSlackNotification(
-            "#FF0000",
-            "GitHub release preview fetch failed for Gold Digger ${env.BRANCH_NAME}. Please release changes manually at https://helpers.roihunter.com/helpers/releaser/gold-digger/"
-        )
-        println("GitHub release preview failed. Error: " + err)
-    }
-
-    return totalCommits > 0
-}
-
-def getLatestRelease() {
-    def ghResponse, releases, latestRelease, ghRootSlurper, ghParsedResponse
-
-    try {
-        // first (pre-)release has to be done manually
-        withCredentials([string(credentialsId: "github-authorization", variable: "githubAuthorization")]) {
-            ghResponse = httpRequest(
-                customHeaders: [[name: "Authorization", value: githubAuthorization]],
-                ignoreSslErrors: false,
-                url: "https://api.github.com/repos/roihunter/gold-digger/releases"
-            )
-        }
-
-        ghRootSlurper = new JsonSlurper()
-        ghParsedResponse = ghRootSlurper.parseText(ghResponse.getContent())
-        releases = ghParsedResponse.find({ !it.prerelease })
-
-        latestRelease = releases.drop(1).tag_name
-        return latestRelease
-    } catch (err) {
-        utils.sendSlackNotification(
-            "#FF0000",
-            "GitHub release version fetch failed for Gold Digger ${env.BRANCH_NAME}. Please release changes manually at https://helpers.roihunter.com/helpers/releaser/gold-digger/"
-        )
-        println("GitHub release version fetch failed. Error: " + err)
     }
 }
 
