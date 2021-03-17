@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from .db_model import Provider
 
 

@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 def batches(iterable, batch_size):
     """
     :type iterable: collections.abc.Iterable
