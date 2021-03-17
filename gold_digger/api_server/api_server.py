@@ -111,55 +111,6 @@ class DateRateResource(DatabaseResource):
         )
 
 
-class DateRatesResource(DatabaseResource):
-    @http_api_logger
-    def on_get_date_rates(self, req, resp, logger):
-        """
-        :type req: falcon.request.Request
-        :type resp: falcon.request.Response
-        :type logger: gold_digger.utils.ContextLogger
-        """
-        logger.info("Rates request: %s", req.params)
-        exchange_rate_manager = self.container.exchange_rate_manager
-
-        from_currency = req.get_param("from", required=True)
-        to_currency = req.get_param("to", required=True)
-        start_date = req.get_param_as_date("start_date", required=True)
-        end_date = req.get_param_as_date("end_date", required=True)
-
-        invalid_currencies = [currency for currency in (from_currency, to_currency) if currency not in SUPPORTED_CURRENCIES]
-        if invalid_currencies:
-            raise falcon.HTTPInvalidParam("Invalid currency", " and ".join(invalid_currencies))
-
-        exchange_rates_by_dates = {}
-        try:
-            exchange_rates_by_dates = exchange_rate_manager.get_exchange_rates_by_dates(start_date, end_date, from_currency, to_currency, logger)
-        except DatabaseError:
-            self.container.db_session.rollback()
-            logger.exception("Database error occurred. Rollback session to allow reconnect to the DB on next request.")
-        except Exception:
-            logger.exception("Unexpected exception while rates request %s->%s (%s - %s)", from_currency, to_currency, start_date, end_date)
-
-        logger.info("GET rates %s/%s %s->%s %s", start_date, end_date, from_currency, to_currency, exchange_rates_by_dates)
-
-        resp.status = falcon.HTTP_200
-        resp.body = json.dumps(
-            {
-                "start_date": start_date.strftime(format="%Y-%m-%d"),
-                "end_date": end_date.strftime(format="%Y-%m-%d"),
-                "from_currency": from_currency,
-                "to_currency": to_currency,
-                "exchange_rates": [
-                    {
-                        "date": date_from_range,
-                        "exchange_rate": exchange_rate,
-                    }
-                    for date_from_range, exchange_rate in exchange_rates_by_dates.items()
-                ],
-            },
-        )
-
-
 class RangeRateResource(DatabaseResource):
     @http_api_logger
     def on_get_range_rate(self, req, resp, logger):
@@ -248,7 +199,6 @@ class API(falcon.API):
         self.container = di_container(__file__)
         self.add_route("/intervals", IntervalsRateResource(self.container), suffix="intervals_rate")
         self.add_route("/rate", DateRateResource(self.container), suffix="date_rate")
-        self.add_route("/rates", DateRatesResource(self.container), suffix="date_rates")
         self.add_route("/range", RangeRateResource(self.container), suffix="range_rate")
         self.add_route("/health", HealthCheckResource(), suffix="check_readiness")
         self.add_route("/health/alive", HealthAliveResource(self.container), suffix="check_liveness")
