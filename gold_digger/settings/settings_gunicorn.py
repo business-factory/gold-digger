@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Related article: https://sebest.github.io/post/protips-using-gunicorn-inside-a-docker-image/
 

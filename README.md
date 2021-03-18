@@ -21,16 +21,11 @@ CREATE DATABASE "golddigger" WITH OWNER = postgres ENCODING = 'UTF8';
 ```
 
 Create local settings file called `gold_digger/settings/_settings_local.py` with configuration for local machine.
-For development purposes there is no configuration required so file may look like the below one:
-
-```python
-# -*- coding: utf-8 -*-
-```
+For development purposes there is no configuration required so file may be empty.
 
 For custom database connection use something like this to overwrite default configuration in `gold_digger/settings/_settings_default.py`:
 
 ```python
-# -*- coding: utf-8 -*-
 DATABASE_HOST = "<your_PG_server>"
 DATABASE_PORT = "<database_port>"
 DATABASE_USER = "<database_user>"

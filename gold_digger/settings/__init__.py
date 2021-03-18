@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from os import environ, path
 
 from ._settings_default import *

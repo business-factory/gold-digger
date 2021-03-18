@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from decimal import Decimal
 
 from sqlalchemy import BigInteger, Column, DECIMAL, Date, ForeignKey, Integer, String, UniqueConstraint

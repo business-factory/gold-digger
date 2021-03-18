@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import logging
 from functools import lru_cache
 from os.path import abspath, dirname, normpath

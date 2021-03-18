@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import pytest
 
 from gold_digger.data_providers import CurrencyLayer, Fixer, RatesAPI, Yahoo

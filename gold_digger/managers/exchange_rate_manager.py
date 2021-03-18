@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from collections import Counter, defaultdict
 from datetime import date, timedelta
 from decimal import Decimal

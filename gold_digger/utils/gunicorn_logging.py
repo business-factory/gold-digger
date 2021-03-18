@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from gunicorn import glogging
 
 from ..di import DiContainer
