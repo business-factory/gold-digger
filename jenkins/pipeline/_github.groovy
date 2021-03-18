@@ -2,12 +2,12 @@ import groovy.json.JsonSlurper
 
 /**
  * Get urls of all comments in GitHub PR
- * Only comments starting with specific prefix will be returned
+ * Only comments from bf-admin starting with specific prefix will be returned
  **/
 void getCommentsURLToDelete(commentPrefix) {
     String commentsAsString = ""
     try {
-        withCredentials([string(credentialsId: "github_token_write_access_to_pr", variable: "gold_digger_github_token")]) {
+        withCredentials([string(credentialsId: "github-bf-admin-global", variable: "gold_digger_github_token")]) {
             commentsAsString = sh(
                 script: "curl -s -H \"Authorization: token $gold_digger_github_token\" \"https://api.github.com/repos/roihunter/gold-digger/issues/${ghprbPullId}/comments\" ",
                 returnStdout: true
@@ -28,7 +28,7 @@ void getCommentsURLToDelete(commentPrefix) {
 
     List<String> commentsURLToDelete = new ArrayList<String>()
     comments.each {
-        if ( it.user.login == "DavidPrexta" && it.body.startsWith(commentPrefix) ) {
+        if ( it.user.login == "bf-admin" && it.body.startsWith(commentPrefix) ) {
             commentsURLToDelete.add(it.url)
         }
     }
@@ -41,7 +41,7 @@ void getCommentsURLToDelete(commentPrefix) {
  **/
 void deleteComment(String commentUrl) {
     try {
-        withCredentials([string(credentialsId: "github_token_write_access_to_pr", variable: "gold_digger_github_token")]) {
+        withCredentials([string(credentialsId: "github-bf-admin-global", variable: "gold_digger_github_token")]) {
             sh(
                 script: "curl -s -H \"Authorization: token $gold_digger_github_token\" -X DELETE \"$commentUrl \" || true",
                 returnStdout: true
@@ -57,7 +57,7 @@ void deleteComment(String commentUrl) {
  **/
 void sendCommentToGit(String message) {
     try {
-        withCredentials([string(credentialsId: "github_token_write_access_to_pr", variable: "gold_digger_github_token")]) {
+        withCredentials([string(credentialsId: "github-bf-admin-global", variable: "gold_digger_github_token")]) {
             sh(
                 script: "curl -s -H \"Authorization: token $gold_digger_github_token\" -X POST --data '{\"body\":\"${message}\"}\' \"https://api.github.com/repos/roihunter/gold-digger/issues/${ghprbPullId}/comments\" ",
                 returnStdout: true
