@@ -1,6 +1,6 @@
 cached-property==1.5.2
 cachetools==4.2.1
-click==6.6
+click==6.6  # prevents library version conflict for Coala
 falcon==2.0.0
 git+git://github.com/martinvy/graypy.git@master#egg=graypy[amqp]
 gunicorn==20.0.4
