@@ -67,12 +67,6 @@ For running the tests simply use:
     * date of exchange - optional; returns last exchange rates if omitted
     * example: [http://localhost:8080/rate?from=EUR&to=USD&date=2005-12-22](http://localhost:8080/rate?from=EUR&to=USD&date=2005-12-22)
 
-* `/rates?from=X&to=Y&start_date=YYYY-MM-DD&end_date=YYYY-MM-DD`
-    * from currency - required
-    * to currency - required
-    * start date & end date of exchange - required
-    * example: [http://localhost:8080/rates?from=EUR&to=AED&start_date=2016-02-15&end_date=2016-02-15](http://localhost:8080/rates?from=EUR&to=AED&start_date=2016-02-15&end_date=2016-02-15)
-
 * `/range?from=X&to=Y&start_date=YYYY-MM-DD&end_date=YYYY-MM-DD`
     * from currency - required
     * to currency - required
